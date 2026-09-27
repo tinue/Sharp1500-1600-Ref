@@ -716,6 +716,15 @@ value to start and end (rom3b `44DDH`/`4505H`), `LOAD` and `CLOAD` write the loa
 `TITLE` = 1/2, `PRGADR` falls back to S0 (and resets `TITLE`) when SxMTb ≥ `FEH`.
 `LOAD` into S1/S2 is capped at limit page:00 − 1 (`LOADRANGE`, rom3b `722EH`).
 
+**Free space per area.** `MEM` (= `STATUS 0`) runs on the LH-5803 (`FUNC` → LH5803
+`BCMD_MEM` $CBF8 → $CC30) and always reports S0: `(F864):00 − (F867 + 1) + (5 − F02CH) ×
+4000H`, whatever `TITLE` selects; `STATUS 1`–`4` and 256/257 are S0-only as well. The S1/S2
+counterparts are `STATUS 259` / `260` (`STATUS_SLOT` $CE41): limit page:00 − program end
+(desc +2 minus +7..+8, plus 4000H per bank between desc +3 and +9), nothing when SxMTb
+has b7 set (no program module). Confirmed on a 32 KB program module: empty, `STATUS 259` =
+32571 = 32768 − C5H. (The disassembly's comment on $CE41, "size of the program module",
+means the free size.)
+
 ## Open items
 
 - ~~Exact byte boundaries of the Block A sub-regions (§1)~~ — **resolved** from the
