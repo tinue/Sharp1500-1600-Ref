@@ -47,7 +47,7 @@ Write a subroutine callable from BASIC via CALL that measures the amount of free
 Test how much memory is unused and store a data block there.
 ```
 
-The document covers the LH5801 instruction set, addressing modes, `sdaslh5801` (sdas) assembler syntax and macros, the `pc1500emu`/`pc1500preset` toolchain (assembling, disassembling with `pc1500disasm`, and loading into the emulator), PC-1500 memory layout, system variable addresses, ROM subroutine calling conventions, BCD floating-point format, and common idioms. An AI given this guide can produce correct, assembler-ready `.asm` files for the PC-1500.
+The document covers the LH5801 instruction set, addressing modes, `sdaslh5801` (sdas) assembler syntax and macros, the `sdcc-pc1500` toolchain (`sdaslh5801` → `sdld` → `makebin`), running programs in the Calc-U-1600 emulator from a YAML preset, where to find annotated ROM disassemblies, PC-1500 memory layout, system variable addresses, ROM subroutine calling conventions, BCD floating-point format, and common idioms. An AI given this guide can produce correct, assembler-ready `.asm` files for the PC-1500.
 
 ---
 
@@ -82,9 +82,9 @@ Machine-specific consolidation for the **Sharp PC-1600** (dual-CPU: Z-80-compati
 | `PC-1600-Keyboard.md` | *(hw complete)* Scan mechanism, strobe/sense wiring (TRM §7.4/§7.9); plus the full §3.2 key IOCS routines, the 9-strobe scan matrix, the §3.2.2 work area, and key-code translation/redefinition. Emulator-ready; §10.2 key-code table (agent-facing) pending. |
 | `PC-1600-Expansion-Bus.md` | *(stub)* Designing hardware for the 60-pin system bus + 40-pin memory slots: electrical, bus-cycle timing, IRQ/WAIT protocol, ROM-module header/autostart, worked example. |
 | `PC-1600-Memory-Modules.md` | *(stub)* Per-module catalogue: CE-1600M/1601M/1620M/1650M/superRAM + PC-1500-module adaptation. |
-| `PC-1600-Assembly-Guide.md` | *(stub)* Writing SC7852 machine-language programs: BASIC calling conventions, bank-aware code, ROM entry points, toolchain. |
+| `PC-1600-Assembly-Guide.md` | *(first pass)* Writing SC7852 machine-language programs: BASIC calling conventions, bank-aware code, ROM entry points, toolchain. |
 | `PC-1600-ROM-Versions.md` | The two PC-1600 BASIC ROM revisions (OLD/NEW), Sharp's three-`PEEK #` identification table mapped onto the CS001/CS123/CS24 chips, verification against the real-hardware dumps (all NEW, byte-identical to PockEmul's set), and the now-enumerated four extra reset-only jump-table entries. From SOFTWARE-INFO bulletin 1600-010E. |
-| `PC-1600-ROM-Disassembly.md` | Pointer to the external PC-1600 ROM reverse-engineering project |
+| `PC-1600-ROM-Disassembly.md` | Pointer to the real-hardware ROM dumps and their annotated, reassemblable disassemblies (`PC-1600-ROM/`) |
 
 ### Memory-Architecture/
 
@@ -157,7 +157,12 @@ Several documents in this repo mention tools or sibling projects by their local 
 | Local path used in these docs | Status | Public URL |
 |---|---|---|
 | `pc1500emu/` | Public (independent fork, not this user's own project) | [github.com/tinue/pc1500emu](https://github.com/tinue/pc1500emu) |
-| `pc1500preset/` | Public | [github.com/tinue/pc1500preset](https://github.com/tinue/pc1500preset) |
+| `pc1500preset/` | No longer published (superseded by Calc-U-1600) | — |
+| `Calc-U-1600/` | Public — PC-1500/1500A/1600 emulator; the reference for running programs | [github.com/tinue/Calc-U-1600](https://github.com/tinue/Calc-U-1600) |
+| `PC-1600-ROM/` | Public — PC-1600 + CE-1600P ROM dumps and their annotated, reassemblable disassemblies | [github.com/tinue/PC-1600-ROM](https://github.com/tinue/PC-1600-ROM) |
+| `PC-1500-ROM/` | Public — CE-150 ROM dump | [github.com/tinue/PC-1500-ROM](https://github.com/tinue/PC-1500-ROM) |
+| `Sharp_PC-1500_ROM_Disassembly/` | Public (external project, not this user's own) — PC-1500 A01/A03/A04 ROM disassembly | [github.com/Jeff-Birt/Sharp_PC-1500_ROM_Disassembly](https://github.com/Jeff-Birt/Sharp_PC-1500_ROM_Disassembly) |
+| `pc1600/` | **Private** — annotation workspace behind `PC-1600-ROM/disasm/` | — |
 | `SharpDataExchange` | Public | [github.com/tinue/SharpDataExchange](https://github.com/tinue/SharpDataExchange) |
 | `sdcc-pc1500/` | Public (external project, not this user's own) | [github.com/pchambre/sdcc-pc1500](https://github.com/pchambre/sdcc-pc1500) |
 | `sharp-pocket-computer/` | Public | [github.com/tinue/sharp-pocket-computer](https://github.com/tinue/sharp-pocket-computer) |
@@ -172,8 +177,8 @@ Several documents in this repo mention tools or sibling projects by their local 
 
 These contain genuine Sharp research but were deliberately **not** copied or moved:
 
-- **`pc1500emu/`** — has its own hardware reference (`docs/pc1500_hardware_reference.md`), LH5801 opcode reference (`docs/lh5801_opcode_reference.md`), a real-hardware keyboard-matrix probing writeup (`docs/pc1500_keyscan_probe.md`), and a "confirmed hardware facts" section inside `.claude/skills/pc1500-dev/SKILL.md`. Consult that repository directly for emulator-verified hardware facts.
-- **CE-1638 / CE-163F / CE-163X materials** (`pc1500/CE-1638/`, `pc1500/CE-163F/`) — these document a **modern** (hobbyist-built) memory-expansion module and its firmware, not original 1980s Sharp hardware, so they're out of scope for this corpus and live in a **private, unpublished** repository (`pc1500/`, see table above) — not this repo and not `pc1500preset/`. `pc1500preset/docs/MEMTEST-MANUAL.md` (a memory-test utility for these modules) lives in the public `pc1500preset/` repo; `pc1500/CE-1638/BANKSWRM-Firmware-Notes.md` (a suspected firmware defect writeup) stays in the private `pc1500/` repo.
+- **`pc1500emu/`** — an independent emulator, being retired. Not an authority for this corpus: facts here are sourced from Sharp's manuals, the Service Manuals and the ROM code, and programs are run in Calc-U-1600.
+- **CE-1638 / CE-163F / CE-163X materials** (`pc1500/CE-1638/`, `pc1500/CE-163F/`) — these document a **modern** (hobbyist-built) memory-expansion module and its firmware, not original 1980s Sharp hardware, so they're out of scope for this corpus and live in a **private, unpublished** repository (`pc1500/`, see table above) — not this repo. The memory-test utility for these modules is now Calc-U-1600's `examples/machine-code/memtest.asm`; `pc1500/CE-1638/BANKSWRM-Firmware-Notes.md` (a suspected firmware defect writeup) stays in the private `pc1500/` repo.
 - **Generic TASM assembler manuals** (`tasm/`, `tasm-35/`, `lh5801_asm/reference/`) — the Telemark TASM user manual and opcode tables are generic to the assembler, not specific to the LH5801 or Sharp hardware, and are duplicated across three locations in a **private, unpublished** part of the workspace (see table above).
 
 ---

@@ -4,7 +4,9 @@ Quick reference guide to the PC-1500 ROM disassembly structure.
 
 ## ROM File Location
 
-`reference/PC-1500_ROM-A0x.lh5801.asm` (327,562 bytes)
+`PC-1500_ROM-A0x.lh5801.asm` in the sibling repo `Sharp_PC-1500_ROM_Disassembly/` ([github.com/Jeff-Birt/Sharp_PC-1500_ROM_Disassembly](https://github.com/Jeff-Birt/Sharp_PC-1500_ROM_Disassembly)), not in this repository. One source covers ROM revisions A01, A03 and A04 (`#IFNDEF A01` etc. mark the differences). Despite the `.lh5801` in its name it is TASM dialect. For the exact address of a line in one revision, use that repo's `PC-1500_ROM-A01.lst` / `-A03.lst` / `-A04.lst`; symbol files are in its `lib/`.
+
+Line numbers below refer to that `.asm` file.
 
 ## Key ROM Sections
 

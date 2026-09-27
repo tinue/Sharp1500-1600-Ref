@@ -84,49 +84,38 @@ Called from BASIC: `CALL &7800`
   makebin -p -o 0x<ORG> file.ihx file.bin
   ```
   The `-o 0x<ORG>` on `makebin` is not optional: `makebin` maps Intel-hex addresses onto file offset 0, so a program `.org`'d at, say, `0x7C01` without `-o 0x7C01` produces a ~32 KB file that's almost entirely `0xFF` padding before the real 50-ish bytes of code. `-p` (pack) then truncates the file to the last occupied byte, so the two flags together give exactly the flat, loadable blob the VS Code extension itself produces — verify with `wc -c file.bin` against the `.lst` file's own last address minus `.org`.
-- Disassemble a binary back to sdas source with `pc1500disasm`, e.g. `pc1500disasm --mode program --base 0xADDR file.bin -o file.asm` (default `--dialect sdas`, matching this project's own convention).
+- **Disassembly.** There is no maintained stand-alone LH5801 disassembler for arbitrary binaries yet. To read ROM code, use the annotated disassemblies instead of disassembling it yourself: the PC-1500 system ROM (A01/A03/A04) in `Sharp_PC-1500_ROM_Disassembly/PC-1500_ROM-A0x.lh5801.asm` ([github.com/Jeff-Birt/Sharp_PC-1500_ROM_Disassembly](https://github.com/Jeff-Birt/Sharp_PC-1500_ROM_Disassembly); TASM dialect despite the name, with per-revision `.lst` listings for exact addresses), and the PC-1600's LH5803 ROM, which is A04 adapted to the PC-1600, in sdas dialect: `PC-1600-ROM/disasm/new/PC1600-LH5803-C000-FFFF.asm` ([github.com/tinue/PC-1600-ROM](https://github.com/tinue/PC-1600-ROM)).
 
 **File requirements:** ASCII text, Unix (LF) line endings — non-ASCII characters (Unicode arrows, em-dashes) and Windows CRLF line endings both risk parse errors.
 
-### Running a program in the emulator (`pc1500preset`)
+### Running a program in the emulator (Calc-U-1600)
 
-`pc1500preset` (public sibling repo to `pc1500emu`: [github.com/tinue/pc1500preset](https://github.com/tinue/pc1500preset) / [github.com/tinue/pc1500emu](https://github.com/tinue/pc1500emu) — neither is part of this repository) launches an unmodified `pc1500emu` binary and drives it entirely through its own FIFO/pipe scripting interface, from a single YAML `.pc1500` state file — no manual clicking through File > Load Binary or typing boot keystrokes by hand. This is the normal way to run an assembled program.
+The emulator for testing is **Calc-U-1600** ([github.com/tinue/Calc-U-1600](https://github.com/tinue/Calc-U-1600)). It builds a machine from a YAML *preset*: the file extension names the model family (`.pc1500`, `.pc1500a`, `.pc1600`), and the preset says which model and memory to use, what to type, and which programs to load. This is the normal way to run an assembled program.
 
-A minimal `.pc1500` file for a program assembled to `myprog.bin`, loaded at `0x00C5` and started via `CALL`:
+A minimal preset for a program assembled to `myprog.bin`, loaded at `0x40C5` (the start of general RAM on a PC-1500 with 8 KB) and started via `CALL`:
 
 ```yaml
-model: PC-1500
-firmware: ../roms/PC-1500_A04.ROM
+model: PC-1500:A04            # PC-1500[:A01|A03|A04] | PC-1500A | PC-1600[:new|old]
 
-memory-expansion:
-  - address: 0x0000
-    size: 16k
-
-pre-load-keys:
+keys:
   - key: cl
-  - type: NEW&200
+  - type: NEW&417D            # protect the program's memory from BASIC
   - key: mode
 
 program:
   path: myprog.bin
   format: binary
-  address: 0x00C5
+  address: 0x40C5             # needed if the file has no header
 
-post-load-keys:
-  - type: CALL&C5
+keys:
+  - type: CALL&40C5
+  - wait: 2                   # two seconds of calculator time; a bare `- wait:` waits until idle
 ```
 
-- `firmware`, `program.path`, and any `rom-modules[].path` resolve relative to the `.pc1500` file's own directory.
-- `pre-load-keys` runs after the cold-boot reset but before the program loads (typically `NEW&<offset>` to protect the program's memory from BASIC); `post-load-keys` runs after — typically the `CALL` that starts it, plus any `wait`/`check` steps.
-- Add a `check: 0` step to `post-load-keys` to turn the file into an automated pass/fail test (reads the live dot-matrix display for the digit `0`) instead of just an interactive launch. See `pc1500preset/docs/preset_file_format.md` for the full field reference (`rom-modules`, `basic-tokenized`/`basic-text` program formats, CE-163 module support, etc.) and `pc1500preset/samples/memtest.pc1500` for a complete worked example.
-
-Launch it with:
-
-```sh
-./build/src/pc1500preset path/to/myprog.pc1500
-```
-
-This always cold-boots the emulator from the preset's own firmware/hardware sections; there's no "attach to an already-running instance" mode. If the script has no `check` step, the emulator window is left open afterward for interactive use.
+- The preset runs in order: build the machine, cold boot, then the `keys:` / `program:` blocks top to bottom (as many as needed). `type:` types a line followed by ENTER; `key:` presses one key by name.
+- `program.path` resolves relative to the preset file. A memory module goes in `memory-expansion:` (PC-1500/1500A).
+- Open a preset in the app with **File ▸ Load Preset…**, or run it headless for scripted checks: `tools/build_cli.sh`, then `headless/pc1500_cli --preset path/to/myprog.pc1500` (PC-1600: `tools/build_pc1600_cli.sh`, `headless/pc1600_cli`).
+- Full field reference: Calc-U-1600's `docs/User-Guide.md`, chapter *Presets*. Worked example: `examples/machine-code/memtest_stock.pc1500` with its source `memtest.asm`.
 
 ### Loading a program onto real hardware
 
@@ -247,7 +236,7 @@ Firmware often uses the `PU` and `PV` bits to control bank selection for specifi
 
 ### Basic Syntax Rules
 
-Confirmed against `pc1500preset/samples/memtest.asm`, the canonical working sdas source for this project.
+Confirmed against Calc-U-1600's `examples/machine-code/memtest.asm`, the canonical working sdas source for this project.
 
 - **Comments:** `;` to end of line
 - **Labels:** code labels followed by `:`; casing is the programmer's own choice (this guide follows `memtest.asm`'s convention of uppercase labels)
@@ -520,7 +509,7 @@ Each `psh Rreg` decrements S by 2 (pushes RH then RL). Each `pop Rreg` increment
 
 > **WARNING:** `ldx (x)` and `SBM` do **not exist** on the LH5801. `ldx` only takes register arguments (X, Y, U, S, P) -- there is no memory-indirect form. `SBM` is not a valid LH5801 instruction. `stx DATA_BASE` (STX to absolute address) is also invalid -- STX only takes register arguments. Do not use any of these.
 
-Use this pattern to locate the free memory region between the BASIC program and BASIC variables. The approach below uses only confirmed-valid instructions, matching the style of `pc1500preset/samples/memtest.asm`:
+Use this pattern to locate the free memory region between the BASIC program and BASIC variables. The approach below uses only confirmed-valid instructions, matching the style of Calc-U-1600's `examples/machine-code/memtest.asm`:
 
 ```asm
 ; --- Locate TST_START = BASPRG_END + 1 ---
@@ -1424,7 +1413,7 @@ With `a = 0x12` and `(Xreg) = 0x34` going in, DRL produces `a = 0x34`, mem `= 0x
 | `drl (x)` | ME0 | `0xD7` | 1 | 12 |
 | `drl #(x)` | ME1 | `0xFD 0xD7` | 2 | 16 |
 
-Confirmed by sibling project `Calc-U-1600` (this user's own, not part of this repo) running `examples/debug/instrquirks_1500a.asm` / `.bin` / `.pc1500a` on a real PC-1500A and PEEKing the result bytes — see that file's own header comment for the full discriminating-test writeup. `Core/CPU/LH5801/LH5801.cpp`'s `drlMerge`/`drrMerge` already implemented this reading (ported from source-level comparison against `pc1500emu` before this hardware test existed); the hardware run confirms that choice was correct.
+Confirmed by sibling project `Calc-U-1600` (this user's own, not part of this repo) running `dev/hardware-checks/instrquirks_1500a.asm` / `.bin` (preset `instrquirks.pc1500a`) on a real PC-1500A and PEEKing the result bytes — see that file's own header comment for the full discriminating-test writeup. `Core/CPU/LH5801/LH5801.cpp`'s `drlMerge`/`drrMerge` implement this reading, and the hardware run confirms it.
 
 ---
 
@@ -2583,15 +2572,16 @@ Recurring address-arithmetic and inline-byte idioms, written as plain sdas expre
 
 ## Appendix: Converting a TASM Source to sdas
 
-Older PC-1500 sources (e.g. from `Sharp_CE-158`-style repos) are often written for TASM (`tasm5801.tab`): uppercase mnemonics/registers, `$`-prefixed hex, `.EQU`/`.ORG`/`.DB`/`.BYTE`/`.DW`/`.WORD`/`.TEXT`/`.ASCII`, no segment concept, trailing `.END`. `pc1500disasm --mode convert` rewrites such a file to sdas automatically:
+Older PC-1500 sources (e.g. from `Sharp_CE-158`-style repos, or the PC-1500 ROM disassembly) are often written for TASM (`tasm5801.tab`): uppercase mnemonics/registers, `$`-prefixed hex, `.EQU`/`.ORG`/`.DB`/`.BYTE`/`.DW`/`.WORD`/`.TEXT`/`.ASCII`, no segment concept, trailing `.END`. There is no maintained converter; convert by hand:
 
-```sh
-pc1500disasm --mode convert old_source.asm -o old_source.sdas.asm
-```
+- Lower-case mnemonics and registers; `$1234` → `0x1234`.
+- `.EQU` → `.equ`, `.DB`/`.BYTE` → `.db`, `.DW`/`.WORD` → `.dw`, `.TEXT`/`.ASCII` → `.ascii`.
+- Put `.area CODE (ABS)` before the first `.org`. A second `.ORG` (multi-segment source) needs its own thought.
+- Rename the three TASM aliases that have no sdas equivalent: `CALL` → `sjp`, `RET` → `rtn`, `SCF` → `sec`.
+- Drop the trailing `.END`; sdas has no such directive and rejects it.
+- Preprocessor directives (`#include`/`#define`/`#ifdef`), `.EXPORT` and `MACRO`/`ENDM` blocks need real restructuring, not a syntax rewrite.
 
-It handles the directive/hex/case rewrite above, and renames three TASM mnemonics that alias LH5801 opcodes under Z80/8080-familiar names with no sdas equivalent — `CALL`/`RET`/`SCF` → `sjp`/`rtn`/`sec` — as a real rename, not a case fold. A trailing `.END` is dropped (sdas has no such directive; a real `sdaslh5801` build rejects one). Only the first `.ORG` in a file gets wrapped in the synthesized `.area CODE (ABS)` header — a second `.ORG` (multi-segment TASM source) is a warning, not a full conversion.
-
-**Not handled** — these need a real preprocessor/macro-expander, not a syntax rewrite, and are reported as errors: `#include`/`#define`/`#ifdef` preprocessor directives, `.EXPORT` (cross-module linking), `MACRO`/`ENDM` blocks. An unrecognized mnemonic/directive is passed through unchanged with a warning — always check the converted output actually assembles with `sdaslh5801` before trusting it.
+Always check that the result assembles with `sdaslh5801`, and compare the bytes with the original where you have them.
 
 ---
 
