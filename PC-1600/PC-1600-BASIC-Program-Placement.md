@@ -151,29 +151,31 @@ is the Slot‑2 low bank.)
 
 ## 5. Place the tokenised image
 
-The tokenised program is a chain of **forward‑linked line records with no embedded
-absolute addresses** (PC‑1500 record shape `[line# hi][line# lo][len][body…][0x0D]`,
-program terminated by `0xFF` — verify the exact header against your own tokeniser).
-Because nothing inside points at an address, placement is a **pure byte copy** — the
-scatter across banks needs no fixups; the interpreter reads across bank boundaries with
-`BANKREAD`/`BANKSET`‑style fetches.
+The tokenised program is a chain of line records with no embedded absolute addresses
+(`[line# hi][line# lo][len][body…][0x0D]`, `len` = body + 1), terminated by `0xFF`. Nothing
+inside points at an address, so placement is a byte copy — **but lines do not straddle two
+module banks.** The ROM's `LOAD` line storer (`LOADSTORE`, rom3b `7074H`) and the line editor
+both follow this rule, confirmed on the ROM in Calc-U-1600 (typed vs loaded, byte for byte):
+
+- A line goes into the current bank only if **2 bytes stay free after it**
+  (`addr + record + 2 ≤ top`; `top` = BFFFH for a module bank).
+- If it doesn't fit and another module bank follows, the ROM writes a two-byte
+  **bank-end mark `00 00`** (a line number 0) at `addr` and continues at the next bank's
+  base (8000H).
+- **ADTBL entry 5's module bank runs straight on into internal RAM** (BFFFH → C000H are
+  contiguous Z-80 addresses), so there a line *may* straddle, with no mark. That is also why
+  internal RAM counts as ADTBL index 5 in `F02CH`.
+- In the last segment (internal RAM, or the last bank of an S1/S2 program module) the same
+  test decides between storing and error 16H (out of memory), against the area limit.
 
 ```
-cursor = { seg: 0, addr: segments[0].base }
-
-FUNCTION advance():
-    cursor.addr += 1
-    IF cursor.addr > segments[cursor.seg].top:
-        cursor.seg += 1
-        IF cursor.seg >= len(segments): RAISE "program too large for user area"
-        cursor.addr = segments[cursor.seg].base
-
-FOR each byte IN tokenised_image:                 # include the terminating 0xFF
-    seg = segments[cursor.seg]
-    store_phys(seg.bank, cursor.addr, byte)       # see §6
-    advance()
-
-prog_end = (segments[cursor.seg].bank, cursor.addr)   # first free (bank, addr) after the image
+seg, addr = 0, segments[0].base
+FOR each record IN program:
+    WHILE addr + len(record) + 2 > run_top(seg):     # run = segments joined by contiguous seams
+        IF no segment after this run: RAISE "out of memory"
+        store(addr, 00 00); seg = next run's first segment; addr = segments[seg].base
+    store(addr, record); addr += len(record)
+store(addr, FF)                                      # end mark; prog_end = (segment of addr, addr)
 ```
 
 Then update the interpreter's own pointers so it agrees with the bytes:
@@ -234,10 +236,9 @@ segment 3: bank 0 (internal)         base 0xC000  top 0xEFFF   (~11 800 B, less 
                                                                Sum ~= 52 500  ~= MEM 52 794
 ```
 
-A 9 000‑byte image: bytes 0..7994 → `(bank 0, 0xA0C5..0xBFFF)`; byte 7995 continues at
-`(bank 2, 0x8000)`; … a line record straddling offset 7995 has its header in bank 0 and
-its tail in bank 2 — exactly what the interpreter expects to read back. `prog_end` ≈
-`(bank 2, 0x8000 + (9000 - 7995))` = `(bank 2, 0x83ED)`.
+A program of 100-byte lines: 79 lines fit in segment 0 (`0xA0C5 + 100·k + 102 ≤ 0xBFFF` for
+k = 0…78); the ROM then writes `00 00` at `0xBFA1` and line 80 starts at `(bank 2, 0x8000)`.
+No record is split between banks.
 
 ---
 
