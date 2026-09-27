@@ -186,9 +186,13 @@ Each nibble frame: 1 start + 4 data + 6 stop = 11 bits.  Byte total = 22 bits.
 > (`RDHEADER` `64A5H`); MODE 0 reads the native format. The `-1` in `CLOAD -1` /
 > `CSAVE -1` is parsed and skipped (`ISMINUS1` `77F6H`); it does not select the format.
 > So a PC-1500 tape loads only in MODE 1, to the address in its header and unconverted.
-> Through the CE-1600P, `CSAVE` is refused in MODE 1 (error 110, `66A0H`) and data-file
-> reads are too (`6F35H`) — matching the TRM's "program can be loaded in MODE 1 but not
-> data". Disk/COM `LOAD` has no PC-1500 path: it takes the native binary format (header
+> Through the CE-1600P, the writes are refused in MODE 1 with error 110: `CSAVE` /
+> `CSAVE M` (`66A0H`) and `PRINT#-1` (token F2AEH, `6F35H`). The reads are not:
+> `CLOAD`, `CLOAD M`, `CLOAD?`, `MERGE`, `CHAIN` and `INPUT#-1` (F2AFH, `6F31H`) all read
+> the PC-1500 format in MODE 1. The TRM says data can't be loaded in MODE 1 through the
+> CE-1600P; the ROM doesn't refuse `INPUT#-1`, so that is untested. (rom3b `7E1DH`/`7E43H`
+> turn `PRINT #-…` / `INPUT #-…` into F2AEH / F2AFH when the cassette module is present.)
+> Disk/COM `LOAD` has no PC-1500 path: it takes the native binary format (header
 > type `21H`, rom3b `6F49H`) or ASCII, which it tokenizes as PC-1600 BASIC.
 >
 > **§3.11.3 tunable timing work area (Mode 0)** — firmware reads these before writing;
