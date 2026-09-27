@@ -180,6 +180,17 @@ Each nibble frame: 1 start + 4 data + 6 stop = 11 bits.  Byte total = 22 bits.
 > `04H` = ML/BASIC/RESERVE/data, "Header Mark" nibble sequence `AH 10H 11H … 17H` — see
 > `PC-1500-Tape-Format.md`.
 >
+> **Which format the firmware uses (ROM disassembly, CE-1600P cassette driver in bank 5,
+> `6000H`–).** Only `BMODE` b6 decides, i.e. the BASIC `MODE` setting (`IS1500MODE`
+> `6668H`): MODE 1 reads with the PC-1500 bit decoder, `A0H` sync and a 32-byte header
+> (`RDHEADER` `64A5H`); MODE 0 reads the native format. The `-1` in `CLOAD -1` /
+> `CSAVE -1` is parsed and skipped (`ISMINUS1` `77F6H`); it does not select the format.
+> So a PC-1500 tape loads only in MODE 1, to the address in its header and unconverted.
+> Through the CE-1600P, `CSAVE` is refused in MODE 1 (error 110, `66A0H`) and data-file
+> reads are too (`6F35H`) — matching the TRM's "program can be loaded in MODE 1 but not
+> data". Disk/COM `LOAD` has no PC-1500 path: it takes the native binary format (header
+> type `21H`, rom3b `6F49H`) or ASCII, which it tokenizes as PC-1600 BASIC.
+>
 > **§3.11.3 tunable timing work area (Mode 0)** — firmware reads these before writing;
 > patching them changes the waveform:
 >

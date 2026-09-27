@@ -247,6 +247,8 @@ resolved.)*
 | F865/F866H | PROGRAM START H/L | start address of the BASIC program, **high byte first** (bank in `F02BH`) *(see note)* |
 | F867/F868H | PROGRAM END H/L | end address of the BASIC program, high byte first (bank in `F02CH`). Start = end (and `F02B` = `F02C`) ⇒ no program *(see note)* |
 | F869/F86AH | EDIT / MERGE HEAD H/L | head address of the program being edited or merged *(see note)* |
+| F88DH | TRON FLAG | ≠ 0 while `TRON` is on: the statement loop then calls the single-step routine before every statement (P0-B0 `3AD5H` → P1-B0 `41DAH`). `TRON` sets it, `TROFF` clears it (rom3b `4201H` / `41FEH`) |
+| F88EH | TRONMODE | TRON single-step state 1–4 (2 stepping, 3 line shown). `RUN` writes 2 every time (P1-B0 `5803H`), so a PEEK after any `RUN` reads 2 even with TRON off |
 | F88FH | OUTPUT BUFFER POINTER | pointer into the output buffer |
 | F890H | FOR POINTER | stack pointer for `FOR…NEXT` |
 | F891H | GOSUB POINTER | stack pointer for `GOSUB` |
@@ -275,9 +277,31 @@ resolved.)*
 *(Note the H-then-L labelling here: these follow the Block-C / PC-1500 big-endian
 convention, §1.1.)*
 
-**Note on F865–F86A.** These three pointers are not in the Systemhandbuch table. They are the PC-1500's `7865`/`7867`/`7869` (`BASPRG_ST`/`END`/`EDT`) at the same offset in the relocated work area, and big-endian like them. Confirmed in the ROM disassembly (`~/Development/sharp/pc1600/disasm/z80/`):
-- The `NEW` path (`rom3b.asm`, `65C8H`) sets start = end = `(F029H AND 7FH)`:`C5H`, i.e. the first byte after the 197-byte reserve, and copies the program's bank index from `F02AH` into both `F02BH` and `F02CH`.
-- The emptiness test (`romce1600-2.asm`, `3970H`) compares `F865`/`F867` and `F02B`/`F02C`.
+**Note on F865–F86A.** These three pointers are not in the Systemhandbuch table. They are the PC-1500's `7865`/`7867`/`7869` (`BASPRG_ST`/`END`/`EDT`) at the same offset in the relocated work area, and big-endian like them. Confirmed in the ROM disassembly (`~/Development/sharp/pc1600/disasm/new/`; bank names as there, rom3b = P1-B3B, B5 = the CE-1600P/F bank-5 ROM):
+- `INIT"Sx:"` re-empties S0 when the S0 program area moved (`PRGMOVED`, rom3b `65C8H`; an earlier revision of this note called it the `NEW` path). It sets start = end = `(F029H AND 7FH)`:`C5H`, i.e. the first byte after the 197-byte reserve, and copies the program's bank index from `F02AH` into both `F02BH` and `F02CH`.
+- `NEW` itself is `NEWSET` (rom3b `4480H`): start = end at the given address, `F02BH` = `F02CH` = its bank (`44B9H`/`44BCH`, or `44C8H`/`44CBH` when start is unchanged).
+- The emptiness test (`romce1600-2.asm`, `3970H`; also rom3b `653AH`) compares `F865`/`F867` and `F02B`/`F02C`.
+
+**`F02BH`/`F02CH` are independent.** Start and end may lie in different `ADTBL` banks, and every routine that moves the program end also writes the end bank to `F02CH`:
+
+| Writer | Where |
+|---|---|
+| `NEW` | rom3b `44BCH`, `44CBH` |
+| `INIT"Sx:"` (S0 moved) | rom3b `65E4H` |
+| `LOAD` finish (`LOADEND`) | rom3b `70F8H` |
+| `CLOAD` finish (`CASSETEND`) | B5 `74E3H` |
+| line delete | P1-B0 `4EF9H` |
+| line insert / new end mark | P1-B0 `54D3H` (also sets `PRGENDA` FE3FH and FE41H) |
+
+`PRGADR` (`RST 18H` → P0-B0 `188BH`) derives FE3CH–FE41H from these, so a stale `F02CH` propagates at the next `PRGADR` (every `MODE` switch, `LOAD`, `NEW`).
+
+**What `LOAD` writes when it finishes** (`LOADEND`, rom3b `70E1H`; the end address in FA00H/FA01H, its bank in FA02H):
+1. `FFH` at the end.
+2. S0 (`TITLE` = 0): `F867` = end (high byte first), `F02CH` = end bank; then if `F899` (VARIABLE POINTER) ≤ the new end (`LOGEND`, `02DAH`), `F899` := `(F864)`:00.
+3. S1/S2 instead: the end triple goes to `F01CH`–`F01EH` / `F026H`–`F028H`, and the module header's end field (+5/+6) is patched (§4.5). `F867` and `F899` are not touched.
+4. `PRGRESET` (`7169H`): `PRGADR`, `F89E` (CURRENT TOP) := program start, `F1C1H` (CURRENT bank) := `FE3EH`, `FA02H` := `FFH`.
+
+`CLOAD` (B5 `74D3H` + caller `6B42H`) does the same end bookkeeping and then calls `PRGADR` and `BASPARES`.
 
 Klaus Ditze's disk-MERGE routine (*Programme, Tips & Tricks für den PC-1600*, 1987, pp. 9–12) relies on the same fields. It saves `(F865)`/`(F02B)`, moves the start to `(F867)`+1 so that `LOAD` appends, then restores them, puts the merged block's head in `F869` and `F89E` (`CURRENT TOP`), and copies the bank from `F1C4` (`MERGED`) to `F1C1` (`CURRENT`).
 
@@ -341,10 +365,10 @@ address-by-address dump of F000H–FFFFH, complementing the named-variable table
 
 | Addr | Contents |
 |---|---|
-| F127H | pending BASIC timer interrupt request — b7: `WAKE$(0)`, b6: `ON TIME$`, b5: `ALARM$` |
+| F127H | pending BASIC timer interrupt request — b7: `WAKE$(0)`, b6: `ON TIME$`, b5: `ALARM$`. Set by the default user hooks (P0-B0 `0FB7H`/`0FBDH`/`0FC3H`), cleared by timer writes (`SWA2T` mask table) and ALL RESET (`SINIT`). The statement loop reads only b5 (`ALARM$` display, P0-B0 `3AC8H`); b6 is cleared only when an `ON TIME$ GOSUB` is dispatched (`3D40H`), so without one it stays set indefinitely and costs nothing per statement |
 | F12AH | which interrupts are *enabled* — b7: `WAKE$(0)`, b3: `ON TIME$`, b5: `ALARM$`, b1: `Keystat 1` (bit layout as transcribed, some bit positions repeat across the two bytes in the source and may be a transcription slip). The ROM passes this byte to SWMSK as-is (P2-B6 `A8E7H`), so it follows the sub-CPU mask layout: b7 wake-up, **b6** alarm 1 (`ON TIME$`), b5 alarm 2, b1 0.5 s, b0 (`PC-1600-IO-Ports.md` §7.1) |
 | F12BH | signal flags — b3: hour signal, b2: wake-beep, b1: wake, b0: `WAKE$(1)` |
-| F12CH | b0: `ON ADIN` interrupt set |
+| F12CH | b0–b1: sub-CPU port mode, written by timer IOCS 1EH (P2-B6 `A8C2H`): b0 analog input (the `SINIT` default; `SWA1A` refuses to run without it), b1 external keyboard (IOCS 16H runs only with it). `ON ADIN` selects 1, `KEYSTAT` selects 2 for source 1, else 1. b4 picks IOCS 1DH over 1CH in `SINIT` |
 | F12DH | `ON ADIN` lower threshold — referenced from `PC-1600-IO-Ports.md` §7 (`SWA1A`) |
 | F12EH | `ON ADIN` upper threshold |
 
@@ -416,7 +440,7 @@ A layout — Appendix 7 gives it real content:
 | F1BEH | bank of the found peripheral command |
 | F1BFH | "ROM-bit" for the peripheral token table; b7 of F1C0H | PC-1500 token table |
 | F1C1H–F1CEH | **logical banks**: `CURRENT`, `SEARCH START`, `SEARCH FOUND`, `MERGED`, `PREVIOUS I`, `PREVIOUS II`, `BREAK I`, `BREAK II`, `ERROR I`, `ERROR II`, `ON ERROR I`, `ON ERROR II`, `RESTORE`, `INTERPRET` (one byte each, in that order) |
-| F1CFH–F1D4H | BASIC interrupts — `STOP`/`ON` state, request-pending flags |
+| F1CFH–F1D4H | BASIC interrupts, 16 sources as bit pairs: F1CFH/F1D0H enabled (`ON …`), F1D1H/F1D2H armed, F1D3H/F1D4H pending (`BINTDISP`, P0-B0 `3CFFH`). The statement loop checks them only when F1CFH/F1D0H ≠ 0 (`3AF4H`). `RUN` clears all six bytes (`RUNSET`, `1CA2H`–`1CA8H`) |
 | F1D5H | `TITLE` — currently selected program area: 0 = S0 (internal), 1 = S1, 2 = S2; the value `TITLE ?` returns (`PC-1600-Memory-Architecture.md` §4.1) |
 | F1D6H–F1DAH | one info byte per logical bank — b7: program/AEIM module; b5–b4: physical port address (value for port 31H); b1: slot 2; b0: slot 1 — this is `ADTBL+1`…`ADTBL+5`, see §4 below |
 | F1DBH–F21CH | BASIC stack II |
@@ -649,6 +673,48 @@ S0 bank list = entries 3..5 = `[bank 0/slot 1, bank 2/slot 2, bank 3/slot 2]`. T
 ### 4.4 Reconstructing the placement (for an emulator injecting a tokenised image)
 
 The full, implementation-ready procedure — build the ordered S0 segment list from `S0MTb`/`ADTBL`, linearise, translate each logical offset to `(physical bank, Z-80 address)`, write, and fix up the text-end / variable pointers — is in **[`PC-1600-BASIC-Program-Placement.md`](PC-1600-BASIC-Program-Placement.md)**, together with the direct-copy-vs-simulated-store question and why `SLOT1MAP`/`SLOT2MAP` need no accounting. `PC-1600-Memory-Architecture.md` §4b.5/§4b.7 give the address-space geometry the segment list sits in.
+
+### 4.5 S1/S2 program modules: module header and slot descriptor (ROM)
+
+A slot becomes a separate program area ("second program memory") when its memory carries
+a module header with type 8xH. `INIT"Sx:","P"[,n]` writes one into RAM (rom3b `INITPM`
+`6464H`); ROM program modules carry their own. Offsets are relative to the slot's base
+page; addresses inside the header are offsets, high byte first.
+
+| Header | Written by `INIT "P"` | Meaning |
+|---|---|---|
+| +0 | `55H` | header mark |
+| +1 | base page AND `7FH` | |
+| +2/+3 | `00C5H` | program start (after the 197-byte reserve) |
+| +4 | n × 4 | area size in pages (n KB; n defaults to the whole module) |
+| +5/+6 | `00C5H` | program end; = start ⇒ empty. `LOAD`/`CLOAD` patch it. `0000H` ⇒ "end = top of the area" |
+| +7 | `80H` | module type: b7 program module (`SLOTST` `6914H`: 0xH RAM module, 8xH program module, FFH plain RAM) |
+| base+C5H | `FFH` | end mark of the empty program |
+
+`INIT"Sx:","M"` instead fills the 8 header bytes with `FFH`, so the slot is plain RAM
+again and folds into S0 at the next `SSLOTMP`. After either, `INIT` runs `SSLOTMP`
+(`003BH` → P1-B3 `670AH`), which rebuilds `ADTBL` and the descriptors from scratch: plain
+RAM becomes part of S0 (`SMAPS0` `6954H`, SxMTb := `FEH`); a program module gets its own
+`ADTBL` entry (`SMAPMOD` `6981H`). If S0's base moved, the S0 program is emptied
+(`PRGMOVED`, §3.5 note) — the S0 program does not survive.
+
+`SMAPMOD` fills the 10-byte slot descriptor (S1 `F015H`–`F01EH`, S2 `F01FH`–`F028H`).
+"Bank" below is an `ADTBL` index (1..5), the same unit as `F02BH`/`F02CH`:
+
+| Desc | S1 / S2 | From | Meaning |
+|---|---|---|---|
+| +0 | F015H / F01FH | slot | base page |
+| +1 | F016H / F020H | | `SxMTb`: first `ADTBL` index (`FEH` folded into S0, `FFH` none) |
+| +2 | F017H / F021H | header +4 | area limit page |
+| +3 | F018H / F022H | | `SxMBb`: `ADTBL` index of the limit (+1 when the area crosses a bank) |
+| +4..+6 | F019H–F01BH / F023H–F025H | header +2/+3 | program start: lo, hi, bank |
+| +7..+9 | F01CH–F01EH / F026H–F028H | header +5/+6 | program end: lo, hi, bank (header 0000H ⇒ limit page − 1 : FFH) |
+
+The end triple is the program end, not a machine-code area: `NEW "Sx:"` writes the same
+value to start and end (rom3b `44DDH`/`4505H`), `LOAD` and `CLOAD` write the loaded end to
++7..+9 and header +5/+6, and `PRGADR` copies +4..+9 to FE3CH–FE41H as start/end. With
+`TITLE` = 1/2, `PRGADR` falls back to S0 (and resets `TITLE`) when SxMTb ≥ `FEH`.
+`LOAD` into S1/S2 is capped at limit page:00 − 1 (`LOADRANGE`, rom3b `722EH`).
 
 ## Open items
 

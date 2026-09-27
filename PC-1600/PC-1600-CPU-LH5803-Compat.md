@@ -99,6 +99,23 @@ PC-1600 German user manual, §9.2 / Appendix H (`PC-1600-Memory-Architecture.md`
   explicit (`XCALL` / `XPEEK` / `XPOKE`), or baked into a loaded PC-1500 program's
   tokenized bytecode.
 
+**Confirmed by the ROM disassembly** (`~/Development/sharp/pc1600/disasm/new/`):
+- The statement loop and the statements are Z-80 code in both modes. MODE 1 `PRINT` is
+  the Z-80's own PC-1500-style routine (`PRINT1500`, P1-B0 `647DH`), not the LH-5803's.
+- The LH-5803 ROM (a modified A04) runs only what the Z-80 hands it through `CALLH`: one
+  PC-1500 statement per call (`X_EXCOMM`: the CE-150/CE-158 commands, `CSAVE`/`CLOAD`/
+  `MERGE`/`CHAIN`/`LLIST` through those peripherals), plus the shared arithmetic,
+  functions and `USING`. So the LH-5803 gets the bus only for these calls, but they are
+  frequent: every relational operator (`CMPNUM`/`CMPSTR`, P1-B3 `5D3FH`/`5D47H`), `^`,
+  `AND`/`OR` and the functions (`FUNC`, `5D1DH`) run on it. An integer `FOR…NEXT` loop
+  doesn't: `NEXT` adds with Z-80 code (bank 6) and compares inline (P1-B0 `5AA1H`), and
+  falls back to `CMPNUM` only when the step overflows the integer range (`5A96H`).
+- MODE 1 is `BMODE` (F1BCH) b6. What it changes on the Z-80 side, beyond the display:
+  `INIT "Sx:"` is refused (error 110, rom3b `62BAH`); `NEW addr` is accepted only in
+  MODE 1 (`4351H`); `PC15MAP` (P0-B0 `1676H`) narrows `ADTBL` to the one program area the
+  LH-5803 sees; the cassette driver switches to the PC-1500 tape format (see
+  `Data-Formats/WAV-Cassette-Format-1500-1600.md`).
+
 ## 5. Running PC-1500/1500A BASIC programs (TRM §5.15(1))
 
 1. Put the PC-1600 in **MODE 1** before starting the program.

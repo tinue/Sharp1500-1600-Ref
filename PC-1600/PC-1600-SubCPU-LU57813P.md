@@ -279,10 +279,10 @@ Dispatcher: `CALL 01D5H` with the IOCS number in C → `A798H` → a jump table 
 | 11H / 12H / 13H | SRMSK / SRIRQ / SRINP | `A8F0` | `A1H` / `A2H` / `A3H`, one byte read from 33H |
 | 14H | SWPON | `A893` | `F0H`+n, `A4H`. The nibble (kept at `F12BH`): b0 power-on by `CI` (`WAKE$(1)`), b1 power-on by the wake-up timer (`WAKE$(0)`), b2 wake-up beep, b3 hour signal |
 | 15H | *(reset cause)* | `A8F0` | `A5H`, one byte read: the power-on / reset cause, §4.1. Read once by the boot code (P0-B0 `0346H`). |
-| 17H, 1BH–1DH, 1FH | — | `A8F0` | `A7H`, `ABH`–`ADH`, `AFH`, one byte read |
-| 16H | — | `A8F8` | if `F12CH` b1 = 1 and b0 = 0: `A6H`, one byte read. Otherwise returns CF = 1 with no traffic. |
+| 17H, 1BH–1DH, 1FH | — | `A8F0` | `A7H`, `ABH`–`ADH`, `AFH`, one byte read. 17H reads a key from the external keyboard (P2-B6 `9250H`). 1CH/1DH are sent by `SINIT` (1DH when `F12CH` b4 is set). 1BH and 1FH have no caller in the system ROMs |
+| 16H | — | `A8F8` | if `F12CH` b1 = 1 and b0 = 0: `A6H`, one byte read. Otherwise returns CF = 1 with no traffic. Called when the keyboard input is flushed (P2-B6 `9324H`) and by the external-keyboard test (`941EH`, jump table `017BH`) |
 | 18H / 19H / 1AH | SRA0 / SRA1 / SRA2 | `A8F0` | `A8H` / `A9H` / `AAH`, one byte read (A/D value) |
-| 1EH | — | `A8C2` | `F0H`+n (n = 9, 5 or 3 from A), `AEH`, then `53H` |
+| 1EH | *(port mode)* | `A8C2` | stores A in `F12CH` b0–b1 (b0 analog input, b1 external keyboard), then `F0H`+n (n = 9 for b0, 5 for b1, else 3), `AEH`, then `53H`. `SINIT` sends the stored mode; `ON ADIN` (rom3b `4AE6H`, after 24H) selects 1; `KEYSTAT` (P1-B0 `6667H`) selects 2 for source 1, else 1 |
 | 20H | *(system off)* | `A88E` | `EAH`: switch the system off (§4.1). The LH-5803 OFF routine sends the same byte. |
 | 21H | SRPON | `A89C` | `69H`, one nibble fetch: the SWPON nibble back |
 | 22H / 23H | SWAB / SRAB | `A8A4` / `A8BE` | `6AH` then `80H`+n (write) or a nibble fetch (read) |
@@ -327,9 +327,11 @@ alarm 2). Writing the clock clears all three (mask table at `A868H`).
 - **Chip identity.** Probably a mask-ROM member of Sharp's SM 4-bit family (pin naming,
   4-bit data paths, 1.2288 MHz ÷ 4), but no part cross-reference has been found. Its ROM
   is not dumped.
-- **Still-unnamed commands:** IOCS 0CH–0FH, 17H, 1BH–1FH, 26H (`E5H`) and the
-  follow-up byte `53H` after 1EH. 1EH/24H/16H/1CH/1DH belong to the analog-input
-  interrupt / external-keyboard mode (`F12CH` bits 0–1, 4), but that path isn't traced.
+- **Still-unnamed commands:** IOCS 0CH–0FH, 1BH, 1FH, 26H (`E5H`), the meaning of
+  1CH/1DH, and the follow-up byte `53H` after 1EH. None of 07H, 0CH–0FH, 1BH, 1FH, 20H
+  or 26H is called from the system ROMs (all `LD C,n` + `CALL 01D5H`/`TIMER_B6` sites
+  checked), so only the sub-CPU's own ROM or a real-unit test can name them. Named from
+  their callers: 1EH port mode, 16H/17H external keyboard, 24H `ON ADIN` thresholds.
   SWAB's two bits (the alarm-signal condition) aren't named yet either.
 - **The LH-5803's other raw command, `23H`** (rom1500 `E523H`, operand `DCH`): its answer
   bit 2 is tested, but its meaning is unknown.

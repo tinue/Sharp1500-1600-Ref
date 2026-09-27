@@ -188,6 +188,14 @@ Then update the interpreter's own pointers so it agrees with the bytes:
   F8A6–F8AB / F89C–F89F) to the defined post‑`LOAD` state (typically pointing at the
   first line / cleared).
 
+**The ROM's own sequence.** The firmware's `LOAD` finish (`LOADEND`, rom3b `70E1H`) is the
+reference for this step, and is listed in `PC-1600-Work-Area-Map.md` §3.5: `FFH` end mark;
+for S0 `F867` = end and **`F02CH` = end bank** (independent of `F02BH`), `F899` reset when
+it is ≤ the new end; for S1/S2 the descriptor end triple and the module header's +5/+6
+(§4.5 there); then `PRGADR`, `F89E` = start, `F1C1H` = `FE3EH`. An injector that mirrors
+these steps leaves the work area as a real `LOAD` would; one that skips `F02CH` is right
+only while the end stays in the start bank.
+
 ---
 
 ## 6. `store_phys` — direct copy vs. simulated store
