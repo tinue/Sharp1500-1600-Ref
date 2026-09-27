@@ -115,6 +115,22 @@ PC-1600 German user manual, §9.2 / Appendix H (`PC-1600-Memory-Architecture.md`
   MODE 1 (`4351H`); `PC15MAP` (P0-B0 `1676H`) narrows `ADTBL` to the one program area the
   LH-5803 sees; the cassette driver switches to the PC-1500 tape format (see
   `Data-Formats/WAV-Cassette-Format-1500-1600.md`).
+- **`MODE 1` chooses the program area itself and ignores the previous `TITLE`**
+  (`PC15MAP`, P0-B0 `1676H`, via `RAMODSET` `163FH`). It refuses (error 110) only when
+  S0 spans more than one module bank (`S0MTb` ≠ 5). Otherwise:
+  - S0 is internal RAM only (no module folded into it): a **one-bank program module in
+    S1** becomes the area (`TITLE` := 1); else one in **S2** (`TITLE` := 2); else S0
+    (`TITLE` := 0). S1 is preferred over S2, whatever `TITLE` said before.
+  - S0 has one module bank: base page 80H (a full 16 KB window) → S0; otherwise a
+    one-bank program module at `ADTBL` entry 4 in S1, then S2 (`ISMOD4` `1733H`), else S0.
+  - The slots not chosen are hidden: their `SxMTb` := FFH (`S1NOPRG`/`S2NOPRG`
+    `1760H`/`175AH`), so `TITLE "Sx:"` for them fails with error 101 (65H, `SELPRG`
+    `1EEFH` via `SLOTSTAT`). A multi-bank program module is simply hidden; it doesn't
+    block MODE 1. `ADTBL` is cut down to the chosen entry (`ADTBLONE` `16D1H` /
+    `ADTBLCLR3` `1729H`), and F860H–F863H get the chosen area in PC-1500 form
+    (`PC15MAPSET` `173BH`).
+  - Back to MODE 0 (`RAMODSET` with A = 0) runs `SSLOTMP` again and `SELPRG 0`: the
+    descriptors are rebuilt and `TITLE` is reset to S0.
 
 ## 5. Running PC-1500/1500A BASIC programs (TRM §5.15(1))
 

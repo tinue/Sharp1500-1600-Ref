@@ -441,7 +441,7 @@ A layout — Appendix 7 gives it real content:
 | F1BFH | "ROM-bit" for the peripheral token table; b7 of F1C0H | PC-1500 token table |
 | F1C1H–F1CEH | **logical banks**: `CURRENT`, `SEARCH START`, `SEARCH FOUND`, `MERGED`, `PREVIOUS I`, `PREVIOUS II`, `BREAK I`, `BREAK II`, `ERROR I`, `ERROR II`, `ON ERROR I`, `ON ERROR II`, `RESTORE`, `INTERPRET` (one byte each, in that order) |
 | F1CFH–F1D4H | BASIC interrupts, 16 sources as bit pairs: F1CFH/F1D0H enabled (`ON …`), F1D1H/F1D2H armed, F1D3H/F1D4H pending (`BINTDISP`, P0-B0 `3CFFH`). The statement loop checks them only when F1CFH/F1D0H ≠ 0 (`3AF4H`). `RUN` clears all six bytes (`RUNSET`, `1CA2H`–`1CA8H`) |
-| F1D5H | `TITLE` — currently selected program area: 0 = S0 (internal), 1 = S1, 2 = S2; the value `TITLE ?` returns (`PC-1600-Memory-Architecture.md` §4.1) |
+| F1D5H | `TITLE` — currently selected program area: 0 = S0 (internal), 1 = S1, 2 = S2; the value `TITLE ?` returns (`PC-1600-Memory-Architecture.md` §4.1). Set by `TITLE "Sn:"` (`SELPRG`, P0-B0 `1EEFH`; S1/S2 must hold a program module, else error 101). `MODE 1` sets it itself, ignoring the old value, and `MODE 0` resets it to 0 (`PC-1600-CPU-LH5803-Compat.md` §4) |
 | F1D6H–F1DAH | one info byte per logical bank — b7: program/AEIM module; b5–b4: physical port address (value for port 31H); b1: slot 2; b0: slot 1 — this is `ADTBL+1`…`ADTBL+5`, see §4 below |
 | F1DBH–F21CH | BASIC stack II |
 
