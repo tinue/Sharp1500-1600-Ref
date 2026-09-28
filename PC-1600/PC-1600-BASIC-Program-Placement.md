@@ -203,10 +203,10 @@ only while the end stays in the start bank.
 ## 6. `store_phys` — direct copy vs. simulated store
 
 **You do not need to go through the BASIC `POKE` command, and `SLOT1MAP` / `SLOT2MAP`
-need no special handling.** `SLOT1MAP` (IOCS 0196H) and `SLOT2MAP` (0199H) are *transient*
-firmware remaps that make a slot's RAM *also* visible in another CPU page (e.g. a Slot‑2
-half aliased to 0000–3FFF to read a module header); the firmware restores them to `A=00`
-before returning, and they **alias** SRAM, never **relocate** it. At the point you inject,
+need no special handling.** `SLOT1MAP` (IOCS 0196H) and `SLOT2MAP` (0199H) are
+remaps that make a slot's RAM *also* visible at Bank 1 of page 0 or page 1
+(`PC-1600-Memory-Bank-Switching.md` Part 2). No ROM bank calls them; they exist for user
+programs, and they **alias** SRAM, never **relocate** it. At the point you inject,
 the mapping is the default and the `(bank, addr)` pairs from §5 name the correct SRAM
 cells regardless. The only persistent selector that matters is **port 28H = 0** (Slot‑2
 vertical bank) for a vertical‑banked Slot‑2 module used as S0.

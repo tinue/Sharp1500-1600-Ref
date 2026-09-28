@@ -42,16 +42,18 @@ The Z-80 has 16 address lines = 64KB address space, divided into four 16KB pages
 
 Writing to Z-80 I/O port 31H selects which bank appears in each page:
 
-| Bit | Name | Function |
-|-----|------|----------|
-| b0 | PVOUT | Bank select for 0000-3FFF **only** (1 bit, independent of b7 below) |
-| b1 | PU | Bank select for 4000-7FFF, together with b2-b3 (3-bit field, independent of PVOUT) |
-| b2 | PT | Bank select for 4000-7FFF, together with b1/b3 |
-| b3 | b3 | Bank select for 4000-7FFF, together with b1-b2 |
-| b4 | b4 | Bank select for 8000-BFFF, together with b5-b6 (3-bit field, independent of PVOUT) |
-| b5 | b5 | Bank select for 8000-BFFF, together with b4/b6 |
-| b6 | b6 | Bank select for 8000-BFFF, together with b4-b5. **Separately**, also controls LHS1/LHS2/LHS3 memory select remapping (Part 4) |
-| b7 | b7 | Bank select for C000-FFFF **only** (1 bit, independent of b0 above) |
+| Bit | Function |
+|-----|----------|
+| b0 | Bank select for 0000-3FFF **only** (1 bit, independent of b7 below) |
+| b1 | Bank select for 4000-7FFF, LSB of the 3-bit field b3:b2:b1 |
+| b2 | Bank select for 4000-7FFF, middle bit |
+| b3 | Bank select for 4000-7FFF, MSB |
+| b4 | Bank select for 8000-BFFF, LSB of the 3-bit field b6:b5:b4 |
+| b5 | Bank select for 8000-BFFF, middle bit |
+| b6 | Bank select for 8000-BFFF, MSB. **Separately**, also controls LHS1/LHS2/LHS3 memory select remapping (Part 4) |
+| b7 | Bank select for C000-FFFF **only** (1 bit, independent of b0 above) |
+
+**The bank lines PT / PU / PVOUT are not register bits.** The SC-7852 has three bank-signal outputs (pins 5–7: PT, PU, PVOUT) for eight register bits. They output the **bank number of the page being accessed**, MSB first: PT = bit 2, PU = bit 1, PVOUT = bit 0 of that bank number. So a 4000–7FFF access puts b3/b2/b1 on PT/PU/PVOUT, an 8000–BFFF access puts b6/b5/b4 there, and a 0000–3FFF or C000–FFFF access drives only PVOUT (b0 or b7). This is Sharp's own table (TRM §7.2.1, "SC-7852 Access Memory Areas and Contents of I/O Port 31H", PDF p.232), which has PT/PU/PVOUT output columns for every page. (Its page-2 bank-7 row prints PVOUT = 0, a misprint.) It is also what the peripherals need: the CE-1600P selects its ROM on PT high / PU low and uses PV to pick bank 4 or 5 (`PC-1600-Peripherals-Hardware.md` §1.2.2), and the memory modules use PVOUT as the page-2 LSB (Part 7). An earlier revision of this table named b1 "PU" and b2 "PT"; that naming is wrong. While the LH-5803 runs, PVOUT carries the LH-5803's PV instead (Part 8).
 
 **Correction (2026):** an earlier revision described b0/PVOUT as governing *both* 0000-3FFF and C000-FFFF together, and had PVOUT as a fourth input to the 4000-7FFF and 8000-BFFF bank number — both self-contradictory with the separate "b7 selects C000-FFFF" line. The **PC-1600 Technical Reference Manual's own §7.2.1 table** ("SC-7852 memory-access spaces and contents of I/O port 31H") settles it: each page uses one exact, non-overlapping bit field — **b0** alone for 0000-3FFF (bank 0/1), **b3:b2:b1** for 4000-7FFF (bank 0-7), **b6:b5:b4** for 8000-BFFF (bank 0-7), **b7** alone for C000-FFFF (bank 0/1); no bit is shared between pages. (The TRM table carries the same "C"-for-"4" typo in the bank-4 row that the truth tables below note.) The corrected model above and the two truth tables reflect this; an independent emulator implementation agrees (`README.md` — *Sources & validation*). Treat the four-independent-fields model as settled.
 
@@ -74,7 +76,7 @@ D3 31    OUT (31H),A    ; b4-b6=010: 8000-BFFF -> Bank 2
 
 **Address range 4000-7FFF (Page 1) — corrected, see note above:**
 
-| Bank | b3 | b2 (PT) | b1 (PU) |
+| Bank | b3 (→ PT) | b2 (→ PU) | b1 (→ PVOUT) |
 |------|----|---------|---------|
 | 0 | 0 | 0 | 0 |
 | 1 | 0 | 0 | 1 |
@@ -85,7 +87,7 @@ D3 31    OUT (31H),A    ; b4-b6=010: 8000-BFFF -> Bank 2
 | 6 | 1 | 1 | 0 |
 | 7 | 1 | 1 | 1 |
 
-Plain 3-bit binary value of b3:b2:b1, PVOUT/b0 not involved. (The original table's "C" row is corrected to "4" here — it was a straight binary-count table miscopied with a stray hex digit.)
+Plain 3-bit binary value of b3:b2:b1; b0 not involved. The arrows show which bus line carries each bit during a 4000–7FFF access. (The original table's "C" row is corrected to "4" here — it was a straight binary-count table miscopied with a stray hex digit.)
 
 **Address range 8000-BFFF (Page 2) — corrected, see note above:**
 
@@ -100,7 +102,7 @@ Plain 3-bit binary value of b3:b2:b1, PVOUT/b0 not involved. (The original table
 | 6 | 1 | 1 | 0 |
 | 7 | 1 | 1 | 1 |
 
-Plain 3-bit binary value of b6:b5:b4, PVOUT/b0 and PT/PU (which are b1/b2, page-1's own bits) not involved — the original table's PT/PU columns here were almost certainly a copy-paste leftover from the page-1 table, not a real page-2 input.
+Plain 3-bit binary value of b6:b5:b4; b0–b3 not involved. During an 8000–BFFF access PT/PU/PVOUT carry b6/b5/b4 (the TRM table's PT/PU/PVOUT columns are bus outputs, not extra inputs).
 
 **Address range C000-FFFF (Page 3):**
 
@@ -114,11 +116,11 @@ Plain 3-bit binary value of b6:b5:b4, PVOUT/b0 and PT/PU (which are b1/b2, page-
 | Address Range | Bank 0 | Bank 1 | Bank 2 | Bank 3 |
 |---------------|--------|--------|--------|--------|
 | 0000-3FFF | System ROM (CS001) **NEVER SWITCHED OUT** | (Slot 2) | -- | -- |
-| 4000-7FFF | System ROM (BASIC, Editor) | "Slot 2 ROM" † | "Slot 1 ROM" † | System ROM (CS24, sub-banked 2x8K) |
+| 4000-7FFF | System ROM (BASIC, Editor) | Slot 1b or Slot 2a when remapped (`SLOT1MAP`/`SLOT2MAP`) † | -- † | System ROM (CS24, sub-banked 2x8K) |
 | 8000-BFFF | Slot 1a (RAM2) | Slot 1b (RAM2) | Slot 2a (RAM1) | Slot 2b (RAM1) |
 | C000-FFFF | Internal 16KB RAM (RAM3) | **`b7`=1: open.** The TRM §7.2.1 table only lists `b7` as a "bank 0/1" select for the page, and no Sharp manual reviewed for this project (TRM, Service Manual, German user manual) says what bank 1 holds. The chip-select table (Part 4) gives **RAM3** for C000–FFFF **Bank 0** only, and no other internal chip select covers C000–FFFF on the Z-80 side, so nothing on the mainboard answers when `b7`=1. Whether a device on the 60-pin system bus can respond there, and which bus signal would tell it to, is undocumented. It is also a rarely-exercised path — `b7`=1 swaps out the F000–FFFF IOCS/BASIC work area (`PC-1600-Work-Area-Map.md`), so the firmware could only use it transiently. | -- | -- |
 
-**† The "Slot 2 ROM" / "Slot 1 ROM" labels for 4000–7FFF banks 1/2 do NOT mean a card in the CN-7/CN-8 memory bay answers there — now confirmed at schematic level.** Part 4's chip-select table decodes the entire 4000–7FFF window with **CS24** alone (SC7852 pin 45), and Part 12 wires CS24 only to the internal Memory-PWB ROM (IC5) — it never reaches the slot connectors. The **CE-1600M schematic** (Sharp's own 32KB RAM module, Part 7) and the **CE-1620M schematic** (Sharp's 32KB ROM cartridge for the memory bay) both tie their chip-enable to connector **pin 4 (RAMSN = RAM1#/RAM2#)**, which the gate array asserts only for the **8000–BFFF** window. Neither module has any connector signal telling it a 4000–7FFF access is in progress, and neither wires PU (pin 3) or PT (pin 19) at all. Memory-bay module headers are at 8000H/A000H/B000H (Part 6), i.e. page 2, matching. The one concrete 4000–7FFF ROM device, the CE-1600P (bank 4), is a **60-pin system-bus** unit. The firmware's "Page-1 module / EXROM at offset 4000H or 6000H, banks 1–7" machinery (Part 6: F0AEH/F0AFH bitmaps, EXROM1–EXROME, `CALL 02DFH` Creg 01–0E) is real but belongs to the **60-pin system bus**, not the 40-pin memory slots. **For an emulator: memory-slot connectors are consulted only for 8000–BFFF accesses; never route 4000–7FFF through them.** (Resolved sub-point: PU/PT are the 4000–7FFF field bits b1/b2 — Part 2's corrected model — and simply go unused by the 32KB memory modules; the "PVOUT operates in the 8000–BFFF window" readings in Part 7a/Part 10 refer to the *connector pin* named PVOUT, which carries **b4** — the LSB of the 8000–BFFF bank field — not the Port 31H bit b0 that shares the name. See Part 7's connector table.)
+**† A memory-bay card never decodes a 4000–7FFF access itself — confirmed at schematic level.** (Bank 1 there holds slot RAM only through the gate-array remap below; Bank 2 is empty in Sharp's own map, TRM §7.2.1.) Part 4's chip-select table decodes the entire 4000–7FFF window with **CS24** alone (SC7852 pin 45), and Part 12 wires CS24 only to the internal Memory-PWB ROM (IC5) — it never reaches the slot connectors. The **CE-1600M schematic** (Sharp's own 32KB RAM module, Part 7) and the **CE-1620M schematic** (Sharp's 32KB ROM cartridge for the memory bay) both tie their chip-enable to connector **pin 4 (RAMSN = RAM1#/RAM2#)**, which the gate array asserts only for the **8000–BFFF** window. Neither module has any connector signal telling it a 4000–7FFF access is in progress, and neither wires PU (pin 3) or PT (pin 19) at all. Memory-bay module headers are at 8000H/A000H/B000H (Part 6), i.e. page 2, matching. The one concrete 4000–7FFF ROM device, the CE-1600P (bank 4), is a **60-pin system-bus** unit. The firmware's "Page-1 module / EXROM at offset 4000H or 6000H, banks 1–7" machinery (Part 6: F0AEH/F0AFH bitmaps, EXROM1–EXROME, `CALL 02DFH` Creg 01–0E) is real but belongs to the **60-pin system bus**, not the 40-pin memory slots. **For an emulator: memory-slot connectors are consulted only for 8000–BFFF accesses; never route 4000–7FFF through them.** (PT/PU/PVOUT carry the bank number of the page being accessed — Part 2. The 32KB memory modules use only PVOUT, which on an 8000–BFFF access is b4, the LSB of that bank field. See Part 7's connector table.)
 
 Additional banks in 4000-7FFF:
 
@@ -136,7 +138,16 @@ Additional banks in 8000-BFFF:
 | 6 | Display routines, timer/serial control, char/token tables (CS123) |
 | 7 | Unused, but addressable (confirmed by TRM §2.1's own prose; see `PC-1600-Memory-Architecture.md` §2) |
 
-**"(S2:)" at Bank 1 / 4000–7FFF (CE-1601M Service Manual §5 map).** Sharp's own SC7852 memory map shows a *parenthesised* `(S2:)` in the 4000–7FFF window of Bank 1, alongside `System ROM` in Banks 0 and 3. This is **not** a module-connector capability — the CE-1600M/CE-1601M schematics tie the module CE to pin-4 RAM1#/RAM2#, which the gate array asserts only for 8000–BFFF (footnote † above). It is a **gate-array / firmware remap**: `SLOT2MAP` (0199H) and the Port 3DH address-latch outputs (A14A–A16A) let the mainboard route the Slot 2 RAM select to assert for a 4000–7FFF/Bank-1 access on firmware request. The module is unaware — it just sees RAM1# asserted. For an emulator this is a mainboard-side effective-address rewrite feeding the ordinary 8000–BFFF slot decode, never a connector pin. This is the actual mechanism behind every "Slot 2 ROM at 4000–7FFF" label in older summaries.
+**Slot RAM at page 0/page 1, Bank 1: the `SLOT1MAP`/`SLOT2MAP` remap.** Sharp's own maps show slot RAM outside page 2: TRM §7.2.1 has "Slot 2 S2 (C)" at 4000–7FFF Bank 1, and the CE-1601M Service Manual §5 map has a parenthesised `(S2:)` there. TRM §3.12.3 (PDF p.140–141) gives the mechanism, two IOCS routines that set Port 3CH (`SLOTMAP`, copy at F08DH):
+
+| Call | A | Effect | Port 3CH bit |
+|---|---|---|---|
+| `SLOT1MAP` 0196H | 01H | Slot 1's second 16 KB (1b) also at **Bank 1, page 1** (4000–7FFF) | b2 |
+| `SLOT2MAP` 0199H | 01H | Slot 2's first 16 KB (2a) also at **Bank 1, page 0** (0000–3FFF) | b5 |
+| `SLOT2MAP` 0199H | 02H | Slot 2a at **Bank 1, page 1** and Slot 2b at **Bank 1, page 0** (Slot 2a is not mapped to page 1 if Slot 1 already uses it) | b4 |
+| either | 00H | normal: slot RAM only in page 2 | cleared |
+
+The module is unaware — the gate array asserts its ordinary RAM1#/RAM2# select for the remapped access. For an emulator this is a mainboard-side address rewrite feeding the 8000–BFFF slot decode, never a connector pin. No ROM bank calls either routine; they exist for user programs. **Open:** the boot code writes Port 3CH = 1BH, 1AH or 5BH (P0-B0 `03E1H`–`03EEH`, after probing Slot 1), all with b4 set. If b4 is active-high, Slot 2 is remapped into Bank 1 of pages 0/1 by default. Not checked on hardware.
 
 ### Auxiliary Bank Control Ports
 
@@ -351,8 +362,8 @@ The critical design principle: **Bank 0 (0000-3FFF) is NEVER switched out.** It 
 | 018DH | **MEMORYCHK** | Test if memory exists at bank. D=bank, E=high byte of address (40-B8). Returns: Carry+A=00 = no memory; NC+A=01 = RAM; NC+A=03 = ROM. |
 | 019CH | **BANKJUMP** | Jump to different bank. A=bank, HL=address. WARNING: return address destroyed. |
 | 019FH | **BANKCALL** | Call routine in different bank. A=bank, HL=address. Current bank saved and restored on return. |
-| 0196H | **SLOT1MAP** | Remap Slot 1 addressing. A=00: Normal. A=01: Slot 1b -> 4000-7FFF of Bank I. |
-| 0199H | **SLOT2MAP** | Remap Slot 2 addressing. A=00: Normal. A=01: Slot IIa -> 0000-3FFF of Bank 1. A=02: Slot IIb -> 0000-3FFF of Bank 1. |
+| 0196H | **SLOT1MAP** | Remap Slot 1 addressing. A=00: Normal. A=01: Slot 1b also at 4000-7FFF of Bank 1. |
+| 0199H | **SLOT2MAP** | Remap Slot 2 addressing. A=00: Normal. A=01: Slot 2a also at 0000-3FFF of Bank 1. A=02: Slot 2a at 4000-7FFF and Slot 2b at 0000-3FFF, both Bank 1. |
 | 00E8H | **SLOTST** | Test slot header at high byte in D. Returns: A=00 error; F0="P" (program); F2="S" (system); FF="M" (RAM-Disk). |
 
 ### RST Shortcuts (single-byte opcodes, fastest cross-bank calls)
@@ -495,7 +506,7 @@ The 40-pin slot connector, as actually wired on the module ("Battery side" pins 
 The `TC74HC139F` (one half of the dual 2-to-4 decoder) takes select inputs **{A13, PVOUT}** and enable **`1G` = RAMSN**; its four active-low outputs each drive one 8KB SRAM's chip-enable. So:
 
 - **RAMSN** (pin 4) — the whole-module enable. The gate array asserts it only when the Z-80 addresses **8000–BFFF** and the Port 31H page-2 bank field points at this slot (banks 0/1 → Slot 1's RAM2#; banks 2/3 → Slot 2's RAM1#). There is no 4000–7FFF path.
-- **PVOUT** (pin 5) — the module's **A14-equivalent**: which 16KB half (= which of the slot's two banks). This is connector-pin PVOUT = Port 31H **b4** (LSB of the 8000–BFFF field), *not* the identically-named Port 31H bit b0 (which is the 0000–3FFF / LH5803-PV bit and does not reach this pin). `{PVOUT, A13}` together pick 1 of 4 chips.
+- **PVOUT** (pin 5) — the module's **A14-equivalent**: which 16KB half (= which of the slot's two banks). PVOUT is the LSB of the accessed page's bank number (Part 2); on an 8000–BFFF access that is Port 31H **b4**. `{PVOUT, A13}` together pick 1 of 4 chips.
 - **A0–A13** (pins 24–37) — address within the 16KB window. A14/A15 from the connector are unused; the module's 15th address bit is PVOUT.
 
 The `CE-1620M` (32KB ROM cartridge, `27C256`) uses the same scheme: CE ← RAMSN, A0–A13 ← connector, **A14 ← PVIN (pin 2)** — the pass-through counterpart of PVOUT. It too maps at 8000–BFFF.

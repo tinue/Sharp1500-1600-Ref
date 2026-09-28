@@ -212,7 +212,7 @@ The PC-1600 has three expansion connectors in total: a 60-pin system bus connect
 | 14 | PT | 29 | CMTOUT | 44 | FG | 59 | IOE |
 | 15 | PU | 30 | IRQ | 45 | VBAT | 60 | RD̄ |
 
-This is a different, larger connector than the two memory slots — it exposes Z-80 control signals (M1̄, INT1̄, IORQ, WAIT, IRQ) that the memory slots don't, plus cassette I/O (CMTIN/CMTOUT), battery-backup (VBAT), and the sub-CPU timing signals (BFO, φOS) that never appear on a memory-only connector. PT and PU (pins 14, 15) appear here too, confirming they're broadcast machine-wide, not slot-specific. Pin 16 (PVOUT) carries the LH5803's PV in PC-1500 mode; the PC-1500 TRM puts PV on pin 15 instead (§2.2b).
+This is a different, larger connector than the two memory slots — it exposes Z-80 control signals (M1̄, INT1̄, IORQ, WAIT, IRQ) that the memory slots don't, plus cassette I/O (CMTIN/CMTOUT), battery-backup (VBAT), and the sub-CPU timing signals (BFO, φOS) that never appear on a memory-only connector. PT, PU and PVOUT (pins 14, 15, 16) carry the bank number of the page being accessed, MSB first (`../PC-1600/PC-1600-Memory-Bank-Switching.md` Part 2): on a 4000–7FFF access, Port 31H b3/b2/b1. A 60-pin peripheral ROM decodes its bank from them, as the CE-1600P does for Banks 4/5. Pin 16 (PVOUT) carries the LH5803's PV while the LH5803 runs; the PC-1500 TRM puts PV on pin 15 instead (§2.2b).
 
 ### 4.1 Memory Slot 1 (S1) Connector, per TRM §10.3
 

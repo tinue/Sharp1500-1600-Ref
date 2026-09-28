@@ -1,7 +1,7 @@
 # PC-1600 Expansion Bus — Hardware Design Reference
 
-> **STATUS: STUB.** Structure placeholder from the PC-1600 corpus restructuring
-> (2026-08-29).
+> **STATUS: PARTIAL.** Only §1 (peripheral ROM placement) is written; the rest is the
+> outline from the PC-1600 corpus restructuring (2026-08-29).
 
 ## Scope
 
@@ -13,6 +13,48 @@ examples.
 
 Memory modules specifically (CE-1600M etc.) get their own catalogue in
 `PC-1600-Memory-Modules.md`; this document is about the bus, not the modules.
+
+## 1. Where a 60-pin peripheral's ROM can go
+
+**Use page 1 (4000–7FFFH), Bank 2, 6 or 7.** Nothing known occupies them, and the firmware
+scans them for peripheral ROMs at reset.
+
+**How the firmware finds it.** At reset `SCANMODS` (P0-B0 `07C5H`) maps page 1 to Banks 1–7
+in turn and looks for the ID bytes `43H,16H` at **4000H** and at **6000H**. Hits go into the
+bitmaps at F0AEH (4000H) and F0AFH (6000H); each module's entry at +2 is then called
+(`CALLMODS`), and a module can reserve work RAM with `CALL 02DFH` (Creg 01–07 = Bank 1–7
+at 4000H, 08–0E = at 6000H). A ROM can use the whole 16 KB bank, or one 8 KB half with its
+header at 4000H or 6000H. Header and jump-table layout: `PC-1600-Memory-Bank-Switching.md`
+Part 6. The scan never looks at page 2, so a ROM at 8000–BFFFH is not found automatically.
+
+**What already sits in page 1:**
+
+| Bank | Occupant | Free? |
+|---|---|---|
+| 0 | internal system ROM (CS001) | no |
+| 1 | Slot RAM when remapped: `SLOT1MAP` A=01H (Slot 1b) or `SLOT2MAP` A=02H (Slot 2a); possibly on by default (`PC-1600-Memory-Bank-Switching.md` Part 2) | no |
+| 2 | nothing (empty in TRM §7.2.1's map) | **yes** |
+| 3, 3b | internal CS24 ROM; carries its own `43 16` header | no |
+| 4 | CE-1600P printer ROM | no |
+| 5 | CE-1600P floppy/cassette ROM (headers at 4000H and 6000H; the CE-1600F has no ROM) | no |
+| 6, 7 | nothing | **yes** |
+
+The CE-1600P decodes Banks 4 and 5 as one 32 KB ROM and has a 60-pin pass-through, so a
+device behind it must keep out of 4/5 too.
+
+**Address decode.** The SC-7852 puts the bank number of the page being accessed on PT / PU
+/ PVOUT (pins 14 / 15 / 16), MSB first (TRM §7.2.1; `PC-1600-Memory-Bank-Switching.md`
+Part 2). Select the ROM on:
+
+- `MREQ` active; `RD` for output enable
+- `A15` = 0, `A14` = 1 (4000–7FFFH); optionally `A13` for one 8 KB half
+- PT PU PVOUT = `0 1 0` (Bank 2), `1 1 0` (Bank 6) or `1 1 1` (Bank 7)
+- `ELH̄` high (Z-80 running). While the LH-5803 runs it drives the bus and PVOUT carries
+  its PV; the CE-1600P gates its ROM select on ELH for the same reason (`CSNO`,
+  `PC-1600-Peripherals-Hardware.md` §1.2.2).
+
+Not yet checked on hardware: a logic-probe look at pins 14–16 while stepping Port 31H
+through the page-1 banks would confirm the decode before committing a PCB.
 
 ## Planned outline
 
@@ -30,9 +72,8 @@ Memory modules specifically (CE-1600M etc.) get their own catalogue in
   acknowledge cycle, sharing/priority (Port 32H/35H).
 - **Address decoding for a peripheral:** how to claim an I/O range (28–2FH, 60–6FH,
   78–83H precedents), how INH lets a module override internal ROM.
-- **ROM-module integration:** the 8-byte header, jump table at 4000H, boot-time detection
-  (`SLOTST`, F0AE/F0AF bitmaps), autostart — consolidate from
-  `PC-1600-Memory-Bank-Switching.md` Part 6.
+- **ROM-module integration:** placement and detection are in §1; still to do: the full
+  jump-table contract (entries at +2…+15H), autostart, keyword tables.
 - **Worked example:** a minimal I/O peripheral on the 60-pin bus (address decode + one
   readable/writable register + optional interrupt), end to end.
 - **Unresolved:** the Slot 1 / Slot 2 ↔ K0–K2 / S1–S3 connector-label discrepancy

@@ -261,7 +261,7 @@ above (some entries not previously itemised in this corpus — reconcile fully a
 | 38H | write | switch control between the two CPUs |
 | 39H | write | low byte of the indirect interrupt address (IM2) |
 | 3AH, 3BH | — | unused |
-| 3CH | write | **SLOTMAP** (slot remapping); readback of the current value is kept at `F08DH` (`PC-1600-Work-Area-Map.md`) |
+| 3CH | write | **SLOTMAP** (slot remapping): b2 = Slot 1b also at 4000–7FFFH Bank 1 (`SLOT1MAP`), b5 = Slot 2a also at 0000–3FFFH Bank 1, b4 = Slot 2a at 4000–7FFFH and 2b at 0000–3FFFH, Bank 1 (`SLOT2MAP`); b6 = LHS remap. Readback of the current value is kept at `F08DH` (`PC-1600-Work-Area-Map.md`) |
 | 3DH | write | bank-select for BASIC-ROM vs. JAPAN-ROM: b2 = `4000H`–`7FFFH` is Bank 3 (normal ROM module) when set, else BASIC-ROM; b1 = `8000H`–`BFFFH` is Bank 4 (JAPAN-ROM) when set, else BASIC-ROM. Readback kept at `F07DH` |
 | 3EH, 3FH | — | unused |
 
