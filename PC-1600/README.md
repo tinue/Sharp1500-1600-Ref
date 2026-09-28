@@ -49,7 +49,7 @@ primary sources.
 | [`PC-1600-CPC-TC8576.md`](PC-1600-CPC-TC8576.md) | **complete (chip)** | The TC8576F/AF CPC (UART + Centronics port) at I/O 20–23H, from the Toshiba data sheet: full 44-pin pinout with PC-1600 connections, the port-23H three-way write decode, PR0–PR7, serial mode/command/status, parallel output-mode DSTB/XBUSY/PRIME, reset state, AC timing. Also covers how the ROM drives it: boot init (÷2 prescaler → baud = 76800/B), the SETCOM path, the `F14FH` command shadow, the complemented sub-CPU command send, RS-232C CS/CD/DR read through FAULT/SLCT/PE, and PRIME as the RS-232C/SIO switch. |
 | [`PC-1600-SubCPU-LU57813P.md`](PC-1600-SubCPU-LU57813P.md) | **first pass** | The LU-57813P 4-bit sub-CPU: roles, clocks (1.2288 MHz ÷ 4, 32.768 kHz RTC), the full 64-pin table with PC-1600 wiring, power-on/off sources, the `Z7`→INT6 causes, and the KI/Z10/Z9 command handshake (Service Manual §4-2/§4-3/§6-3/§7-1/§9-3). Also the command set, rebuilt from the ROM: timer IOCS c → `90H+c`, data as `F0H`/`80H`+nibble, nibble fetch, and the per-IOCS traffic table. No datasheet exists; the chip's own ROM is undumped. |
 | [`PC-1600-Serial-Hardware-Notes.md`](PC-1600-Serial-Hardware-Notes.md) | **first pass** | RS-232C/SIO share one TC8576F; PRIM select; BX7269W level shifter; VDD/VEE; TC8576F pinout (TRM §7.6). Plus the FTDI USB/UART wiring how-to. |
-| [`PC-1600-ROM-Versions.md`](PC-1600-ROM-Versions.md) | **complete** | The two BASIC ROM revisions (OLD / NEW) and Sharp's three-`PEEK #` identification table, mapped onto the CS001 / CS123 / CS24 chips; confirmed NEW against the real-hardware dumps and PockEmul (byte-identical); resolves the jump table's "on some ROM versions, 4 more jumps follow" caveat by enumerating those entries. SOFTWARE-INFO bulletin 1600-010E. |
+| [`PC-1600-ROM-Versions.md`](PC-1600-ROM-Versions.md) | **complete** | The two BASIC ROM revisions (OLD / NEW) and Sharp's three-`PEEK #` identification table, mapped onto the CS001 / CS123 / CS24 chips; confirmed against real-hardware dumps of both revisions; resolves the jump table's "on some ROM versions, 4 more jumps follow" caveat (NEW-only entries, enumerated). SOFTWARE-INFO bulletin 1600-010E. |
 
 ### Stubs — structure in place, content to be written
 
@@ -121,8 +121,7 @@ reference, and it was used across this sub-corpus to:
 
 - cross-check the memory / bank-switching model against the manuals;
 - resolve a handful of points the manuals leave ambiguous or contradictory (e.g. the
-  keyboard strobe/sense port binding, the LCD-controller port decode, the routing of
-  `C000–FFFF` when `Port 31H b7 = 1`);
+  keyboard strobe/sense port binding, the LCD-controller port decode);
 - provide a concrete answer where the manuals are silent. (One such answer was wrong: that
   emulator models the SC-7852 with no wait states. Real-hardware BEEP pitch shows one wait
   per M1 cycle — `PC-1600-CPU-SC7852-Z80.md` §2.3.)
