@@ -258,9 +258,8 @@ unit.
   `0312H` — not enumerated by the source, not yet found by inspection.~~ **Found.** In the
   dumped NEW-revision ROM they are `0315H`/`0318H`/`031BH`/`031EH`, each `RST 18`
   (`BANKJP`) to `40E1H`/`40E4H`/`40E7H`/`40EAH` in **bank 3**, where a secondary table
-  jumps on to `6BAFH`/`6BD0H`/`6BF0H`/`6C0BH`. Remaining unknowns: what that bank-3 code
-  does, and whether the OLD revision is the one lacking these entries (inferred, not
-  shown). Full working in [`PC-1600-ROM-Versions.md`](PC-1600-ROM-Versions.md) §4.
+  jumps on to `6BAFH`/`6BD0H`/`6BF0H`/`6C0BH`. The OLD revision lacks them (its table
+  ends at `0312H`). Remaining unknown: what that bank-3 code does. Full working in [`PC-1600-ROM-Versions.md`](PC-1600-ROM-Versions.md) §4.
 - Several German names transcribed as literally as legible could not be resolved to a
   confident English gloss (`RSLT150`, `EXCOMMEXE`/`EXCOMMEXE` family) — cross-check
   against a ROM disassembly if precision here matters.

@@ -306,7 +306,7 @@ Generated internally by the SC7852 custom CPU, based on bank selection register 
   remark: *"This signal must be low to access the memory space of 8000H-BFFFH of bank 6.
   The remaining 16KB area of the second half is for the LH-5803 control ROM."* This is the
   primary-source confirmation of the empirical Stage-1 finding in
-  `../../pc1600/tools/rom-dumper/` (real hardware and emulator both) that the ordinary
+  `../../PC-1600-ROM/dumper/` on real hardware that the ordinary
   Z-80 `BANKSET`/page-2/bank-6 path **cannot** reach the LH-5803's own ROM — physically
   it's the other half of the same chip, reachable only via the LH-5803's own address bus
   (the `CALLH` bridge, Part 8), not any Z-80 port combination.

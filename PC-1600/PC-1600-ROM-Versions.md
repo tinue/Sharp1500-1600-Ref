@@ -5,8 +5,8 @@ Tricks, and Supplementations to the Manual PC-1600", D. Korhon, 22 July 1987, Sh
 Electronics (Europe) GmbH — Software Center, Hamburg; page 3/9, section **BASIC ROM
 VERSION**. (Local scan: `~/SynologyDrive/Dokumente/PDF/Vintage/Sharp/PC-1600/Sharp-Soft-Info.pdf`,
 PDF page 7.) Revision-linked hardware remark from bulletin **No. 1600-011** (page 4 of the
-same scan). Cross-checked against the real-hardware ROM dumps in
-`~/Development/sharp/pc1600/tools/rom-dumper/` and against PockEmul's PC-1600 ROM set.
+same scan). Cross-checked against the real-hardware ROM dumps of both revisions in
+`~/Development/sharp/PC-1600-ROM/dumps/{new,old}/`.
 
 This is the only source in the corpus that documents PC-1600 firmware revisions at all.
 It resolves the standing "on some ROM versions…" caveat in
@@ -81,33 +81,24 @@ The bulletin's ROM 3 probe reads **bank 3 proper**, not the hidden bank 3b reach
 Port 3DH bit b2 (`PC-1600-Memory-Bank-Switching.md` Part 1). Bank 3b's last byte is `00`
 in the confirmed hardware dump, so it carries no version stamp and cannot be substituted.
 
-## 3. Confirmed on real hardware, and on the only available ROM set
+## 3. Confirmed on real hardware
 
-The last byte of each dump in `~/Development/sharp/pc1600/tools/rom-dumper/` (captured
-from real hardware):
+The last byte of each dump in `~/Development/sharp/PC-1600-ROM/dumps/{new,old}/` (both
+captured from real hardware with `PC-1600-ROM/dumper/`):
 
-| Dump file | Bulletin column | Last byte | Verdict |
+| Dump file | Bulletin column | `new/` last byte | `old/` last byte |
 |---|---|---|---|
-| `PC1600-P1-B0.BIN` | ROM 1 | `05` = **5** | **NEW** |
-| `PC1600-P2-B6.BIN` | ROM 2 | `A3` = **163** | **NEW** |
-| `PC1600-P1-B3.BIN` | ROM 3 | `C3` = **195** | **NEW** |
+| `PC1600-P1-B0.BIN` | ROM 1 | `05` = **5** | `82` = **130** |
+| `PC1600-P2-B6.BIN` | ROM 2 | `A3` = **163** | `A1` = **161** |
+| `PC1600-P1-B3.BIN` | ROM 3 | `C3` = **195** | `C1` = **193** |
 
-All three match the NEW row exactly, and the ROM 1 byte settles this unit's side of the
-`4`-or-`5` ambiguity at **5**.
+Each set matches its bulletin row exactly, and the NEW unit's ROM 1 byte settles its side
+of the `4`-or-`5` ambiguity at **5**.
 
-PockEmul's PC-1600 ROM images give the same three values, and are **byte-for-byte
-identical** (MD5) to the hardware dumps:
-
-| PockEmul image | Hardware dump | MD5 |
-|---|---|---|
-| `romII-0.bin` | `PC1600-P1-B0.BIN` | `bddbb8bbf0b2bd2d95038f67b8d002ac` |
-| `romIV-6.bin` | `PC1600-P2-B6.BIN` | `86cb9036da284de2b04c7946d140a9fd` |
-| `romIII-3.bin` | `PC1600-P1-B3.BIN` | `6f6e1a9d46db7dc91d4322c93583ac81` |
-
-**Consequence for this corpus: every PC-1600 fact derived from a ROM image or from real
-hardware here describes the NEW revision.** The OLD ROM (130 / 161 / 193) is not dumped,
-not present in PockEmul, and — as far as this corpus can see — undocumented beyond this
-one bulletin. Nothing written here has been checked against it.
+**Consequence for this corpus: PC-1600 facts derived from a ROM image or from real
+hardware describe the NEW revision unless marked otherwise.** The OLD dumps and their
+disassemblies (`PC-1600-ROM/disasm/old/`) exist, but the findings here have not been
+systematically checked against them.
 
 **The stamp looks deliberate, not incidental.** In all three chips the identifying byte
 sits in the padding *after* the last real instruction, not inside code:
@@ -120,8 +111,8 @@ ROM 3 (…7FF0–7FFF):  … 3e 02 32 7d f0 d3 3d c9 3e 05 18 f6 | 00 00 c3
 
 That the bytes are `C1`/`C3` and `A1`/`A3` across the two revisions — differing by 2 in
 the same low bits — reinforces that these are version identifiers Sharp incremented, not
-opcodes that happened to land last. (The byte preceding ROM 1's stamp is `68`; whether
-`68 05` is a two-byte marker cannot be decided without an OLD dump.)
+opcodes that happened to land last. (The byte preceding ROM 1's stamp is `68` in NEW but `21`
+in OLD, so `68 05` is not a two-byte marker.)
 
 ## 4. What actually differs between OLD and NEW
 
@@ -158,10 +149,10 @@ things elsewhere in the corpus and in the same bulletin family are plausibly rev
 
   So the entries are real, well-formed, and land in bank-3 code. **What they do is still
   unknown** — the source says only "used only by the reset routine", and `6BAFH`/`6BD0H`/
-  `6BF0H`/`6C0BH` in bank 3 have not been disassembled. **Which revision has them is an
-  inference:** the NEW ROM demonstrably does, so the natural reading of "some ROM versions"
-  is that the OLD ROM lacks them — but with no OLD dump, the opposite direction (NEW
-  dropping four entries that the source's own reference ROM had) cannot be excluded.
+  `6BF0H`/`6C0BH` in bank 3 have not been disassembled. **The OLD ROM lacks them, confirmed
+  from its dump:** OLD `PC1600-P0-B0.BIN` ends the table at `0312H` (`DF 4E 1D`, BASPARES
+  at `1D4EH` in that revision) and code follows at `0315H`; OLD `PC1600-P1-B3.BIN` has
+  ordinary code, not a jump table, at `40E1H`.
 - **The `TAB` / serial-printing bug.** Bulletin No. 1600-011 (same scan, page 4) reports
   that *"PC-1600 units with serial end-number 8"* execute `TAB` correctly over the
   CE-1600P but incorrectly over the V24/RS-232C port, with `PZONE "COM1:",0` as the
@@ -178,12 +169,11 @@ with no version qualifier.
 - **What `4` versus `5` at `(0,&7FFF)` distinguishes.** Sharp gives both as NEW without
   comment. Two new sub-revisions of the CS001 chip is the natural reading but is not
   stated. Only a second NEW-ROM unit reading `4` would settle it.
-- **No OLD ROM has been dumped**, so the actual code differences are unverified and the
-  "improvements" the bulletin alludes to are unidentified.
+- **The OLD/NEW code differences are not yet catalogued.** Both revisions are dumped and
+  disassembled, but the "improvements" the bulletin alludes to have not been identified.
 - **What the four extra reset-only jump entries past `0312H` actually do** — they are
   enumerated in §4 and resolve into bank 3 at `6BAFH`/`6BD0H`/`6BF0H`/`6C0BH`, but that
-  code is undisassembled; and it is inferred rather than shown that their presence is the
-  OLD/NEW difference (§4).
+  code is undisassembled. Their absence from the OLD ROM is confirmed (§4).
 - **Whether the serial-end-number-8 `TAB` bug tracks the OLD/NEW ROM split** or is an
   independent batch issue (§4).
 - **Where in the hardware the version is recorded besides these three bytes** — no

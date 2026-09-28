@@ -69,7 +69,7 @@ SC-7852-view (LH-5803-view in parentheses):
 
 Clobbers all Z-80 registers.
 
-**Confirmed working on real hardware** by `../../pc1600/tools/rom-dumper/pc1600-rom-dumper.asm`
+**Confirmed working on real hardware** by `../../PC-1600-ROM/dumper/pc1600-rom-dumper.asm`
 (menu option 3): a 2-byte LH-5801 stub (`lda (x)` / `rtn`, opcodes `05 9A`) placed in the
 shared `4000H–7FFFH`/`C000H–FFFFH` RAM, called via `CMDZ=30H` with `PARXL`/`PARXH` as the
 source-byte pointer and the fetched byte read back from `PARA`, dumped the LH-5803's own
