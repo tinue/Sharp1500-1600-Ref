@@ -56,6 +56,25 @@ Part 2). Select the ROM on:
 Not yet checked on hardware: a logic-probe look at pins 14–16 while stepping Port 31H
 through the page-1 banks would confirm the decode before committing a PCB.
 
+**No "hidden" second 16 KB for a peripheral.** Port 3DH is not a general half-select. Its
+bits are latched by the gate array onto address lines that go to fixed internal chips:
+
+| Port 3DH bit | Gate-array output | Goes to | Effect |
+|---|---|---|---|
+| b2 | A16A | internal CS24 ROM (IC5) only | Bank 3 / 3b at page 1 |
+| b1 | A15A | kanji ROM (Japan-only; wiring not traced) | kanji ROM at page 2, Bank 4 |
+| b0 | A14A | not traced | — |
+
+None of A14A–A16A is on the 60-pin bus or the memory slots
+(`../Memory-Architecture/Expansion-Connectors.md` §4), and CS24 only fires for page 1,
+Bank 3. A device could in principle watch for `OUT (3DH)` on A0–A7/D0–D7/`IORQ`/`WR̄` and
+latch D2 itself (assuming internal I/O writes are driven onto the connector, which is
+unverified), but the firmware scans and runs IOCS/interrupts with 3DH = 04H and only
+enters the b2 = 0 half for its own Bank-3b tokens. The peripheral would need its own
+switching code and would have to keep F07DH in step. For more than 16 KB, use two banks
+(e.g. 6 and 7, each with a header) or a bank latch on the peripheral's own I/O port,
+which the firmware never touches — the way Port 28H extends the memory slots.
+
 ## Planned outline
 
 - The three connectors and what each is for: 60-pin system bus (raw Z-80 bus + control:

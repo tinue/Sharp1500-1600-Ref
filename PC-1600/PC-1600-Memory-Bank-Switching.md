@@ -116,7 +116,7 @@ Plain 3-bit binary value of b6:b5:b4; b0–b3 not involved. During an 8000–BFF
 | Address Range | Bank 0 | Bank 1 | Bank 2 | Bank 3 |
 |---------------|--------|--------|--------|--------|
 | 0000-3FFF | System ROM (CS001) **NEVER SWITCHED OUT** | (Slot 2) | -- | -- |
-| 4000-7FFF | System ROM (BASIC, Editor) | Slot 1b or Slot 2a when remapped (`SLOT1MAP`/`SLOT2MAP`) † | -- † | System ROM (CS24, sub-banked 2x8K) |
+| 4000-7FFF | System ROM (BASIC, Editor) | Slot 1b or Slot 2a when remapped (`SLOT1MAP`/`SLOT2MAP`) † | -- † | System ROM (CS24; b2 of Port 3DH selects Bank 3b, the chip's other 16 KB) |
 | 8000-BFFF | Slot 1a (RAM2) | Slot 1b (RAM2) | Slot 2a (RAM1) | Slot 2b (RAM1) |
 | C000-FFFF | Internal 16KB RAM (RAM3) | **`b7`=1: open.** The TRM §7.2.1 table only lists `b7` as a "bank 0/1" select for the page, and no Sharp manual reviewed for this project (TRM, Service Manual, German user manual) says what bank 1 holds. The chip-select table (Part 4) gives **RAM3** for C000–FFFF **Bank 0** only, and no other internal chip select covers C000–FFFF on the Z-80 side, so nothing on the mainboard answers when `b7`=1. Whether a device on the 60-pin system bus can respond there, and which bus signal would tell it to, is undocumented. It is also a rarely-exercised path — `b7`=1 swaps out the F000–FFFF IOCS/BASIC work area (`PC-1600-Work-Area-Map.md`), so the firmware could only use it transiently. | -- | -- |
 
@@ -163,7 +163,7 @@ Port 31H is not the only bank register. Ports 3DH and 28H are **second-level ban
 - Bit b2 normally set. Clearing b2 selects hidden BASIC ROM on Bank 3 -> Bank 3b at 4000-7FFF
 - Cannot be read via IN instruction; readable from system address F07DH
 - **Always write F07DH as well.** The interrupt entry (`INTHND`, 082CH) restores Port 3DH from F07DH on exit, so a port write without the mirror is undone by the next interrupt
-- Bits D0-D2 written here are latched by the gate array into outputs A14A-A16A, providing extra address lines for sub-banking the CS24 ROM space (Bank 3, 4000-7FFF) into two 8KB halves
+- Bits D0-D2 written here are latched by the gate array into outputs A14A-A16A, extra address lines outside the Z-80 bus. A16A is the top address bit of the 32 KB CS24 ROM, so it picks Bank 3 or Bank 3b (two 16 KB halves) at 4000-7FFF. None of A14A-A16A reaches a connector, so a peripheral ROM cannot be sub-banked this way (`PC-1600-Expansion-Bus.md` §1)
 
 **Port 28H (Slot 2 sub-banking) -- "vertical bank" select:**
 - Write-only, `OUT (28H),A` in Z-80 assembler. Confirmed by two independent sources now: the CE-1601M Service Manual's memory-map figure (*"The vertical bank of S2 is selected when data of 0 to 7 are written in 28H of the I/O space"* -- an OCR-garbled scan renders this "0 to 9", but is settled by the second source), and the *superRAM* modern-module manual (§8, "Memory Map"), which states outright: *"in 256KB Mode it takes values between 0 and 7 (8 vertical banks 32KB each result in 256KB). So in 512KB Mode it takes values between 0 and 15."* Confirmed: **0-7**, 8 vertical banks.
@@ -249,7 +249,7 @@ trailing `#`.
 | 42 | CLK1 | Out | | Passes CL2 through as the TC8576F UART base clock while the system is on; low when off. |
 | 43 | KH | Out | High | Inverted BREAK/ON key input, to the sub-CPU. |
 | 44 | A13A | Out | | Inverted A13 — 8 KB half-select for the internal RAM chips. |
-| 45–47 | A14A / A15A / A16A | Out | | C/D-latched D0/D1/D2. **A16A** also splits the CS24-selected 16 KB region (bank 3, 4000–7FFF) into two 8 KB banks. |
+| 45–47 | A14A / A15A / A16A | Out | | C/D-latched D0/D1/D2. **A16A** is the top address bit of the 32 KB CS24 ROM: it extends the 16 KB bank-3 window (4000–7FFF) to 32 KB, Bank 3 / 3b. |
 | 48–50 | LHS1–LHS3 | In | Low | Memory-select signals from the SC-7852, buffered to the slots. |
 | 51–53 | KA0–KA2 | In | Low | I/O-select signals from the SC-7852, buffered to the slots. |
 | 54–56 | S1–S3 | Out | Low | Buffered LHS1–3 to the expansion slots. All high when the system is off or on low battery. |
@@ -267,7 +267,7 @@ a safe inactive level.
 2. **Address Line Translation:**
    - A13A: Inverted A13, used as 8KB half-select for RAM chips
    - A14A-A16A: Latched from data bus via C/D register write
-   - A16A separates CS24 16KB space into two 8KB banks
+   - A16A selects which 16 KB half of the 32 KB CS24 ROM appears as Bank 3 (Bank 3 / 3b)
 
 3. **Slot Signal Buffering:** LHS1-3 and KA0-K2 from SC7852 are buffered to S1-S3 and K0-K2 for expansion slots. Required because SC7852 power is off during system-off while gate array maintains levels.
 
