@@ -124,7 +124,7 @@ Additional banks in 4000-7FFF:
 
 | Bank | Contents |
 |------|----------|
-| 3b | Hidden BASIC ROM (selected via Port 3DH, bit b2). **Fully confirmed on real hardware** by `../../pc1600/tools/rom-dumper/` — the captured `PC1600-P1-B3B.BIN` is a byte-for-byte MD5 match with PockEmul's `rom3b.bin`, and correctly distinct from Bank 3's content. Root cause of the initial "reads identical to Bank 3" symptom: a periodic interrupt (keyboard scan / 1/64s timer tick) landing during the read/write window and resetting Port 3DH as an undocumented side effect — not a hardware fault (reproduced identically on two independent units) and not a documentation error (three independent sources — TRM, Service Manual, German Systemhandbuch — all agree on the mechanism). Fix: wrap each Port 3DH write + the immediately following read in `DI`/`EI`; for the ~17s serial send specifically, reassert Port 3DH before *every* byte (each reassert individually `DI`/`EI`-guarded, not the whole send, which needs interrupts enabled for the serial IOCS). General lesson for any PC-1600 ML program that pages a bank and then reads/writes over a non-trivial window: **interrupts must be briefly disabled around the access**, since Sharp's own interrupt handlers don't guarantee preserving undocumented latches like this one. |
+| 3b | Hidden BASIC ROM: the second half of the 32 KB CS24 chip, a sub-bank of Bank 3 selected by Port 3DH bit b2 = 0 (see *Auxiliary Bank Control Ports*). **Confirmed on real hardware** by `../../PC-1600-ROM/dumper/pc1600-rom-dumper.asm`; the captured `PC1600-P1-B3B.BIN` is distinct from Bank 3's content. Early dumps read Bank 3 here because the dumper wrote Port 3DH without updating the firmware's copy at F07DH. The IM2 interrupt entry (`INTHND`, P0-B0 `082CH`, taken by the keyboard scan / 1/64 s tick) saves F07DH, forces 3DH = 04H to run the dispatcher in bank 3, then restores Port 3DH **from the saved F07DH value** — so after the first interrupt the port was back at 04H (Bank 3). The firmware itself always writes both (`LD (F07DH),A` / `OUT (3DH),A`, e.g. `ROMSELN` 08A5H, `SELJROM` 077EH), and the dumper now does the same. **Write F07DH together with Port 3DH and the selection survives interrupts and IOCS calls** (`RST 18H`/`BANKJP` 0A92H saves and restores 31H and F07DH the same way). BANKSET (08E7H) touches only Port 31H, never 3DH. |
 | 4 | CE-1600P Plotter/Centronics ROM |
 | 5 | CE-1600P Floppy (5000-5FFF) / Cassette (6000-7FFF) |
 
@@ -140,9 +140,18 @@ Additional banks in 8000-BFFF:
 
 ### Auxiliary Bank Control Ports
 
+Port 31H is not the only bank register. Ports 3DH and 28H are **second-level bank selects**: each only has an effect while Port 31H has a particular bank mapped.
+
+| Register | Selects | Scope |
+|---|---|---|
+| 31H | bank 0–7 per 16 KB page | whole address space |
+| 3DH | ROM half (b2: Bank 3 / 3b; b1: kanji ROM in Bank 4 of page 2) | only when the matching bank is selected in 31H |
+| 28H | vertical bank 0–7 inside the Slot 2 module | only 8000–BFFFH, Banks 2/3 |
+
 **Port 3DH (IOW C/D):**
 - Bit b2 normally set. Clearing b2 selects hidden BASIC ROM on Bank 3 -> Bank 3b at 4000-7FFF
 - Cannot be read via IN instruction; readable from system address F07DH
+- **Always write F07DH as well.** The interrupt entry (`INTHND`, 082CH) restores Port 3DH from F07DH on exit, so a port write without the mirror is undone by the next interrupt
 - Bits D0-D2 written here are latched by the gate array into outputs A14A-A16A, providing extra address lines for sub-banking the CS24 ROM space (Bank 3, 4000-7FFF) into two 8KB halves
 
 **Port 28H (Slot 2 sub-banking) -- "vertical bank" select:**
