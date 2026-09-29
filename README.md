@@ -191,3 +191,14 @@ Some documents name sibling projects by their folder name, e.g. `Calc-U-1600/` o
 - The BASIC prompt targets the PC-1500. PC-1600 BASIC is documented in SharpBasicReference, and `PC-1600/PC-1600-BASIC.md` lists the porting gotchas, but there is no PC-1600 authoring prompt yet.
 - The PC-1600 machine-language guide is a first pass. The PC-1500 LH5801 guide is complete and assumes a PC-1500 or PC-1500A memory layout.
 - Some PC-1600 documents are still stubs or first passes. `PC-1600/README.md` shows the status of each one.
+
+## License
+
+Copyright (C) 2026 Martin Erzberger.
+
+- **Documents** (all Markdown files, including the prompt documents and the skill) are licensed under [Creative Commons Attribution-ShareAlike 4.0 International](LICENSE-CC-BY-SA-4.0.txt) (CC BY-SA 4.0).
+- **Programs** (`.py`, `.asm`, `.bas` and `.pc1600` files) are free software, licensed under the [GNU General Public License, version 3](LICENSE-GPL-3.0.txt) (GPLv3), like [Calc-U-1600](https://github.com/tinue/Calc-U-1600).
+
+Programs that an AI assistant writes for you with the help of the prompt documents are yours; neither license applies to them.
+
+Sharp, PC-1500, PC-1600 and the names of their peripherals are trademarks of Sharp Corporation. Sharp's manuals, ROMs and the third-party datasheets cited here remain the property of their owners and are not covered by these licenses.
