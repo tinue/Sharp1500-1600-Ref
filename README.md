@@ -196,8 +196,8 @@ Some documents name sibling projects by their folder name, e.g. `Calc-U-1600/` o
 
 Copyright (C) 2026 Martin Erzberger.
 
-- **Documents** (all Markdown files, including the prompt documents and the skill) are licensed under [Creative Commons Attribution-ShareAlike 4.0 International](LICENSE-CC-BY-SA-4.0.txt) (CC BY-SA 4.0).
-- **Programs** (`.py`, `.asm`, `.bas` and `.pc1600` files) are free software, licensed under the [GNU General Public License, version 3](LICENSE-GPL-3.0.txt) (GPLv3), like [Calc-U-1600](https://github.com/tinue/Calc-U-1600).
+- **Documents** (all Markdown files, including the prompt documents and the skill) are licensed under [Creative Commons Attribution-ShareAlike 4.0 International](LICENSE-CC-BY-SA) (CC BY-SA 4.0).
+- **Programs** (`.py`, `.asm`, `.bas` and `.pc1600` files) are free software, licensed under the [GNU General Public License, version 3](LICENSE-GPL) (GPLv3), like [Calc-U-1600](https://github.com/tinue/Calc-U-1600).
 
 Programs that an AI assistant writes for you with the help of the prompt documents are yours; neither license applies to them.
 
