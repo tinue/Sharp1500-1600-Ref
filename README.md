@@ -1,190 +1,193 @@
-# Sharp PC-1500 Agent Instructions
+# Sharp PC-1500 / PC-1500A / PC-1600 Reference
 
-This repository serves two purposes:
+Hardware, firmware and programming reference for two related 1980s Sharp pocket computers:
 
-1. Two **self-contained prompt documents** that give an AI agent the knowledge to write programs for the **Sharp PC-1500** pocket computer (1981) — a machine no AI model has enough built-in knowledge to target reliably on its own.
-2. A **consolidated research corpus** on the Sharp PC-1500, PC-1500A, and PC-1600 — reverse-engineered hardware/firmware facts, memory maps, BASIC token tables, peripheral protocols, and data-exchange formats, gathered from several independent projects into one place.
+- the **Sharp PC-1500** (1981, also sold as the Tandy/Radio Shack PC-2) and its revision, the **PC-1500A**, both with a single LH5801 CPU, and
+- the **Sharp PC-1600** (1986), its dual-CPU successor: a Z-80-compatible SC7852 plus an LH5803 co-processor that runs PC-1500 software.
+
+Both machines get the same depth of coverage. The repo contains:
+
+1. **Research documents**: memory maps, bank switching, CPUs, I/O ports, ROM routines, peripherals, and tape and serial formats. All of it is taken from Sharp's manuals, service manuals and the real ROM code.
+2. **Prompt documents**: self-contained guides that let an AI assistant write working BASIC and machine-language programs for these machines. No AI model knows enough about them on its own to do this reliably.
+
+## At a glance
+
+| | PC-1500 / PC-1500A | PC-1600 |
+|---|---|---|
+| CPU | LH5801 | SC7852 (Z-80) + LH5803 (PC-1500 mode) |
+| Start here | [`PC-1500/`](PC-1500/) | [`PC-1600/README.md`](PC-1600/README.md) |
+| Write BASIC | [`sharp-basic-prompt.md`](PC-1500/Basic-Programming/sharp-basic-prompt.md) (prompt) | [`PC-1600-BASIC.md`](PC-1600/PC-1600-BASIC.md) (porting notes) |
+| Write machine code | [`LH5801_Guide.md`](PC-1500/Assembly-Programming/LH5801_Guide.md) (prompt) | [`PC-1600-Assembly-Guide.md`](PC-1600/PC-1600-Assembly-Guide.md) (first pass) |
+| BASIC language reference | [SharpBasicReference](https://github.com/tinue/SharpBasicReference) | [SharpBasicReference](https://github.com/tinue/SharpBasicReference) |
+| Annotated ROM disassembly | [Sharp_PC-1500_ROM_Disassembly](https://github.com/Jeff-Birt/Sharp_PC-1500_ROM_Disassembly) | [PC-1600-ROM](https://github.com/tinue/PC-1600-ROM) |
+| Emulator | [Calc-U-1600](https://github.com/tinue/Calc-U-1600) | [Calc-U-1600](https://github.com/tinue/Calc-U-1600) |
+
+Documents that cover both machines (connectors, data formats) are in [`Shared/`](Shared/).
 
 ---
 
-## Part 1 — How to use the prompt documents
+## Quick start
 
-Copy the relevant file into a new chat session or attach it as a system prompt / context document. Then describe what you want the program to do.
+Pick the path that fits how you work.
 
-The files are self-contained. The AI does not need internet access, tool use, or any other files. Just the document and your request.
+### A. Any AI chat (no setup)
 
-### BASIC programs
+Paste or attach one prompt document, then describe the program you want:
 
-**File:** `PC-1500/Basic-Programming/sharp-basic-prompt.md`
-
-Paste the file into the AI's context, then ask for a BASIC program. Example prompts:
+- BASIC for the PC-1500: [`PC-1500/Basic-Programming/sharp-basic-prompt.md`](PC-1500/Basic-Programming/sharp-basic-prompt.md)
+- LH5801 assembly for the PC-1500: [`PC-1500/Assembly-Programming/LH5801_Guide.md`](PC-1500/Assembly-Programming/LH5801_Guide.md)
 
 ```
 Write a program that asks for a number and prints its prime factors.
 ```
 
-```
-Write a Mandelbrot set renderer that draws the result on the CE-150 plotter.
-```
+The documents are self-contained, so the AI needs no internet access and no other files.
 
-The document defines the AI's role, device constraints (RAM, display, tokenisation), output format (`.bas` source + `.md` companion guide), coding conventions (line numbering, comment strategy, variable naming, subroutine layout), and the full BASIC keyword reference. Outputs are immediately ready to transmit to a real PC-1500.
+### B. Claude Code, inside this repository
 
-### Assembly programs
+[Claude Code](https://docs.claude.com/en/docs/claude-code/overview) is an AI assistant that runs in your terminal and can read the files in the folder you start it in.
 
-**File:** `PC-1500/Assembly-Programming/LH5801_Guide.md`
-
-Paste the file into the AI's context, then ask for an assembly routine. Example prompts:
-
-```
-Write a routine that copies 64 bytes from address $4100 to $4200.
+```sh
+git clone https://github.com/tinue/Sharp1500-1600-Ref.git
+cd Sharp1500-1600-Ref
+claude
 ```
 
-```
-Write a subroutine callable from BASIC via CALL that measures the amount of free RAM and returns it in the floating-point accumulator ARX so BASIC can print it.
-```
+Then ask questions such as:
 
 ```
-Test how much memory is unused and store a data block there.
+How does bank switching work on the PC-1600?
+Which ROM routine prints a character on the PC-1500 LCD, and how do I call it?
+Write an LH5801 routine that copies 64 bytes from &4100 to &4200.
 ```
 
-The document covers the LH5801 instruction set, addressing modes, `sdaslh5801` (sdas) assembler syntax and macros, the `sdcc-pc1500` toolchain (`sdaslh5801` → `sdld` → `makebin`), running programs in the Calc-U-1600 emulator from a YAML preset, where to find annotated ROM disassemblies, PC-1500 memory layout, system variable addresses, ROM subroutine calling conventions, BCD floating-point format, and common idioms. An AI given this guide can produce correct, assembler-ready `.asm` files for the PC-1500.
+### C. Claude Code, from your own projects (recommended)
+
+This option is for when you work on your own Sharp project (an emulator, a program, a hardware module) somewhere else. The repo ships a Claude Code **skill**: a short instruction file that Claude loads on its own when a task matches. The skill tells Claude which document in this repo answers which question, so Claude reads only the page it needs.
+
+```sh
+git clone https://github.com/tinue/Sharp1500-1600-Ref.git ~/Sharp1500-1600-Ref
+mkdir -p ~/.claude/skills
+ln -s ~/Sharp1500-1600-Ref/skills/sharp-pc1500-1600 ~/.claude/skills/sharp-pc1500-1600
+```
+
+Because the skill is a symlink, `git pull` keeps both the documents and the skill up to date. If you copy the folder instead of linking it, or clone somewhere other than `~/Sharp1500-1600-Ref`, edit the `REF=` line in [`skills/sharp-pc1500-1600/SKILL.md`](skills/sharp-pc1500-1600/SKILL.md). More about skills: [Claude Code docs → Skills](https://docs.claude.com/en/docs/claude-code/skills).
+
+The skill also knows about these public repositories. Clone any of them **next to** this one to get BASIC references, ROM source code and an emulator:
+
+```sh
+cd ~   # the folder that contains Sharp1500-1600-Ref
+git clone https://github.com/tinue/SharpBasicReference.git
+git clone https://github.com/tinue/PC-1600-ROM.git
+git clone https://github.com/Jeff-Birt/Sharp_PC-1500_ROM_Disassembly.git
+git clone https://github.com/tinue/Calc-U-1600.git
+```
+
+You can use this repo as a model for your own skill: one repo of reference documents plus a routing table from topics to files.
 
 ---
 
-## Part 2 — Research corpus
+## Repository layout
 
-Everything below is **derived research data** about the real hardware/firmware/software of the PC-1500, PC-1500A, and PC-1600 — reverse-engineered facts, not tutorials. It was gathered from several sibling projects in the same workspace (each its own git repository) into this one location so any agent working on Sharp pocket-computer material has a single place to look.
+```
+PC-1500/                PC-1500 and PC-1500A
+  Basic-Programming/      BASIC prompt, tokenizer and ROM notes, sample programs
+  Assembly-Programming/   LH5801 guide (prompt + reference), samples
+  Memory-Architecture/    address decoding, bank switching, BASIC pointers, PU/PV
+  Peripherals/            CE-150 printer/plotter/cassette hardware
+PC-1600/                PC-1600: CPUs, memory, IOCS, display, keyboard, serial, files, ROM
+Shared/                 both machines: connectors, module emulation, data formats
+skills/                 the Claude Code skill described in Quick start C
+```
 
-Documents that were **moved** here leave a one-line stub at their old location pointing back here. Documents that were **extracted** (only part of a larger tool-doc was relevant) leave the original file completely untouched elsewhere, with a note at the top of the copy here saying what was left out and why.
+---
+
+## Documents
 
 ### PC-1600/
 
-Machine-specific consolidation for the **Sharp PC-1600** (dual-CPU: Z-80-compatible SC7852 + LH5803 co-processor), aimed at building an emulator and at letting an agent write Z-80 machine-language programs and design expansion hardware for it. Its own [`PC-1600/README.md`](PC-1600/README.md) is the sub-index and tracks which documents are written vs. still stubs. **PC-1600 BASIC is *not* here** — it is a near-superset of PC-1500 BASIC and is covered for both machines together in `SharpBasicReference/`, which now carries a full PC-1600 BASIC language reference, a per-command dictionary, and a PC-1600 error-code table alongside the PC-1500 ones (see the External references table below). The BASIC prompt guide (`PC-1500/Basic-Programming/sharp-basic-prompt.md`) still targets the PC-1500 only; a shared token-code guide is still to be written.
+This folder covers the **Sharp PC-1600** in enough detail to build an emulator, write Z-80 machine-language programs, and design expansion hardware. [`PC-1600/README.md`](PC-1600/README.md) is its sub-index and tracks the status of each document (complete, first pass or stub). PC-1600 BASIC itself lives in [SharpBasicReference](https://github.com/tinue/SharpBasicReference) (see *External references*).
+
+| Area | Documents |
+|---|---|
+| Machine, CPUs | `PC-1600-Machine-Overview.md`, `PC-1600-CPU-SC7852-Z80.md`, `PC-1600-CPU-LH5803-Compat.md`, `PC-1600-SubCPU-LU57813P.md` |
+| Memory | `PC-1600-Memory-Architecture.md`, `PC-1600-Memory-Bank-Switching.md`, `PC-1600-Work-Area-Map.md`, `PC-1600-BASIC-Program-Placement.md`, `PC-1600-Memory-Modules.md` *(stub)* |
+| Firmware / ROM | `PC-1600-IOCS.md`, `PC-1600-ROM-Jump-Table.md`, `PC-1600-ROM-Versions.md`, `PC-1600-ROM-Disassembly.md` |
+| Display, keyboard, I/O | `PC-1600-Display-HD61202.md`, `PC-1600-Keyboard.md`, `PC-1600-IO-Ports.md` |
+| Serial | `PC-1600-CPC-TC8576.md`, `PC-1600-Serial-Hardware-Notes.md`, `PC-1600-Serial-Commands.md` |
+| Files, peripherals | `PC-1600-Filesystem.md`, `PC-1600-Load-Save-Matrix.md`, `PC-1600-Peripherals-Hardware.md`, `PC-1600-Expansion-Bus.md` *(stub)* |
+| Programming | `PC-1600-Assembly-Guide.md`, `PC-1600-BASIC.md`, `program-area-tests/` (Calc-U-1600 presets) |
+
+### PC-1500/
 
 | Document | Summary |
 |---|---|
-| `PC-1600-Memory-Bank-Switching.md` | Mechanism-level: chips, Port 31H/28H/3DH bank registers + truth tables, LR38041 gate array, chip selects, firmware transparent-banking calls, module headers, boot sequence, CE-1600M/1601M/superRAM, dual-CPU bridge, I/O range map, PC-1500-module adaptation, internal wiring. *(moved here from `PC-1500/Memory-Architecture/`)* |
-| `PC-1600-Memory-Architecture.md` | Narrative/comparison: Z-80 8-bank view, internal-RAM/`NEW`-offset layout, the LH5803 compatibility memory map, address-by-address comparison to PC-1500/1500A, MODE0/MODE1. *(moved here from `PC-1500/Memory-Architecture/`)* |
-| `PC-1600-Serial-Commands.md` | BASIC serial command reference: `INIT`, `SETCOM`, `OUTSTAT`, `INSTAT`, `SNDSTAT`, `RCVSTAT`, `SETDEV`, `PCONSOLE`, `SAVE`/`LOAD`. *(moved here from `PC-1500/Peripherals/`)* |
-| `PC-1600-CPC-TC8576.md` | The TC8576F/AF CPC (serial UART + parallel port, I/O 20–23H) at register level, from the Toshiba data sheet: pinout, PR0–PR7, serial/parallel command and status, DSTB/XBUSY/PRIME timing. Also how the ROM programs it: ÷2 prescaler (baud = 76800/B), the sub-CPU command send, RS-232C lines via FAULT/SLCT/PE, and PRIME = RS-232C/SIO select. |
-| `PC-1600-SubCPU-LU57813P.md` | The LU-57813P sub-CPU (power, RTC/timers, A/D, 64 Hz tick, click). Covers the Service Manual pinout and roles, the command handshake, and the command set rebuilt from the ROM (timer IOCS c → `90H+c`, nibble data transfer). |
-| `PC-1600-Serial-Hardware-Notes.md` | RS-232C/SIO share one TC8576F UART (PRIM select, BX7269W level shifter, VDD/VEE, TC8576F pinout — TRM §7.6); plus the FTDI USB/UART wiring how-to and Apple-Silicon driver gotcha. *(moved here from `PC-1500/Peripherals/`)* |
-| `PC-1600-Machine-Overview.md` | *(first pass)* Chip complement, clock tree, dual main-CPU bus sharing, sub-CPU command protocol, power rails, power-on/boot (§3.5), peripheral catalogue (Ch 1). From TRM §7.1/§7.7/§3.5/Ch 1. |
-| `PC-1600-Work-Area-Map.md` | *(first pass)* The F000H–FFFFH BASIC/IOCS work area: 5-block structure, downward extension for peripheral ROM work areas + PTR1–PTRG, and the §6.3 named-variable map. From TRM Chapter 6. Complements `PC-1600-Memory-Bank-Switching.md` Part 6. |
-| `PC-1600-Load-Save-Matrix.md` | *(first pass)* Loading/saving per MODE × periphery × command, token routing, where the result lands. From the ROM disassembly. |
-| `PC-1600-CPU-SC7852-Z80.md` | *(first pass)* The SC-7852 as a CPU: programmer's model, instruction set (= verbatim Zilog Z-80A), timing + the documented wait-state deviation, fixed-IM2 interrupts, RST vector map, the 100-pin terminal table, the 30–3FH control-register block, dual-CPU bus mapping. From TRM §7.1/§3.4/§5.13 + Systemhandbuch §10.4. |
-| `PC-1600-CPU-LH5803-Compat.md` | *(first pass)* LH-5803 memory map, LH-5801 deltas, full `CALLH` parameter block (TRM §5.14), MODE0/MODE1, PC-1500 compatibility rules (TRM §5.15). |
-| `PC-1600-IO-Ports.md` | *(first pass)* Range map + the LH-5810-compatible port block 10–1FH, TC8576F register select 20–27H, buzzer; BEEP + timer/RTC/analog IOCS (§3.9/§3.10). From TRM §7.9/§7.6/§7.5/§3.9. |
-| `PC-1600-Display-HD61202.md` | *(first pass)* Panel LF7204E (156×32 + 16 symbols), HD61203 + 2×HD61102, 217 kHz clock, CS→A2–A5 decode, frame-buffer model (TRM §7.3); plus the full §3.1 LCD IOCS routine set, work area, and 6×8 CG format. |
-| `PC-1600-IOCS.md` | *(in progress)* IOCS calling conventions (TRM §3 preamble) + master routine index for §3.1–§3.13. **Chapter 3 complete** (§3.1–§3.13). |
-| `PC-1600-Filesystem.md` | *(first pass)* File system (TRM §3.3): 16-byte file header, 57-byte FCB + 256-byte buffer, file IOCS routines (C = IOCS #, `CALL 01DEH`), and the FAT-style RAM-disk / floppy layout (boot sector, media-ID geometry, single-byte FAT). |
-| `PC-1600-Peripherals-Hardware.md` | *(in progress)* CE-1600P printer/plotter + CE-1600F floppy IOCS + peripheral hardware (TRM §3.7/§3.8/Ch 8). §3.7 printer + §3.8 floppy routines filled. |
-| `PC-1600-Keyboard.md` | *(hw complete)* Scan mechanism, strobe/sense wiring (TRM §7.4/§7.9); plus the full §3.2 key IOCS routines, the 9-strobe scan matrix, the §3.2.2 work area, and key-code translation/redefinition. Emulator-ready; §10.2 key-code table (agent-facing) pending. |
-| `PC-1600-Expansion-Bus.md` | *(stub)* Designing hardware for the 60-pin system bus + 40-pin memory slots: electrical, bus-cycle timing, IRQ/WAIT protocol, ROM-module header/autostart, worked example. |
-| `PC-1600-Memory-Modules.md` | *(stub)* Per-module catalogue: CE-1600M/1601M/1620M/1650M/superRAM + PC-1500-module adaptation. |
-| `PC-1600-Assembly-Guide.md` | *(first pass)* Writing SC7852 machine-language programs: BASIC calling conventions, bank-aware code, ROM entry points, toolchain. |
-| `PC-1600-ROM-Versions.md` | The two PC-1600 BASIC ROM revisions (OLD/NEW), Sharp's three-`PEEK #` identification table mapped onto the CS001/CS123/CS24 chips, verification against the real-hardware dumps of both revisions, and the four extra reset-only jump-table entries (NEW only). From SOFTWARE-INFO bulletin 1600-010E. |
-| `PC-1600-ROM-Disassembly.md` | Pointer to the real-hardware ROM dumps and their annotated, reassemblable disassemblies (`PC-1600-ROM/`) |
+| `Basic-Programming/sharp-basic-prompt.md` | **Prompt document.** Defines the AI's role, device limits, output format (`.bas` source + `.md` guide), coding conventions and the full BASIC keyword reference. The output can be sent straight to a real PC-1500. |
+| `Assembly-Programming/LH5801_Guide.md` | **Prompt document** and LH5801 reference. It covers the instruction set, the `sdaslh5801` assembler and toolchain, running programs in Calc-U-1600, memory layout, system variables, ROM calling conventions, the BCD float format and common idioms. |
+| `Basic-Programming/reference/Tokenizer-Analysis.md` | How the ROM tokenizes BASIC input at `$F957`. |
+| `Basic-Programming/reference/ROM-Reference.md` | A guide to the structure of the PC-1500 ROM disassembly. |
+| `Basic-Programming/reference/Peripheral-Commands.md` | The CE-150/CE-158 peripheral token table. It overlaps with SharpBasicReference's `Token-Mapping-Analysis.md`. |
+| `Memory-Architecture/PC-1500-BASIC-Pointers.md` | ROM pointers and system variables of the BASIC interpreter. |
+| `Memory-Architecture/PC-1500-Address-Decoding.md` | Address decoder, physical memory map, the PC-1500 → PC-1500A rewiring, and RAM sizing and `NEW` offsets. |
+| `Memory-Architecture/PC-1500-Bank-Switching.md` | How 16 KB modules bank-switch into the low 16 KB window. It also covers CE-163 modules in PC-1600 slots. |
+| `Memory-Architecture/PU-PV-Signals.md` | The LH5801's PU/PV flip-flop pins and their role on the expansion connector. |
+| `Peripherals/CE-150-Hardware.md` | The CE-150 at schematic level, taken from the Service Manual: LH5810, address decode, plotter and cassette wiring, EX-BOX bus. |
+| `Peripherals/CE-150-Plotter-Links.md` | Third-party replacement parts for the CE-150 pen mechanism. |
 
-### PC-1500/Memory-Architecture/
+### Shared/
 
 | Document | Summary |
 |---|---|
-| `PC-1500-BASIC-Pointers.md` | ROM pointer and system-variable table for the PC-1500/1500A BASIC interpreter. |
-| `PC-1500-Address-Decoding.md` | Address-decoder architecture and physical memory map for the PC-1500/1500A: Y0–Y3/S0–S7 blocks, physical RAM chips, the PC-1500→PC-1500A connector rewiring, the machine-language area, and RAM-sizing/`NEW`-offset calculations. |
-| `PC-1500-Bank-Switching.md` | How 16KB memory-expansion modules bank-switch into the PC-1500/1500A's low 16KB address window, built on top of `PC-1500-Address-Decoding.md`; also touches PC-1600 compatibility. |
-| `PU-PV-Signals.md` | PU/PV flip-flop pins on the LH5801 and their role in the PC-1500/1500A expansion connector. |
-| `Expansion-Connectors.md` | Consolidated connector reference: the PC-1500's 40-pin and 60-pin connectors (the latter cross-validated pin-for-pin against the PC-1600's 60-pin connector), the PC-1500A's pin reassignment (and how far a fixed-wiring module can be pushed against it), and the PC-1600's 60-pin system bus and two memory-slot connectors. Raw pinouts the `PC-1600/` bus docs build on. |
-| `Software-Defined-Memory-Extension.md` | Hypothetical: what a microcontroller-based universal module would need to do on the wire to emulate every real PC-1500/1500A/1600 memory module (plus a few "maxed out" hypotheticals) — an enable-condition/bank-select reference table per module, with the four 40-pin slot layouts underneath. |
-
-### PC-1500/Assembly-Programming/
-
-| Document | Summary |
-|---|---|
-| `LH5801_Guide.md` | The prompt document described in Part 1 above — also a solid LH5801 reference in its own right. |
-
-### PC-1500/Basic-Programming/
-
-| Document | Summary |
-|---|---|
-| `sharp-basic-prompt.md` | The prompt document described in Part 1 above. |
-| `PC-1600-BASIC.md` | Pointer doc: where the PC-1600 BASIC reference lives (`SharpBasicReference/`) and the key PC-1500 → PC-1600 porting gotchas (`LINE`→`LLINE`, `LCURSOR`→`TAB`, `CALL`→`XCALL`, `LET` required in `THEN`, …). |
-| `reference/ROM-Reference.md` | Guide to the structure of the PC-1500 ROM disassembly. |
-| `reference/Peripheral-Commands.md` | CE-150/CE-158 peripheral command token table, from the SharpBasicInterpreter project's own research. Overlaps with `SharpBasicReference/reference/Token-Mapping-Analysis.md` (see External References below) — kept separate because that repo's contents were left untouched. |
-| `reference/Tokenizer-Analysis.md` | How the PC-1500 ROM tokenizes BASIC input at `$F957`, reverse-engineered from the ROM disassembly (keyword linked lists, first-match scanning, abbreviation handling). |
-
-### PC-1500/Peripherals/
-
-| Document | Summary |
-|---|---|
-| `CE-150-Hardware.md` | Hardware/schematic-level CE-150 reference for emulator authors, from the CE-150 Service Manual circuit diagram (sheets ‑33‑/‑34‑): LH5810 + LH5367 chip complement, the TC40H000P address-decode (`/(A15·/A14)` window → ROM at &A000–&BFFF, LH5810 regs at &B00x), why there is no ROM bank-latch on the CE-150, LH5810 port→plotter/cassette wiring, the cassette analog path, and the EX-BOX bus buffering / `INHIBIT` / `C1`·`C2`. |
-| `CE-150-Plotter-Links.md` | Pointers to third-party replacement parts for the CE-150 plotter's pen mechanism. |
-
-The PC-1600 serial documents (`PC-1600-Serial-Commands.md`, `PC-1600-Serial-Hardware-Notes.md`) moved to `PC-1600/`.
-
-### Shared/Data-Formats/
-
-| Document | Summary |
-|---|---|
-| `Binary-Exchange-Formats.md` | Full serial binary format spec for both device families: CE-158 header (PC-1500/1500A) and PC-1600 header, plus BASIC/Machine/Reserve-Area/Variables payload encodings. Sourced from the PC-1500 Technical Reference Manual and real hardware dumps. |
-| `PC-1500-Tape-Format.md` | FSK audio cassette-tape format for the PC-1500 series, reverse-engineered from a reference encoder and confirmed against a live recording. |
-| `WAV-Cassette-Format-1500-1600.md` | WAV/PCM cassette encoding details (signal parameters, sync preambles, checksums) specifically for the PC-1500 and PC-1600; extracted from a broader spec that also covers unrelated models. |
+| `Expansion-Connectors.md` | Every connector: the PC-1500's 40- and 60-pin connectors, the PC-1500A reassignment, and the PC-1600's 60-pin system bus and two memory slots. |
+| `Software-Defined-Memory-Extension.md` | What a microcontroller-based universal module would have to do on the wire to emulate every real PC-1500/1500A/1600 memory module. |
+| `Data-Formats/Binary-Exchange-Formats.md` | The serial binary format: CE-158 header (PC-1500), PC-1600 header, and the BASIC, machine-code, reserve-area and variables payloads. |
+| `Data-Formats/PC-1500-Tape-Format.md` | The FSK cassette-tape format of the PC-1500 series. |
+| `Data-Formats/WAV-Cassette-Format-1500-1600.md` | WAV/PCM cassette encoding for the PC-1500 and PC-1600. |
 
 ---
 
-## External references (not moved — kept intact at their source)
+## External references
 
-**`SharpBasicReference/`** is a separate public repository ([github.com/tinue/SharpBasicReference](https://github.com/tinue/SharpBasicReference)) whose entire purpose *is* being this exact set of reference documents, so nothing was moved out of it. It sits alongside this repository in the same workspace:
+**[SharpBasicReference](https://github.com/tinue/SharpBasicReference)** is a separate public repository and the home of all BASIC language documentation for both machines. Nothing is duplicated here.
 
 | Document | Summary |
 |---|---|
-| `SharpBasicReference/PC-1500-BASIC-Reference.md` | Full PC-1500 BASIC language reference. |
-| `SharpBasicReference/PC-1600-BASIC-Reference.md` | Full PC-1600 BASIC language reference — Part IV (chapters 8–14) of the PC-1600 Operation Manual: data representation, files, serial ports, debugging, the command-dictionary index by category, appendices A–K, plus the Systemhandbuch's internal data representation (arithmetic registers, BCD/binary/string encodings). Also carries Appendix H, the PC-1500↔PC-1600 compatibility notes (renamed commands such as `LINE`→`LLINE` and `LCURSOR`→`TAB`, MODE 0 vs MODE 1, early-PC-1500 `IF`/`FOR` quirks). |
-| `SharpBasicReference/PC-1600-Command-Dictionary.md` | Per-command reference for the PC-1600's ≈200 commands (Operation Manual chapter 14), A–Z, with format, abbreviation, purpose, remarks and examples; the split-out detail behind the category index in `PC-1600-BASIC-Reference.md`. |
-| `SharpBasicReference/PC-1600-Error-Codes.md` | PC-1600 error-code table: the PC-1500 codes 1–39 (reworded) plus the three-digit codes for the new subsystems (100–131 system/editing, 140–144 serial, 150–168 files); the 40–80 PC-1500-peripheral codes still apply in MODE 1. |
-| `SharpBasicReference/CE-150-Reference.md` | CE-150 printer/plotter/cassette BASIC command reference (PC-1500; also the PC-1600 in MODE 1). |
-| `SharpBasicReference/CE-158-Reference.md` | CE-158 RS-232C/parallel interface BASIC command reference (PC-1500; also the PC-1600 in MODE 1). |
-| `SharpBasicReference/Command-Index.md` | Cross-index of all BASIC commands across every document — PC-1500 BASIC, CE-150, CE-158, **and PC-1600 BASIC** (A–Z, linking into the PC-1600 Command Dictionary). |
-| `SharpBasicReference/Error-Codes.md` | PC-1500 BASIC error-code table (general errors plus CE-150 / CE-158 peripheral errors). See `PC-1600-Error-Codes.md` for the PC-1600. |
-| `SharpBasicReference/reference/Token-Mapping-Analysis.md` | BASIC token value map (`0xE680`–`0xF1B6`) and device token allocation. Overlaps with `PC-1500/Basic-Programming/reference/Peripheral-Commands.md` above — both describe the same CE-150/CE-158 token space from different angles; consult both if one seems incomplete. |
+| `PC-1500-BASIC-Reference.md` | Full PC-1500 BASIC language reference. |
+| `PC-1600-BASIC-Reference.md` | Full PC-1600 BASIC language reference (Operation Manual Part IV + internal data representation), including Appendix H on PC-1500 ↔ PC-1600 compatibility. |
+| `PC-1600-Command-Dictionary.md` | Entries for the PC-1600's ≈200 commands, A–Z. |
+| `PC-1600-Error-Codes.md` / `Error-Codes.md` | Error-code tables for the PC-1600 and the PC-1500. |
+| `CE-150-Reference.md`, `CE-158-Reference.md` | BASIC commands for the CE-150 printer/plotter and the CE-158 interface (PC-1500, and the PC-1600 in MODE 1). |
+| `Command-Index.md` | A–Z cross-index of every BASIC command on both machines. |
+| `reference/Token-Mapping-Analysis.md` | BASIC token value map and device token allocation. |
 
----
+## Related repositories
 
-## Sibling repositories referenced throughout this corpus
+Some documents name sibling projects by their folder name, e.g. `Calc-U-1600/` or `PC-1600-ROM/`, because they are used side by side. None of their contents are included here. This table shows which ones you can reach:
 
-Several documents in this repo mention tools or sibling projects by their local path in the author's own workspace (e.g. `pc1500emu/`, `SharpDataExchange`), since that's how the docs are used day-to-day. Those local-path mentions are left in place, but **none of those sibling projects' contents are included in this repository** — this table is the canonical map of what's public and what isn't, so a reader arriving at this repo alone knows what they can and can't reach.
-
-| Local path used in these docs | Status | Public URL |
+| Folder name used in the docs | Status | URL |
 |---|---|---|
-| `pc1500emu/` | Public (independent fork, not this user's own project) | [github.com/tinue/pc1500emu](https://github.com/tinue/pc1500emu) |
-| `pc1500preset/` | No longer published (superseded by Calc-U-1600) | — |
 | `Calc-U-1600/` | Public — PC-1500/1500A/1600 emulator; the reference for running programs | [github.com/tinue/Calc-U-1600](https://github.com/tinue/Calc-U-1600) |
-| `PC-1600-ROM/` | Public — PC-1600 + CE-1600P ROM dumps and their annotated, reassemblable disassemblies | [github.com/tinue/PC-1600-ROM](https://github.com/tinue/PC-1600-ROM) |
+| `PC-1600-ROM/` | Public — PC-1600 + CE-1600P ROM dumps and annotated, reassemblable disassemblies | [github.com/tinue/PC-1600-ROM](https://github.com/tinue/PC-1600-ROM) |
 | `PC-1500-ROM/` | Public — CE-150 ROM dump | [github.com/tinue/PC-1500-ROM](https://github.com/tinue/PC-1500-ROM) |
-| `Sharp_PC-1500_ROM_Disassembly/` | Public (external project, not this user's own) — PC-1500 A01/A03/A04 ROM disassembly | [github.com/Jeff-Birt/Sharp_PC-1500_ROM_Disassembly](https://github.com/Jeff-Birt/Sharp_PC-1500_ROM_Disassembly) |
-| `pc1600/` | **Private** — annotation workspace behind `PC-1600-ROM/disasm/` | — |
+| `Sharp_PC-1500_ROM_Disassembly/` | Public (external) — PC-1500 A01/A03/A04 ROM disassembly | [github.com/Jeff-Birt/Sharp_PC-1500_ROM_Disassembly](https://github.com/Jeff-Birt/Sharp_PC-1500_ROM_Disassembly) |
+| `SharpBasicReference/` | Public | [github.com/tinue/SharpBasicReference](https://github.com/tinue/SharpBasicReference) |
 | `SharpDataExchange` | Public | [github.com/tinue/SharpDataExchange](https://github.com/tinue/SharpDataExchange) |
-| `sdcc-pc1500/` | Public (external project, not this user's own) | [github.com/pchambre/sdcc-pc1500](https://github.com/pchambre/sdcc-pc1500) |
-| `sharp-pocket-computer/` | Public | [github.com/tinue/sharp-pocket-computer](https://github.com/tinue/sharp-pocket-computer) |
-| `SharpBasicReference/` | Public | [github.com/tinue/SharpBasicReference](https://github.com/tinue/SharpBasicReference) (see above) |
 | `SharpBasicPlugin/` | Public | [github.com/tinue/SharpBasicPlugin](https://github.com/tinue/SharpBasicPlugin) |
-| `pc1500/` (CE-1638, CE-163F, CE-163X material) | **Private — not published, no public URL** | — |
-| `tasm/`, `tasm-35/`, `lh5801_asm/reference/` | **Private local project — not published, no public URL** | — |
+| `sharp-pocket-computer/` | Public | [github.com/tinue/sharp-pocket-computer](https://github.com/tinue/sharp-pocket-computer) |
+| `sdcc-pc1500/` | Public (external) — LH5801 assembler/linker | [github.com/pchambre/sdcc-pc1500](https://github.com/pchambre/sdcc-pc1500) |
+| `pc1500emu/` | Public (external fork), being retired; not an authority for this corpus | [github.com/tinue/pc1500emu](https://github.com/tinue/pc1500emu) |
+| `pc1600/` | **Private** — annotation workspace behind `PC-1600-ROM/disasm/` | — |
+| `pc1500/` (CE-1638, CE-163F, CE-163X) | **Private** | — |
+| `pc1500preset/`, `tasm/`, `tasm-35/`, `lh5801_asm/reference/` | Not published | — |
 
----
+## Out of scope
 
-## Adjacent / out-of-scope resources (not consolidated here)
-
-These contain genuine Sharp research but were deliberately **not** copied or moved:
-
-- **`pc1500emu/`** — an independent emulator, being retired. Not an authority for this corpus: facts here are sourced from Sharp's manuals, the Service Manuals and the ROM code, and programs are run in Calc-U-1600.
-- **CE-1638 / CE-163F / CE-163X materials** (`pc1500/CE-1638/`, `pc1500/CE-163F/`) — these document a **modern** (hobbyist-built) memory-expansion module and its firmware, not original 1980s Sharp hardware, so they're out of scope for this corpus and live in a **private, unpublished** repository (`pc1500/`, see table above) — not this repo. The memory-test utility for these modules is now Calc-U-1600's `examples/machine-code/memtest.asm`; `pc1500/CE-1638/BANKSWRM-Firmware-Notes.md` (a suspected firmware defect writeup) stays in the private `pc1500/` repo.
-- **Generic TASM assembler manuals** (`tasm/`, `tasm-35/`, `lh5801_asm/reference/`) — the Telemark TASM user manual and opcode tables are generic to the assembler, not specific to the LH5801 or Sharp hardware, and are duplicated across three locations in a **private, unpublished** part of the workspace (see table above).
-
----
+- **CE-1638 / CE-163F / CE-163X** are modern hobbyist memory modules, not original Sharp hardware. Their material lives in a private repository.
+- **Generic TASM assembler manuals** are not specific to Sharp hardware.
+- **Other Sharp pocket computers** (PC-1211, PC-1245, PC-1350, PC-1403, PC-G850, …) use different CPUs or BASIC dialects and are not covered, even where a source document mentions them.
 
 ## Limitations
 
-- The BASIC prompt (`PC-1500/Basic-Programming/sharp-basic-prompt.md`) targets the PC-1500 specifically. The PC-1600 is a near-superset and its BASIC is now documented as reference material in `SharpBasicReference/` (language reference, command dictionary, error codes), but the prompt itself has not been extended to generate PC-1600 programs. Other Sharp pocket computers (PC-1245, PC-1350, PC-G850) have different BASIC dialects and are not covered.
-- The assembly guide targets the LH5801 CPU and the `sdaslh5801` (sdas) assembler. It assumes programs run on a PC-1500 or PC-1500A; memory addresses may differ on other LH5801-based systems.
-- The research corpus above is scoped to the PC-1500, PC-1500A, and PC-1600 only. Other Sharp pocket computers (PC-1211, PC-1261, PC-1350, PC-1401, PC-1403, etc.) are out of scope, even where source documents mention them in passing.
+- The BASIC prompt targets the PC-1500. PC-1600 BASIC is documented in SharpBasicReference, and `PC-1600/PC-1600-BASIC.md` lists the porting gotchas, but there is no PC-1600 authoring prompt yet.
+- The PC-1600 machine-language guide is a first pass. The PC-1500 LH5801 guide is complete and assumes a PC-1500 or PC-1500A memory layout.
+- Some PC-1600 documents are still stubs or first passes. `PC-1600/README.md` shows the status of each one.
