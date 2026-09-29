@@ -17,8 +17,9 @@ PC-1500's (≈99 % shared token codes) and is documented for both machines toget
 language reference, incl. Appendix H's PC-1500↔PC-1600 compatibility notes),
 `PC-1600-Command-Dictionary.md` (per-command, A–Z) and `PC-1600-Error-Codes.md`,
 alongside the PC-1500 references and the combined `Command-Index.md`. The BASIC prompt
-guide and a shared token-code guide are still PC-1500-only / unwritten. None of this
-lives in this sub-corpus.
+guide (`../PC-1500/Basic-Programming/sharp-basic-prompt.md`) is still PC-1500-only and a
+shared token-code guide is unwritten. Only the pointer doc
+[`PC-1600-BASIC.md`](PC-1600-BASIC.md) (where it lives + porting gotchas) is kept here.
 
 Sources — Sharp's own manuals, plus one independent emulator used for cross-validation —
 are listed under **Sources & validation** below. Individual documents cite only the
@@ -50,6 +51,7 @@ primary sources.
 | [`PC-1600-SubCPU-LU57813P.md`](PC-1600-SubCPU-LU57813P.md) | **first pass** | The LU-57813P 4-bit sub-CPU: roles, clocks (1.2288 MHz ÷ 4, 32.768 kHz RTC), the full 64-pin table with PC-1600 wiring, power-on/off sources, the `Z7`→INT6 causes, and the KI/Z10/Z9 command handshake (Service Manual §4-2/§4-3/§6-3/§7-1/§9-3). Also the command set, rebuilt from the ROM: timer IOCS c → `90H+c`, data as `F0H`/`80H`+nibble, nibble fetch, and the per-IOCS traffic table. No datasheet exists; the chip's own ROM is undumped. |
 | [`PC-1600-Serial-Hardware-Notes.md`](PC-1600-Serial-Hardware-Notes.md) | **first pass** | RS-232C/SIO share one TC8576F; PRIM select; BX7269W level shifter; VDD/VEE; TC8576F pinout (TRM §7.6). Plus the FTDI USB/UART wiring how-to. |
 | [`PC-1600-ROM-Versions.md`](PC-1600-ROM-Versions.md) | **complete** | The two BASIC ROM revisions (OLD / NEW) and Sharp's three-`PEEK #` identification table, mapped onto the CS001 / CS123 / CS24 chips; confirmed against real-hardware dumps of both revisions; resolves the jump table's "on some ROM versions, 4 more jumps follow" caveat (NEW-only entries, enumerated). SOFTWARE-INFO bulletin 1600-010E. |
+| [`PC-1600-BASIC.md`](PC-1600-BASIC.md) | **pointer** | Where PC-1600 BASIC is documented (`SharpBasicReference/`) and the key PC-1500 → PC-1600 porting gotchas (`LINE`→`LLINE`, `LCURSOR`→`TAB`, `CALL`→`XCALL`, `LET` required in `THEN`, …). |
 
 ### Stubs — structure in place, content to be written
 
@@ -63,22 +65,22 @@ primary sources.
 
 ---
 
-## Shared cross-machine documents (not moved — they cover PC-1500 too)
+## Related documents outside this folder (`../Shared/`, `../PC-1500/`)
 
-- `../Memory-Architecture/Expansion-Connectors.md` — §4/§5: raw pinouts for the PC-1600
+- `../Shared/Expansion-Connectors.md` — §4/§5: raw pinouts for the PC-1600
   60-pin system bus and both 40-pin memory slots. `PC-1600-Expansion-Bus.md` builds on this.
-- `../Memory-Architecture/Software-Defined-Memory-Extension.md` — §3: PC-1600 module
+- `../Shared/Software-Defined-Memory-Extension.md` — §3: PC-1600 module
   emulation table (enable / bank-select conditions per module).
-- `../Memory-Architecture/PU-PV-Signals.md` — the PV signal path relayed from the LH5803
+- `../PC-1500/Memory-Architecture/PU-PV-Signals.md` — the PV signal path relayed from the LH5803
   into the PC-1600 gate array.
-- `../Memory-Architecture/PC-1500-Bank-Switching.md` — §9–10: CE-163 behaviour in PC-1600
+- `../PC-1500/Memory-Architecture/PC-1500-Bank-Switching.md` — §9–10: CE-163 behaviour in PC-1600
   Slot 1 vs. Slot 2, and the `OUT &28/&29` A0 quirk.
-- `../Memory-Architecture/PC-1500-Address-Decoding.md` — PC-1600 rows in the `MEM` /
+- `../PC-1500/Memory-Architecture/PC-1500-Address-Decoding.md` — PC-1600 rows in the `MEM` /
   `NEW`-offset tables (§5.1).
-- `../Data-Formats/Binary-Exchange-Formats.md` — §3: PC-1600 16-byte serial transfer header.
-- `../Data-Formats/WAV-Cassette-Format-1500-1600.md` — the PC-1600 cassette (E-series)
+- `../Shared/Data-Formats/Binary-Exchange-Formats.md` — §3: PC-1600 16-byte serial transfer header.
+- `../Shared/Data-Formats/WAV-Cassette-Format-1500-1600.md` — the PC-1600 cassette (E-series)
   encoding.
-- `../Assembly-Programming/LH5801_Guide.md` — the LH5801 instruction set, shared with the
+- `../PC-1500/Assembly-Programming/LH5801_Guide.md` — the LH5801 instruction set, shared with the
   PC-1600's LH5803 side.
 
 ## Sources & validation

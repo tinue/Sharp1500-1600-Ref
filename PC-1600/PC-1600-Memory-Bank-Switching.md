@@ -299,7 +299,7 @@ Generated internally by the SC7852 custom CPU, based on bank selection register 
 > ROM's OE signal" — i.e. INH *is* the ROM output-enable (active-low OE), grounded by
 > default so the ROM is enabled; a module drives it high to disable the ROM. This is the
 > **opposite polarity** from the "pull INH low to inhibit" convention on the PC-1500 and
-> from `../Memory-Architecture/Expansion-Connectors.md` §4.3. Trust the TRM for the
+> from `../Shared/Expansion-Connectors.md` §4.3. Trust the TRM for the
 > PC-1600; the connector-doc wording needs reconciling (flagged there).
 
 **Other TRM §7.2.2 details** not previously captured:

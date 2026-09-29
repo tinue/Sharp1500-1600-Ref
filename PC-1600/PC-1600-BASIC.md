@@ -8,7 +8,7 @@
 
 The PC-1600's BASIC is a near-superset of the PC-1500's (≈99 % shared token codes), so it
 is documented for both machines together in `SharpBasicReference/` rather than split
-between two corpora. See this repo's `README.md` — *Part 2 → PC-1600/* and *External
+between two corpora. See this repo's `README.md` — *External
 references* — for the standing policy that nothing is moved out of `SharpBasicReference/`.
 
 ## Where it lives
@@ -43,8 +43,8 @@ From `PC-1600-BASIC-Reference.md` Appendix H and the command dictionary:
 
 ## Related in this corpus
 
-- `Basic-Programming/sharp-basic-prompt.md` — the PC-1500 BASIC authoring prompt; **not**
+- `PC-1500/Basic-Programming/sharp-basic-prompt.md` — the PC-1500 BASIC authoring prompt; **not**
   extended to the PC-1600.
-- `Basic-Programming/reference/Tokenizer-Analysis.md`, `reference/Peripheral-Commands.md`
+- `PC-1500/Basic-Programming/reference/Tokenizer-Analysis.md`, `reference/Peripheral-Commands.md`
   — PC-1500 ROM tokenizer and CE-150/CE-158 token space (the shared-token angle).
 - `PC-1600/` — the PC-1600 hardware / firmware / Z-80 machine-language sub-corpus.

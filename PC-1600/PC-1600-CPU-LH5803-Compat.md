@@ -5,7 +5,7 @@
 The LH-5803 side of the PC-1600: its memory map, how it differs from the PC-1500's
 LH-5801, the Z-80↔LH-5803 call bridge, and the rules for running PC-1500/1500A software
 (MODE 1). The **LH-5801 instruction set** is shared and lives in
-`../Assembly-Programming/LH5801_Guide.md` — only the deltas are here.
+`../PC-1500/Assembly-Programming/LH5801_Guide.md` — only the deltas are here.
 
 **Sources:** PC-1600 Technical Reference Manual §5.14 (SC-7852↔LH-5803, the `CALLH`
 parameter block), §5.15 (compatibility with the PC-1500/1500A) — read from the German
@@ -41,7 +41,7 @@ The LH-5803 sees a plain 64 KB space (TRM §7.2.3):
 | C000H–FFFFH | internal ROM (16 KB, the LH-5803 half of PC-1600 firmware) | Z-80 Bank-6-class system ROM |
 
 Bank selection in 8000H–FFFFH is completed by the LH-5803's own **PV** signal — the same
-physical CPU flip-flop as on the PC-1500 (`../Memory-Architecture/PU-PV-Signals.md` §3),
+physical CPU flip-flop as on the PC-1500 (`../PC-1500/Memory-Architecture/PU-PV-Signals.md` §3),
 relayed through the gate array. The full narrative, the address-by-address comparison to
 a real PC-1500/1500A, and the open question about the S6 display-buffer / S7 stack region
 inside 4000H–7FFFH are in `PC-1600-Memory-Architecture.md` §5–6.
@@ -114,7 +114,7 @@ PC-1600 German user manual, §9.2 / Appendix H (`PC-1600-Memory-Architecture.md`
   `INIT "Sx:"` is refused (error 110, rom3b `62BAH`); `NEW addr` is accepted only in
   MODE 1 (`4351H`); `PC15MAP` (P0-B0 `1676H`) narrows `ADTBL` to the one program area the
   LH-5803 sees; the cassette driver switches to the PC-1500 tape format (see
-  `Data-Formats/WAV-Cassette-Format-1500-1600.md`).
+  `Shared/Data-Formats/WAV-Cassette-Format-1500-1600.md`).
 - **`MODE 1` chooses the program area itself and ignores the previous `TITLE`**
   (`PC15MAP`, P0-B0 `1676H`, via `RAMODSET` `163FH`). It refuses (error 110) only when
   S0 spans more than one module bank (`S0MTb` ≠ 5). Otherwise:
@@ -195,11 +195,11 @@ PC-1600 German user manual, §9.2 / Appendix H (`PC-1600-Memory-Architecture.md`
 
 ## Cross-references
 
-- `../Assembly-Programming/LH5801_Guide.md` — the shared LH-5801/5803 instruction set.
+- `../PC-1500/Assembly-Programming/LH5801_Guide.md` — the shared LH-5801/5803 instruction set.
 - `PC-1600-Machine-Overview.md` §3–4 — dual-CPU bus mapping, `ELH#`, the physical
   hand-off sequence.
 - `PC-1600-Memory-Architecture.md` §5–6 — the LH-5803-view memory map narrative and the
   PC-1500 comparison.
-- `../Memory-Architecture/PU-PV-Signals.md` — the PV bank-select mechanism.
+- `../PC-1500/Memory-Architecture/PU-PV-Signals.md` — the PV bank-select mechanism.
 - `~/Development/sharp/pc1600/notes/LH5803-A04-Crosscheck.md` — `rom1500.bin` vs. real
   PC-1500 A04 ROM (68–71 % identical; consolidated-dispatcher change).

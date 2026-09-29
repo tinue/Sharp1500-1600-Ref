@@ -41,7 +41,7 @@ Non-ASCII files carry a **16-byte header** at the start of the file:
 | +10H.. | | data | |
 
 This is the **same 16-byte header** documented for the PC-1600 serial transfer format in
-`../Data-Formats/Binary-Exchange-Formats.md` §3 (`FF 10 00 00`, type byte, 3-byte LE
+`../Shared/Data-Formats/Binary-Exchange-Formats.md` §3 (`FF 10 00 00`, type byte, 3-byte LE
 length, 3-byte LE load/exec addresses, `00 0F` end marker) — §3.3 confirms it and adds
 that offset +00H doubles as the "is this ASCII?" discriminator.
 

@@ -108,7 +108,7 @@ Dispatched via **C = IOCS number, `CALL 01D5H`**: `SINIT` 00H · `SBEEP` 01H · 
 Direct-call `BOUT` 01B4H (A = pitch, BC = duration, DE = repeats) / `SOUT` 01B7H;
 frequency = 1300000 / (166 + 22·A) Hz. Sound regardless of `BEEP ON/OFF`.
 
-### §3.11 Tape recorder — detail in [`../Data-Formats/WAV-Cassette-Format-1500-1600.md`](../Data-Formats/WAV-Cassette-Format-1500-1600.md)
+### §3.11 Tape recorder — detail in [`../Shared/Data-Formats/WAV-Cassette-Format-1500-1600.md`](../Shared/Data-Formats/WAV-Cassette-Format-1500-1600.md)
 
 Mode 0 (native) vs. Mode 1 (PC-1500-compatible) recording layouts, the 48-byte Mode-0
 header field semantics, and the F197H–F1A6H tunable-timing work area (TRM §3.11).

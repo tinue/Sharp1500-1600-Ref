@@ -7,7 +7,7 @@
 
 Everything needed to **design hardware** for the PC-1600's expansion connectors: the
 60-pin system bus and the two 40-pin memory-slot connectors. Raw pinouts already live in
-`../Memory-Architecture/Expansion-Connectors.md` §4 — this document builds on them with
+`../Shared/Expansion-Connectors.md` §4 — this document builds on them with
 the electrical, timing, and protocol detail a peripheral designer needs, plus worked
 examples.
 
@@ -66,7 +66,7 @@ bits are latched by the gate array onto address lines that go to fixed internal 
 | b0 | A14A | not traced | — |
 
 None of A14A–A16A is on the 60-pin bus or the memory slots
-(`../Memory-Architecture/Expansion-Connectors.md` §4), and CS24 only fires for page 1,
+(`../Shared/Expansion-Connectors.md` §4), and CS24 only fires for page 1,
 Bank 3. A device could in principle watch for `OUT (3DH)` on A0–A7/D0–D7/`IORQ`/`WR̄` and
 latch D2 itself (assuming internal I/O writes are driven onto the connector, which is
 unverified), but the firmware scans and runs IOCS/interrupts with 3DH = 04H and only
@@ -100,7 +100,7 @@ which the firmware never touches — the way Port 28H extends the memory slots.
 
 ## What partially exists elsewhere
 
-- `../Memory-Architecture/Expansion-Connectors.md` §4–5 — raw pinouts, signal-by-function
+- `../Shared/Expansion-Connectors.md` §4–5 — raw pinouts, signal-by-function
   summary, label discrepancy.
 - `PC-1600-Memory-Bank-Switching.md` Part 3 (gate array), Part 5, Part 6 (module headers/
   boot), Part 10 (adapting a PC-1500 module), Part 11 (signal summary).

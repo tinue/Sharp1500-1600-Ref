@@ -16,7 +16,7 @@ lubrication) and has no electrical content beyond §5 "Electrical characteristic
 Cross‑references in this repo:
 - Window/bank context: `../Memory-Architecture/PC-1500-Address-Decoding.md` §2.1 (Y2 = &8000–&BFFF),
   `../Memory-Architecture/PU-PV-Signals.md` (PV selects CE‑150 vs CE‑158 ROM in that window).
-- Bus pinout: `../Memory-Architecture/Expansion-Connectors.md` §2.2 (60‑pin connector).
+- Bus pinout: `../../Shared/Expansion-Connectors.md` §2.2 (60‑pin connector).
 - Software side of the same registers/ROM: `SharpBasicReference/CE-150-Reference.md`
   ("Internal Technical Reference") and `SharpBasicReference/reference/CE-150.lib`.
 
@@ -181,7 +181,7 @@ the PC‑1500's own internal I/O chip. The CE‑150 only conditions the analog:
 
 So for emulation, "start/stop tape motor" = an LH5810 Port A write inside the CE‑150 ROM;
 the actual FSK encode/decode timing lives on the PC‑1500 side. Tape data format:
-`../Data-Formats/PC-1500-Tape-Format.md`.
+`../../Shared/Data-Formats/PC-1500-Tape-Format.md`.
 
 ---
 

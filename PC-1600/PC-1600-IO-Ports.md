@@ -187,7 +187,7 @@ less the recorder's −0.22 % established by the BEEP measurements
   gives 2639 Hz (1.3 MHz ÷ 492.6).
 - The PC-1500 differs. Its LH5811 runs the dividers from 1.3 MHz directly: the CE-150
   tape code writes F = 63H (FX ÷512 = 2539 Hz, FY ÷1024 = 1270 Hz), the documented
-  2500 / 1250 Hz tape tones (`../Data-Formats/PC-1500-Tape-Format.md`).
+  2500 / 1250 Hz tape tones (`../Shared/Data-Formats/PC-1500-Tape-Format.md`).
 
 **Buzzer path.** SDO is an input to the same buzzer gate as OPC b7/b6, not a replacement
 for b7. In the recording the whistle continues unchanged while a noise routine writes

@@ -563,8 +563,8 @@ Appendix 7 names the individual registers, matching the `XX` register referenced
 | FB96H/FB97H | pointer into the address/length block |
 | FB98H–FBAFH | address/length block (value for port 31H, b7 = last block: start address, length) |
 
-Relevant to the serial/cassette binary formats in `../Data-Formats/Binary-Exchange-Formats.md`
-and `../Data-Formats/WAV-Cassette-Format-1500-1600.md`.
+Relevant to the serial/cassette binary formats in `../Shared/Data-Formats/Binary-Exchange-Formats.md`
+and `../Shared/Data-Formats/WAV-Cassette-Format-1500-1600.md`.
 
 ## 3.18 RAM-disk work area (FC00H–FCAFH)
 

@@ -339,7 +339,7 @@ pins (§1.2.2):
 "1600 method"** only. *Read* supports **both PWM "1600 method" AND "1500 method"** — i.e.
 the CE-1600P's cassette read path is backward-compatible with PC-1500-era tape
 recordings, even though it can only *write* the newer 1600-style encoding. See
-`Data-Formats/WAV-Cassette-Format-1500-1600.md` for the two encodings themselves; this
+`Shared/Data-Formats/WAV-Cassette-Format-1500-1600.md` for the two encodings themselves; this
 confirms at the hardware level why that doc treats 1500 and 1600 cassette formats as
 related-but-distinct, and specifically that a real CE-1600P is asymmetric (reads both,
 writes only the new one).

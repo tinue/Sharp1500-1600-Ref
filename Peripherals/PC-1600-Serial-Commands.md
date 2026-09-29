@@ -1,1 +1,0 @@
-> **Moved.** This document now lives at [`../PC-1600/PC-1600-Serial-Commands.md`](../PC-1600/PC-1600-Serial-Commands.md), part of the consolidated `PC-1600/` sub-corpus. See [`../PC-1600/README.md`](../PC-1600/README.md).

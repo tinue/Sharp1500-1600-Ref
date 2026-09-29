@@ -1991,7 +1991,7 @@ On the PC-1600, the start is not set with an absolute address, because the LH580
 
 | Label | Address | Description |
 |---|---|---|
-| `RAM_ST` | `0x7863` | High byte (page) of user-available RAM start (`&40` stock; `&00` with a 16 KB module). Radio Shack's 1983 map calls it "RAM top" and `0x7864` "RAM bottom" — see `Memory-Architecture/PC-1500-BASIC-Pointers.md` §4 |
+| `RAM_ST` | `0x7863` | High byte (page) of user-available RAM start (`&40` stock; `&00` with a 16 KB module). Radio Shack's 1983 map calls it "RAM top" and `0x7864` "RAM bottom" — see `PC-1500/Memory-Architecture/PC-1500-BASIC-Pointers.md` §4 |
 | `BASPRG_ST` | `0x7865` | BASIC program start address |
 | `BASPRG_END` | `0x7867` | BASIC program end address (used by `MEM`) |
 | `BASPRG_EDT` | `0x7869` | Editor work pointer, used during line modification |
@@ -2548,7 +2548,7 @@ The flag byte is `0x7879` (`CASS_FLAG`). Bit 7 selects direction: 0 = output/clo
 | `0xBDF0` | Read one byte | — | A = byte. C=1 on BREAK |
 | `0xBBF5` | End tape I/O | `0x7879` bit 7 = 0 to end output, 1 to end input | Serial port reset, paper feed re-enabled, motors off |
 
-The header image in RAM matches the on-tape layout in `Data-Formats/PC-1500-Tape-Format.md`. The output copy starts at `0x7B60` and the input copy at `0x7B88` (+`0x28`), so on input the filename is at `0x7B91`–`0x7BA0`, the start address at `0x7BAA`, and the byte count − 1 at `0x7BAC`. The CE-150 ROM's own `CSAVE` reads `0x7B82` (start) and `0x7B84` (length − 1). The article's "`0x7B85`–`0x7B86`" for the output length is one byte off.
+The header image in RAM matches the on-tape layout in `Shared/Data-Formats/PC-1500-Tape-Format.md`. The output copy starts at `0x7B60` and the input copy at `0x7B88` (+`0x28`), so on input the filename is at `0x7B91`–`0x7BA0`, the start address at `0x7BAA`, and the byte count − 1 at `0x7BAC`. The CE-150 ROM's own `CSAVE` reads `0x7B82` (start) and `0x7B84` (length − 1). The article's "`0x7B85`–`0x7B86`" for the output length is one byte off.
 
 ---
 

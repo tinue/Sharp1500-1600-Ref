@@ -3,7 +3,7 @@
 ## Scope
 
 The practical guide to writing machine-language programs for the PC-1600's Z-80 side —
-the counterpart to `../Assembly-Programming/LH5801_Guide.md` for the PC-1500. The pure
+the counterpart to `../PC-1500/Assembly-Programming/LH5801_Guide.md` for the PC-1500. The pure
 instruction-set reference is in `PC-1600-CPU-SC7852-Z80.md`; this document is
 conventions, the BASIC-interpreter interface, ROM entry points, and idioms.
 
@@ -52,7 +52,7 @@ FA00: 02 00 12 30 00 00 00 00      ; +1.23 x 10^2
 FA10: FE 80 12 30 00 00 00 00      ; -1.23 x 10^-2   (exponent FE = -2)
 ```
 
-This is **the same BCD float as the PC-1500** — see `../Data-Formats/Binary-Exchange-Formats.md`
+This is **the same BCD float as the PC-1500** — see `../Shared/Data-Formats/Binary-Exchange-Formats.md`
 §6.3 (which was sourced from PC-1500 hardware); the earlier "confirm whether it matches"
 question is now settled: it matches.
 

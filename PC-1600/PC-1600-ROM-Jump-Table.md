@@ -188,7 +188,7 @@ unit.
 | 024DH | SCONT | set the `CONT` address |
 | 0250H | SCA | for the CA key |
 | 0253H | RESCA | CA after reset |
-| 0256H | TOKENIZE | process the BASIC buffer — see `Basic-Programming/reference/Tokenizer-Analysis.md` for the PC-1500 sibling routine |
+| 0256H | TOKENIZE | process the BASIC buffer — see `PC-1500/Basic-Programming/reference/Tokenizer-Analysis.md` for the PC-1500 sibling routine |
 | 0259H | ARRAYIND | compute an array index address |
 | 025CH | EOCHK2 | test statement-end code (`CR`, `":"`, else) |
 | 025FH | LINLIST | read the line starting at `(HL)`, with the cursor address in `BC` → input buffer `F21DH`–`F31CH` |
