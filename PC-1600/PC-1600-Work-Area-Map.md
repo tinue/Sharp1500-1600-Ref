@@ -277,7 +277,7 @@ resolved.)*
 *(Note the H-then-L labelling here: these follow the Block-C / PC-1500 big-endian
 convention, §1.1.)*
 
-**Note on F865–F86A.** These three pointers are not in the Systemhandbuch table. They are the PC-1500's `7865`/`7867`/`7869` (`BASPRG_ST`/`END`/`EDT`) at the same offset in the relocated work area, and big-endian like them. Confirmed in the ROM disassembly (`~/Development/sharp/pc1600/disasm/new/`; bank names as there, rom3b = P1-B3B, B5 = the CE-1600P/F bank-5 ROM):
+**Note on F865–F86A.** These three pointers are not in the Systemhandbuch table. They are the PC-1500's `7865`/`7867`/`7869` (`BASPRG_ST`/`END`/`EDT`) at the same offset in the relocated work area, and big-endian like them. Confirmed in the ROM disassembly (`~/Development/sharp/pc1600/disasm/rom/pc1600/new/`; bank names as there, rom3b = P1-B3B, B5 = the CE-1600P/F bank-5 ROM):
 - `INIT"Sx:"` re-empties S0 when the S0 program area moved (`PRGMOVED`, rom3b `65C8H`; an earlier revision of this note called it the `NEW` path). It sets start = end = `(F029H AND 7FH)`:`C5H`, i.e. the first byte after the 197-byte reserve, and copies the program's bank index from `F02AH` into both `F02BH` and `F02CH`.
 - `NEW` itself is `NEWSET` (rom3b `4480H`): start = end at the given address, `F02BH` = `F02CH` = its bank (`44B9H`/`44BCH`, or `44C8H`/`44CBH` when start is unchanged).
 - The emptiness test (`romce1600-2.asm`, `3970H`; also rom3b `653AH`) compares `F865`/`F867` and `F02B`/`F02C`.

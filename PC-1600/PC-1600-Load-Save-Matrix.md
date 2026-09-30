@@ -2,8 +2,8 @@
 
 Which program/data transfer commands work on the PC-1600, per MODE (0 = native, 1 =
 PC-1500 compatible) and per attached peripheral, and where the result ends up. Derived
-from the fully commented "new" ROM disassembly (`~/Development/sharp/pc1600/disasm/new/`,
-CE-1600P banks in `disasm/ce1600p/new/`). Bank names as there: P0-B0, P1-B0, P1-B3, rom3b =
+from the fully commented "new" ROM disassembly (`~/Development/sharp/pc1600/disasm/rom/pc1600/new/`,
+CE-1600P banks in `disasm/rom/ce1600p/new/`). Bank names as there: P0-B0, P1-B0, P1-B3, rom3b =
 P1-B3B, P2-B6, B5 = the CE-1600P ROM's bank 5, LH5803 = the LH-5803's own ROM.
 
 Assumption throughout: the memory configuration allows MODE 1 (no more than 16 KB base

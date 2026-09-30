@@ -99,7 +99,7 @@ PC-1600 German user manual, §9.2 / Appendix H (`PC-1600-Memory-Architecture.md`
   explicit (`XCALL` / `XPEEK` / `XPOKE`), or baked into a loaded PC-1500 program's
   tokenized bytecode.
 
-**Confirmed by the ROM disassembly** (`~/Development/sharp/pc1600/disasm/new/`):
+**Confirmed by the ROM disassembly** (`~/Development/sharp/pc1600/disasm/rom/pc1600/new/`):
 - The statement loop and the statements are Z-80 code in both modes. MODE 1 `PRINT` is
   the Z-80's own PC-1500-style routine (`PRINT1500`, P1-B0 `647DH`), not the LH-5803's.
 - The LH-5803 ROM (a modified A04) runs only what the Z-80 hands it through `CALLH`: one
