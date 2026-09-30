@@ -295,7 +295,7 @@ Three independent fixed ML blocks (one per base + C5H); the BASIC program/variab
 
 When several regions are joined, the OS records — in `S0MTb` (F02AH), `S1MTb`/`S1MBb` (F016H/F018H), `S2MTb`/`S2MBb` (F020H/F022H) and the `ADTBL+1…ADTBL+5` byte table (F1D6H–F1DAH, bank number in bits 4–5) — **the order in which the BASIC program is laid down across the banks**. TRM §3.12.2 Example 1 (CE-159 S1 + CE-1600M S2 as *extension* memory): program fills **bank 0 → bank 2 → bank 3 → main memory** in that order; `S1MTb`/`S2MTb` = FEH ("not a program module — used as extension memory"), `ADTBL+3…+5` = 01H/22H/32H (bank 0, bank 2, bank 3). Example 2 (CE-1600M S1 + CE-161 S2 as *program* modules): `S1MTb`/`S1MBb` = 02H/03H (S1 spans ADTBL+2..+3), `S2MTb` = 04H, load order S0 → S1 → S2. The takeaway: "one contiguous user area" is a firmware abstraction over an explicit, recorded bank sequence — the program text really is scattered across banks 0/2/3/main and the ADTBL list is the map.
 
-**Open discrepancy — fill order.** The Operation Manual, Appendix B, states the opposite slot order for expansion memory: *"BASIC text is written into expansion memory areas in the order S2: → S1: → Internal RAM."* TRM Example 1 (and its `ADTBL` values 01H/22H/32H) puts S1 (bank 0) first. Not yet settled by ROM code or a hardware test.
+**Fill order — settled: S2 → S1 → internal RAM.** The Operation Manual, Appendix B, is right: *"BASIC text is written into expansion memory areas in the order S2: → S1: → Internal RAM."* TRM Example 1 (and its `ADTBL` values 01H/22H/32H), which puts S1 (bank 0) first, contradicts this; its exact configuration (a CE-159 in Slot 1) has not been read back. Confirmed from the `ADTBL` the ROM's boot code writes (read back running the real ROM): with RAM in Slot 2 — alone or together with Slot 1 — S0's first run is Slot 2 (bank 2), so S0's header + reserve sit at bank 2 8000H and the first free byte is **bank 2 80C5H**; only with Slot 1 alone is it bank 0 80C5H. Consequence for machine code loaded at 80C5H into the merged S0: it is started with `CALL &80C5` when only Slot 1 holds RAM, but `CALL #2,&80C5` as soon as Slot 2 holds RAM — same address, different bank.
 
 The `ADTBL+n` byte-level encoding (`bank = (b>>4)&3`, low nibble = slot, bit 7 = program-module leading bank), and a step-by-step reconstruction of where each tokenised byte lands — for an emulator that injects a program image directly instead of running `LOAD` — are in `PC-1600-Work-Area-Map.md` §4 and `PC-1600-BASIC-Program-Placement.md`.
 
@@ -320,19 +320,19 @@ This is deliberately a PC-1500-shaped map: a flat module window at the bottom, f
 Two genuine CE-1600Ms (32 KB each, flat, two-bank, no vertical banking) + the internal 16 KB is the largest `MEM` a PC-1600 can reach. **Both slots merge automatically at boot** — a CE-1600M carries an *extension-module* header (§3.13.2 type 1), so module detection folds it into the work area at reset for Slot 2 just as for Slot 1. `MEM` reports **77 370 immediately after a reset**, and `INIT "S2:","M"` is a **no-op** in this state (confirmed on the emulator). `INIT "S2:","M"` only matters if the module is *currently* typed as a file or program module — it re-types it back to extension memory. (Contrast the vertical-banked modules below.)
 
 ```
-   Bank 0  8000–BFFF  Slot 1 CE-1600M, low half   (loc A)   ┐
-   Bank 1  8000–BFFF  Slot 1 CE-1600M, high half  (loc B)   │ one logical
-   Bank 2  8000–BFFF  Slot 2 CE-1600M, low half   (loc C)   │ user area,
-   Bank 3  8000–BFFF  Slot 2 CE-1600M, high half  (loc D)   │ scattered
-   Bank 0  C000–EFFF  internal RAM                          │ across banks
-   Bank 0  F000–FFFF  Work Area (fixed)                     ┘ per ADTBL (§4b.5)
+   Bank 2  8000–BFFF  Slot 2 CE-1600M, low half   (loc C)   ┐ ← S0 header + reserve at 8000H
+   Bank 3  8000–BFFF  Slot 2 CE-1600M, high half  (loc D)   │ one logical
+   Bank 0  8000–BFFF  Slot 1 CE-1600M, low half   (loc A)   │ user area,
+   Bank 1  8000–BFFF  Slot 1 CE-1600M, high half  (loc B)   │ scattered
+   Bank 0  C000–EFFF  internal RAM                          │ across banks,
+   Bank 0  F000–FFFF  Work Area (fixed)                     ┘ filled in this order (§4b.5)
 
    16384 + 32768 + 32768 − 4550 = 77 370   ← MEM, confirmed on the emulator (2 × CE-1600M)
 ```
 
 **This is the ceiling.** Both slot contributions are already at their architectural cap (Slot 1: only Bank 0 + Bank 1 exist for its window; Slot 2: only vertical bank 0 can be S0 expansion memory — and a CE-1600M *is* exactly one 32 KB vertical bank). A CE-1601M / CE-1650M / *superRAM* in Slot 2 keeps `MEM` at this same figure and adds its extra vertical banks **only as RAM-disk space** (`PC-1600-Memory-Bank-Switching.md` Part 2, "Why Slot 1 and Slot 2 contribute so differently"). The one untapped reserve anywhere is Bank 7 ("addressable but unused", §2) — no module uses it.
 
-**Machine-language areas in this configuration.** With both CE-1600Ms merged as expansion memory there are no program modules, so **`NEW "S0:"` is the only ML target** — `NEW "S1:"`/`"S2:"` name *the program module* in that slot (Operation Manual p.233), and `TITLE "S1:"`/`"S2:"` gives ERROR 101 in this state (real hardware, §4.1). Per §4.0, the S0 header + reserve sit at the start of the merged area, so `NEW "S0:",<expr>` carves its ML block from `80C5H` in bank 0 (Slot 1, loc A) and, if larger, continues in `ADTBL` order (§4b.5) — logically continuous, but CPU-contiguous only within one bank (≤ 16 187 bytes in bank 0). That starting point is inferred, not yet tested.
+**Machine-language areas in this configuration.** With both CE-1600Ms merged as expansion memory there are no program modules, so **`NEW "S0:"` is the only ML target** — `NEW "S1:"`/`"S2:"` name *the program module* in that slot (Operation Manual p.233), and `TITLE "S1:"`/`"S2:"` gives ERROR 101 in this state (real hardware, §4.1). Per §4.0, the S0 header + reserve sit at the start of the merged area, so `NEW "S0:",<expr>` carves its ML block from `80C5H` in **bank 2** (Slot 2, loc C — S2 comes first in the fill order, §4b.5) and, if larger, continues in `ADTBL` order — logically continuous, but CPU-contiguous only within one bank (≤ 16 187 bytes in bank 2). Code placed there is started with `CALL #2,&80C5`.
 
 The three targets S0/S1/S2 only coexist when the modules are typed as **program modules** (then they don't count in `MEM`, §4a). They then **accumulate** — issuing them in sequence leaves all three ML areas reserved; only the BASIC program text is cleared by each `NEW` (TRM §2.2's own example does exactly this; confirmed on real hardware — the ML contents survive, §4.1). Each carves `[base]+C5H … [base]+<expr>−1` from the bottom of its own module (`<expr>` = program size + `&C5` = size + 197):
 
@@ -356,7 +356,7 @@ CALL #2,&80C5 [,var]           ' run B
 
 All of this is **SC-7852 (Z-80)** code (`CALL` / `PEEK` / `POKE` / `BLOAD` / `CLOADM`); the LH-5803 side is the separate `XCALL` / `XPEEK` / `XPOKE` path with its own address map (§5–§6).
 
-**Effect on the BASIC area — it flows around the reservations; a slot is never lost.** The German TRM §2.2 puts it directly: `NEW` reserves the ML space "*and thereby simultaneously specifies the lower address of the BASIC program area*". Every byte of the ≈ 77 KB user area not inside an ML block stays BASIC-program / variable space; the interpreter tracks the scattered bank order in `ADTBL` (§4b.5) and treats it as one stream. With both modules merged, reserve 8 KB via `NEW "S0:"` (landing in Slot 1's bank 0) and the other 24 KB of that slot is still BASIC space. Rule of thumb:
+**Effect on the BASIC area — it flows around the reservations; a slot is never lost.** The German TRM §2.2 puts it directly: `NEW` reserves the ML space "*and thereby simultaneously specifies the lower address of the BASIC program area*". Every byte of the ≈ 77 KB user area not inside an ML block stays BASIC-program / variable space; the interpreter tracks the scattered bank order in `ADTBL` (§4b.5) and treats it as one stream. With both modules merged, reserve 8 KB via `NEW "S0:"` (landing in Slot 2's bank 2) and the other 24 KB of that slot is still BASIC space. Rule of thumb:
 
 ```
 MEM after reservation  ≈  77 370 − <expr>          (<expr> of NEW "S0:"; it already
