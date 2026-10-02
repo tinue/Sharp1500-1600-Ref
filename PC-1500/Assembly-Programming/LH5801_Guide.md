@@ -698,7 +698,7 @@ One row per mnemonic; most common forms shown. `●`=may change, `—`=unchanged
 | `bhs/bhr` | `±e` | 2 | 8–11 | — | — | — | — | Branch on H |
 | `lop` | `ul,e` | 2 | 8–11 | — | — | — | — | UL--; branch if no borrow |
 | `sjp` | `pp` | 3 | 19 | — | — | — | — | Call subroutine |
-| `vej` | `(C0)–(FE)` | 1 | 17 | — | 0 | — | — | ROM vector call (1-byte); syntax: `vej (nn)`, no `0x` prefix inside parens |
+| `vej` | `0xC0–0xF6` | 1 | 17 | — | 0 | — | — | ROM vector call (1-byte); syntax: `vej 0xnn` (even, `0xC0`–`0xF6`) |
 | `vmj` | `0x00–0xBE` | 2 | 20 | — | 0 | — | — | ROM vector call (2-byte); syntax: `vmj 0xnn` no parens |
 | `vcs/vcr` | `i` | 2 | 8/21 | — | 0 | — | — | Conditional vector call on C |
 | `vzs/vzr` | `i` | 2 | 8/21 | — | 0 | — | — | Conditional vector call on Z |
@@ -1743,51 +1743,51 @@ Pushes the return address onto the stack, then jumps to absolute address `pp`.
 #### VEJ — Vector Subroutine Jump (1-byte)
 Single-byte subroutine call. Pushes the return address, then jumps to the address stored at the vector table entry `(0xFF00 + operand)`.
 The vector table occupies addresses `0xFFC0–0xFFF6` in the PC-1500 ROM.
-There are 28 valid VEJ operands in the range `0xC0`–`0xFE` (even values only).
+There are 28 valid VEJ operands: the even values `0xC0`–`0xF6`. The vectors at `0xFFF8`–`0xFFFE` (interrupts, reset) can't be called with VEJ: the opcodes `0xF8`–`0xFE` are other instructions (`0xF9` REC, `0xFB` SEC, `0xFD` the prefix), and sdaslh5801 refuses them.
 **Flags:** Z is reset.
 
-**Syntax: `vej (nn)` — the operand is enclosed in parentheses but uses bare hex digits, with no `0x` prefix inside the parens.** e.g. `vej (F2)`, not `vej (0xF2)`.
+**Syntax: `vej 0xnn` — a constant expression, written like any other number.** e.g. `vej 0xF2`. `vej (0xF2)` works too (a parenthesised expression), but **`vej (F2)` does not**: sdaslh5801 reads `F2` as a symbol name and fails with "VEJ Vector Must Be A Constant" (every vector starts with a letter, C–F). Checked against sdaslh5801 (`m5801mch.c`, `S_TYPVEJ`).
 
 | Format | Opcode | Bytes | Cycles |
 |---|---|---|---|
-| `vej (nn)` | `nn` (where nn = C0..FE, even; no prefix inside parens) | 1 | 17 |
+| `vej 0xnn` | `nn` (where nn = 0xC0..0xF6, even) | 1 | 17 |
 
 **PC-1500 VEJ Vector Table (partial -- ROM-defined subroutines):**
 
 | Syntax | Addr | PC-1500 Function |
 |---|---|---|
-| `vej (C0)` | `0xDD08` | Load next token/character to U register |
-| `vej (C2)` | `0xDCD4` | Check if character in U matches argument; branch if not |
-| `vej (C4)` | `0xDCD5` | Check if next character in U matches argument; branch if not |
-| `vej (C6)` | `0xDD13` | Decrement Y register by 2 (token) or 1 (character) |
-| `vej (C8)` | `0xDCC5` | Syntax check: jump forward if not end-of-command |
-| `vej (CA)` | `0xC001` | Transfer X register to variable at offset `b1` |
-| `vej (CC)` | `0xDDC8` | Load X register from variable address at offset `b1` |
-| `vej (CE)` | `0xD45D` | Determine address of variable `b1`; branch if not numeric |
-| `vej (D0)` | `0xD5F9` | Convert AR-X to integer into U register; branch on overflow |
-| `vej (D2)` | `0xDD1A` | Reseed AR-X with integer or process CSI |
-| `vej (D4)` | `0xDEE3` | Save BASIC position Y into slot P1 (`A0` previous line, `AC` BREAK, `B2` ERROR) |
-| `vej (D6)` | `0xDED1` | Restore BASIC position into Y and `0x789C`–`0x789F` from slot P1 (`A6` search, `AC` BREAK, `B8` ON ERROR) |
-| `vej (D8)` | `0xDF3B` | Check if program expires (Z=0 if so) |
-| `vej (DA)` | `0xC00E` | Cache variable address from U register and length from AR-X |
-| `vej (DC)` | `0xDEBC` | Load CSI from AR-X |
-| `vej (DE)` | `0xD6DF` | Evaluate formula pointed to by Y; jump forward on error |
-| `vej (E0)` | `0xCD8B` | Error check if UH ≠ 0x00 |
-| `vej (E2)` | `0xC400` | Start of BASIC interpreter |
-| `vej (E4)` | `0xCD89` | Output error 1, return to editor |
-| `vej (E6)` | `0xF70D` | Transfer AR-X to AR-Y |
-| `vej (E8)` | `0xF661` | Convert AR-X to absolute BCD form |
-| `vej (EA)` | `0xF79C` | Push AR-X one nibble left |
-| `vej (EC)` | `0xF757` | Clear arithmetic register X |
-| `vej (EE)` | `0xF7CC` | AR-X = AR-X + AR-U |
-| `vej (F0)` | `0xEFBA` | AR-X = AR-X + AR-Y (floating-point addition) |
-| `vej (F2)` | `0xEE71` | Clear LCD display. **Does not reset cursor pointer at `0x7875`** — always follow with `ldi a,0x00` then `sta (CURSOR_PTR)`. |
-| `vej (F4)` | `0xDBBC` | Load U register with 16-bit value from address `w1` |
-| `vej (F6)` | `0xDDB5` | Transfer U register to address `w1` |
-| `vej (F8)` | `0xE171` | Maskable interrupt routine entry |
-| `vej (FA)` | `0xE22C` | Timer interrupt routine entry |
-| `vej (FC)` | `0xE22B` | Non-maskable interrupt routine entry (executes RTI) |
-| `vej (FE)` | `0xE000` | Reset routine entry |
+| `vej 0xC0` | `0xDD08` | Load next token/character to U register |
+| `vej 0xC2` | `0xDCD4` | Check if character in U matches argument; branch if not |
+| `vej 0xC4` | `0xDCD5` | Check if next character in U matches argument; branch if not |
+| `vej 0xC6` | `0xDD13` | Decrement Y register by 2 (token) or 1 (character) |
+| `vej 0xC8` | `0xDCC5` | Syntax check: jump forward if not end-of-command |
+| `vej 0xCA` | `0xC001` | Transfer X register to variable at offset `b1` |
+| `vej 0xCC` | `0xDDC8` | Load X register from variable address at offset `b1` |
+| `vej 0xCE` | `0xD45D` | Determine address of variable `b1`; branch if not numeric |
+| `vej 0xD0` | `0xD5F9` | Convert AR-X to integer into U register; branch on overflow |
+| `vej 0xD2` | `0xDD1A` | Reseed AR-X with integer or process CSI |
+| `vej 0xD4` | `0xDEE3` | Save BASIC position Y into slot P1 (`A0` previous line, `AC` BREAK, `B2` ERROR) |
+| `vej 0xD6` | `0xDED1` | Restore BASIC position into Y and `0x789C`–`0x789F` from slot P1 (`A6` search, `AC` BREAK, `B8` ON ERROR) |
+| `vej 0xD8` | `0xDF3B` | Check if program expires (Z=0 if so) |
+| `vej 0xDA` | `0xC00E` | Cache variable address from U register and length from AR-X |
+| `vej 0xDC` | `0xDEBC` | Load CSI from AR-X |
+| `vej 0xDE` | `0xD6DF` | Evaluate formula pointed to by Y; jump forward on error |
+| `vej 0xE0` | `0xCD8B` | Error check if UH ≠ 0x00 |
+| `vej 0xE2` | `0xC400` | Start of BASIC interpreter |
+| `vej 0xE4` | `0xCD89` | Output error 1, return to editor |
+| `vej 0xE6` | `0xF70D` | Transfer AR-X to AR-Y |
+| `vej 0xE8` | `0xF661` | Convert AR-X to absolute BCD form |
+| `vej 0xEA` | `0xF79C` | Push AR-X one nibble left |
+| `vej 0xEC` | `0xF757` | Clear arithmetic register X |
+| `vej 0xEE` | `0xF7CC` | AR-X = AR-X + AR-U |
+| `vej 0xF0` | `0xEFBA` | AR-X = AR-X + AR-Y (floating-point addition) |
+| `vej 0xF2` | `0xEE71` | Clear LCD display. **Does not reset cursor pointer at `0x7875`** — always follow with `ldi a,0x00` then `sta (CURSOR_PTR)`. |
+| `vej 0xF4` | `0xDBBC` | Load U register with 16-bit value from address `w1` |
+| `vej 0xF6` | `0xDDB5` | Transfer U register to address `w1` |
+| (vector `0xFFF8`) | `0xE171` | Maskable interrupt routine entry |
+| (vector `0xFFFA`) | `0xE22C` | Timer interrupt routine entry |
+| (vector `0xFFFC`) | `0xE22B` | Non-maskable interrupt routine entry (executes RTI) |
+| (vector `0xFFFE`) | `0xE000` | Reset routine entry |
 
 ---
 
@@ -2215,43 +2215,43 @@ MY_STR_ROUTINE:
 
 ### VEJ Vector Table (ROM-defined, 0xFFC0–0xFFFE)
 
-The VEJ instruction jumps to the address stored at `0xFF00 + operand`. Valid operands: even values 0xC0–0xFE (28 entries).
-**Syntax: `vej (nn)` — plain hex digits in parentheses, no `0x` prefix inside the parens.**
+The VEJ instruction jumps to the address stored at `0xFF00 + operand`. Valid operands: even values 0xC0–0xF6 (28 entries); the table's last four entries (0xF8–0xFE) are the interrupt and reset vectors, which VEJ can't call.
+**Syntax: `vej 0xnn` — a plain constant, e.g. `vej 0xDE`; not `vej (DE)`, which sdaslh5801 reads as a symbol.**
 
 | Syntax | Addr | ROM Function |
 |---|---|---|
-| `vej (C0)` | `0xDD08` | Load next token/character into U register |
-| `vej (C2)` | `0xDCD4` | Check if character in U matches inline arg; branch if not |
-| `vej (C4)` | `0xDCD5` | Check if next character in U matches inline arg; branch if not |
-| `vej (C6)` | `0xDD13` | Decrement Y by 2 (token) or 1 (character) |
-| `vej (C8)` | `0xDCC5` | Syntax check: jump forward if not end-of-command |
-| `vej (CA)` | `0xC001` | Transfer X to variable at offset b1 |
-| `vej (CC)` | `0xDDC8` | Load X from variable address at offset b1 |
-| `vej (CE)` | `0xD45D` | Determine address of variable b1; branch if not numeric |
-| `vej (D0)` | `0xD5F9` | Convert AR-X to integer into U; branch on overflow |
-| `vej (D2)` | `0xDD1A` | Reseed AR-X with integer or process CSI |
-| `vej (D4)` | `0xDEE3` | Save BASIC position Y into slot P1 (`A0` previous line, `AC` BREAK, `B2` ERROR) |
-| `vej (D6)` | `0xDED1` | Restore BASIC position into Y and `0x789C`–`0x789F` from slot P1 (`A6` search, `AC` BREAK, `B8` ON ERROR) |
-| `vej (D8)` | `0xDF3B` | Check if program expires (Z=0 if so) |
-| `vej (DA)` | `0xC00E` | Cache variable address from U and length from AR-X |
-| `vej (DC)` | `0xDEBC` | Load CSI from AR-X |
-| `vej (DE)` | `0xD6DF` | Evaluate formula pointed to by Y; jump forward on error |
-| `vej (E0)` | `0xCD8B` | Error check: branch if UH ≠ 0x00 |
-| `vej (E2)` | `0xC400` | Start of BASIC interpreter |
-| `vej (E4)` | `0xCD89` | Output error 1, return to editor |
-| `vej (E6)` | `0xF70D` | Transfer AR-X to AR-Y |
-| `vej (E8)` | `0xF661` | Convert AR-X to absolute BCD form |
-| `vej (EA)` | `0xF79C` | Push AR-X one nibble left |
-| `vej (EC)` | `0xF757` | Clear arithmetic register X (ARX = 0) |
-| `vej (EE)` | `0xF7CC` | AR-X = AR-X + AR-U |
-| `vej (F0)` | `0xEFBA` | AR-X = AR-X + AR-Y (floating-point addition) |
-| `vej (F2)` | `0xEE71` | Clear LCD display. **Does not reset cursor pointer at `0x7875`** — always follow with `ldi a,0x00` then `sta (CURSOR_PTR)`. |
-| `vej (F4)` | `0xDBBC` | Load U with 16-bit value from address w1 |
-| `vej (F6)` | `0xDDB5` | Transfer U to address w1 |
-| `vej (F8)` | `0xE171` | Maskable interrupt routine entry |
-| `vej (FA)` | `0xE22C` | Timer interrupt routine entry |
-| `vej (FC)` | `0xE22B` | Non-maskable interrupt routine entry (executes RTI) |
-| `vej (FE)` | `0xE000` | Reset routine entry |
+| `vej 0xC0` | `0xDD08` | Load next token/character into U register |
+| `vej 0xC2` | `0xDCD4` | Check if character in U matches inline arg; branch if not |
+| `vej 0xC4` | `0xDCD5` | Check if next character in U matches inline arg; branch if not |
+| `vej 0xC6` | `0xDD13` | Decrement Y by 2 (token) or 1 (character) |
+| `vej 0xC8` | `0xDCC5` | Syntax check: jump forward if not end-of-command |
+| `vej 0xCA` | `0xC001` | Transfer X to variable at offset b1 |
+| `vej 0xCC` | `0xDDC8` | Load X from variable address at offset b1 |
+| `vej 0xCE` | `0xD45D` | Determine address of variable b1; branch if not numeric |
+| `vej 0xD0` | `0xD5F9` | Convert AR-X to integer into U; branch on overflow |
+| `vej 0xD2` | `0xDD1A` | Reseed AR-X with integer or process CSI |
+| `vej 0xD4` | `0xDEE3` | Save BASIC position Y into slot P1 (`A0` previous line, `AC` BREAK, `B2` ERROR) |
+| `vej 0xD6` | `0xDED1` | Restore BASIC position into Y and `0x789C`–`0x789F` from slot P1 (`A6` search, `AC` BREAK, `B8` ON ERROR) |
+| `vej 0xD8` | `0xDF3B` | Check if program expires (Z=0 if so) |
+| `vej 0xDA` | `0xC00E` | Cache variable address from U and length from AR-X |
+| `vej 0xDC` | `0xDEBC` | Load CSI from AR-X |
+| `vej 0xDE` | `0xD6DF` | Evaluate formula pointed to by Y; jump forward on error |
+| `vej 0xE0` | `0xCD8B` | Error check: branch if UH ≠ 0x00 |
+| `vej 0xE2` | `0xC400` | Start of BASIC interpreter |
+| `vej 0xE4` | `0xCD89` | Output error 1, return to editor |
+| `vej 0xE6` | `0xF70D` | Transfer AR-X to AR-Y |
+| `vej 0xE8` | `0xF661` | Convert AR-X to absolute BCD form |
+| `vej 0xEA` | `0xF79C` | Push AR-X one nibble left |
+| `vej 0xEC` | `0xF757` | Clear arithmetic register X (ARX = 0) |
+| `vej 0xEE` | `0xF7CC` | AR-X = AR-X + AR-U |
+| `vej 0xF0` | `0xEFBA` | AR-X = AR-X + AR-Y (floating-point addition) |
+| `vej 0xF2` | `0xEE71` | Clear LCD display. **Does not reset cursor pointer at `0x7875`** — always follow with `ldi a,0x00` then `sta (CURSOR_PTR)`. |
+| `vej 0xF4` | `0xDBBC` | Load U with 16-bit value from address w1 |
+| `vej 0xF6` | `0xDDB5` | Transfer U to address w1 |
+| (vector `0xFFF8`) | `0xE171` | Maskable interrupt routine entry |
+| (vector `0xFFFA`) | `0xE22C` | Timer interrupt routine entry |
+| (vector `0xFFFC`) | `0xE22B` | Non-maskable interrupt routine entry (executes RTI) |
+| (vector `0xFFFE`) | `0xE000` | Reset routine entry |
 
 ---
 
@@ -2259,7 +2259,7 @@ The VEJ instruction jumps to the address stored at `0xFF00 + operand`. Valid ope
 
 The PC-1500 ROM exposes subroutines via three mechanisms:
 - **`vmj 0xnn`:** Two-byte call `CD nn`; vectors at `0xFF00+nn`. Valid: even `0x00–0xBE`. Syntax: plain byte immediate with a `0x` prefix, no parentheses.
-- **`vej (nn)`:** Single-byte opcode `nn`; vectors at `0xFF00+nn`. Valid: even `0xC0–0xFE`. Syntax: hex digits in parentheses, no `0x` prefix inside the parens. (See VEJ Vector Table above.)
+- **`vej 0xnn`:** Single-byte opcode `nn`; vectors at `0xFF00+nn`. Valid: even `0xC0–0xF6`. Syntax: a plain constant (`vej 0xDE`), not `vej (DE)`. (See VEJ Vector Table above.)
 - **`sjp 0xnnnn`:** Direct call to fixed ROM address (math routines).
 
 ### Inline Parameter Convention
@@ -2293,7 +2293,7 @@ AR-X, AR-Y, AR-Z, AR-U, AR-V, AR-W, AR-S are 8-byte BCD float structures at `0x7
 
 ### VMJ Subroutine Table
 
-Source: H-G. Schlieker, *PC-1500 ROM-Unterprogramme* (Bremen, August 1983), which also underlies the ROM disassembly's routine comments. Every address below was checked against the ROM's own vector table at `0xFF00`–`0xFFFF`, which is identical in revisions A01, A03 and A04. That check corrected four addresses Schlieker had wrong (`0x3E`, `0x56`, `0x7E`, and `vej (F6)` = `0xDDB5`), and showed that `0xAA`/`0xB0` point to CE-150 jump stubs.
+Source: H-G. Schlieker, *PC-1500 ROM-Unterprogramme* (Bremen, August 1983), which also underlies the ROM disassembly's routine comments. Every address below was checked against the ROM's own vector table at `0xFF00`–`0xFFFF`, which is identical in revisions A01, A03 and A04. That check corrected four addresses Schlieker had wrong (`0x3E`, `0x56`, `0x7E`, and `vej 0xF6` = `0xDDB5`), and showed that `0xAA`/`0xB0` point to CE-150 jump stubs.
 
 > **Syntax reminder:** `vmj 0xnn` (plain byte immediate, `0x` prefix, no parentheses). Example: `vmj 0x92`, not `vmj (0x92)`. The "VMJ" column below shows the vector number as `(0xxx)` for readability, but in source code always write `vmj 0xxx`.
 
@@ -2434,7 +2434,7 @@ Called via `sjp 0xaddr`. Require XH=YH=0x7A (`vmj(0x54)`) and AR-X (or AR-X+AR-Y
 
 | Address | Function | Entry | Returns |
 |---|---|---|---|
-| `0xEFBA` | X + Y | AR-X, AR-Y | AR-X = AR-X + AR-Y (also `vej (F0)`) |
+| `0xEFBA` | X + Y | AR-X, AR-Y | AR-X = AR-X + AR-Y (also `vej 0xF0`) |
 | `0xEFB6` | X − Y | AR-X, AR-Y | AR-X = AR-X − AR-Y |
 | `0xF01A` | X × Y | AR-X, AR-Y | AR-X = AR-X × AR-Y |
 | `0xF084` | X ÷ Y | AR-X, AR-Y | AR-X = AR-X / AR-Y (also `vmj 0x58`) |
