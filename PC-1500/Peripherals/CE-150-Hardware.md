@@ -197,7 +197,7 @@ buffers):
 | **D0–D7** | **bidirectional** buffer |
 | **R/W, OD, ME1, DME0, DME1, φOS** | buffered out to EX‑BOX |
 | **W0EX1+2 / W1EX1+2** (bus WEX/W1) → **W0EX2 / W1EX2**, **INT → INT2** | *regenerated* for the next box |
-| **PU, PV, BFO** (the PCB artwork calls PV "PU0" and PU "PU1", `../../Shared/Expansion-Connectors.md` §2.2b) | pass‑through (unbuffered) |
+| **PU, PV, BFO** (the PCB artwork calls PU "PU0" and PV "PU1", `../../Shared/Expansion-Connectors.md` §2.2b) | pass‑through (unbuffered) |
 | **PB0, PB1, PC7** | LH5810 port bits brought out to the EX‑BOX connector (also "not used" pins per the PC‑1500 TRM 60‑pin table) |
 
 Two bus signals matter for ROM/overlay arbitration in a multi‑module chain:

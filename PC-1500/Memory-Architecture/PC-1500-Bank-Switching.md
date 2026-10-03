@@ -24,7 +24,7 @@ Everything in this document falls into one of two mechanically distinct categori
 Two signals, at two different levels, work this way:
 
 - **ME0/ME1** are the LH5801's own memory-enable pins. The CPU asserts exactly one of them per bus cycle, decided purely by which addressing form the current instruction uses — `(addr)` drives ME0, `#(addr)` drives ME1 (see `LH5801_Guide.md`'s Addressing Mode Reference). This is resolved by the instruction decoder before any external address decoding happens at all; it isn't something software "switches" at runtime with a register write.
-- **PU/PV** are two general-purpose flip-flop outputs built into the LH5801, set and reset by dedicated instructions (`SPU`/`RPU`/`SPV`/`RPV`) and wired straight out to expansion-connector pins 3 and 2. Within the ME0 address space, the TRM documents them as the bank-select mechanism for &8000–&BFFF specifically (see `PU-PV-Signals.md`).
+- **PU/PV** are two general-purpose flip-flop outputs built into the LH5801, set and reset by dedicated instructions (`SPU`/`RPU`/`SPV`/`RPV`) and wired straight out to expansion-connector pins 2 (PU) and 3 (PV), measured; the TRM prints them the other way round (`../../Shared/Expansion-Connectors.md` §2.2b). Within the ME0 address space, the TRM documents them as the bank-select mechanism for &8000–&BFFF specifically (see `PU-PV-Signals.md`).
 
 The defining property of this category: PU and PV sit on their connector pins continuously, for as long as the CPU last left them set. There is no discrete "switch" event as far as a module is concerned — a module's chip-select logic simply ANDs the matching address range together with whatever PU/PV levels happen to be present *at the moment of the access*, exactly the way it ANDs in the address lines themselves. Nothing about this requires the module to remember anything; the state lives entirely on the connector, all the time, like two extra, slowly-changing address bits. This is why it isn't "bank switching" in the classical sense at all — from the module's point of view it's closer to widening the effective address bus by however many PU/PV/ME0-ME1 bits are involved, just implemented with dedicated CPU flip-flops instead of dedicated address-decoder pins.
 
@@ -215,7 +215,7 @@ The CE-163 contains a 32K SRAM with its high address line (A14) controlled by th
 | Banks | 2 | 1 (flat) | 2 |
 | Bank size | 16KB | — | 16KB |
 | Total capacity | 2×16KB | 32KB flat | 32KB |
-| Switch mechanism | pin 18 + A0 (S3/S5) | None (A14 direct) | PU line (pin 3) |
+| Switch mechanism | pin 18 + A0 (S3/S5) | None (A14 direct) | PU line (pin 2, measured; TRM: pin 3) |
 | Switch speed | Fast | n/a | ~1 sec (RAM ver.) |
 | PC-1500(A) compat. | Yes | Yes | Yes |
 | PC-1600 slot 1 | No (conflict) | Yes | Yes |

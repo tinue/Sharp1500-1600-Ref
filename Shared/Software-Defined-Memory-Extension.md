@@ -63,7 +63,7 @@ Full detail, all 40 pins, in `Expansion-Connectors.md`. Condensed here to just t
 | 17 | S2 | S4 (&6000–&67FF) |
 | 18 | S3 | S5 (&6800–&6FFF) |
 
-Everything else (YO on pin 4, Y2 on pin 19, PU/PV on pins 3/2) is unchanged between models.
+Everything else (YO on pin 4, Y2 on pin 19, PU/PV on pins 2/3, measured, `Expansion-Connectors.md` §2.2b) is unchanged between models.
 
 ### 4.3 PC-1600 Slot 1 (module-hardware-confirmed assignment, `Expansion-Connectors.md` §4.2a)
 

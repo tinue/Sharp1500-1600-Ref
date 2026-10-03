@@ -21,8 +21,8 @@ The PC-1500 exposes its expansion bus on a 40-pin edge connector on the rear (co
 | Pin | Signal | Description |
 |-----|--------|-------------|
 | 1 | VCC | Power |
-| 2 | **PV** | CPU flipflop output (chip select function) |
-| 3 | **PU** | CPU flipflop output (chip select function) |
+| 2 | **PU** | CPU flipflop output (chip select function). The TRM prints PV; measured PU (§2.2b) |
+| 3 | **PV** | CPU flipflop output (chip select function). The TRM prints PU; measured PV (§2.2b) |
 | 4 | YO | Address &0000–&3FFF chip select |
 | 5 | S4 | Address &6000–&67FF select (may be NC depending on production month) |
 | 6 | DME0 | Chip select with WAIT condition (ME0 area) |
@@ -39,9 +39,9 @@ The PC-1500 exposes its expansion bus on a 40-pin edge connector on the rear (co
 | 39 | R/W | Memory read/write |
 | 40 | GND | Ground |
 
-*Source: Sharp PC-1500 Technical Reference Manual, section 4-3-1.*
+*Source: Sharp PC-1500 Technical Reference Manual, section 4-3-1, with pins 2/3 corrected by measurement (§2.2b).*
 
-**PU and PV** (pins 3, 2) are CPU flipflop outputs on the LH5801 (`SPU`/`RPU`/`SPV`/`RPV` instructions), described in the TRM as "chip select" signals — modules can use them as extra chip-select gating inputs, alongside their primary role of bank-selecting the system's own &8000–&BFFF ROM area (PC-1500 system ROM vs. CE-150/CE-158 peripheral ROM). See `PU-PV-Signals.md` for the full mechanism, including the CE-158/TRAMsoft PU conflict and why modern module recreations avoid PU/PV entirely in favor of address-range triggers.
+**PU and PV** (pins 2, 3; the TRM prints them the other way round, §2.2b) are CPU flipflop outputs on the LH5801 (`SPU`/`RPU`/`SPV`/`RPV` instructions), described in the TRM as "chip select" signals — modules can use them as extra chip-select gating inputs, alongside their primary role of bank-selecting the system's own &8000–&BFFF ROM area (PC-1500 system ROM vs. CE-150/CE-158 peripheral ROM). See `PU-PV-Signals.md` for the full mechanism, including the CE-158/TRAMsoft PU conflict and why modern module recreations avoid PU/PV entirely in favor of address-range triggers.
 
 **YO** (pin 4) is the sole chip select for the entire &0000–&3FFF module RAM/ROM region — a 16KB window with no further narrowing done by the mainboard. A module populating this window must do its own internal sub-decoding (see the CE-155 example in `PC-1500-Address-Decoding.md` §3.2).
 
@@ -65,8 +65,8 @@ There is no dedicated bank-select address register on the connector for any regi
 | 12 | VCC | Power |
 | 13 | NC | Not connected |
 | 14 | NC | Not connected |
-| 15 | **PV** | Chip select (measured on a real PC-1500, see §2.2b) |
-| 16 | **PU** | Chip select (measured on a real PC-1500, see §2.2b) |
+| 15 | **PU** | Chip select. The TRM prints PV; measured PU (§2.2b) |
+| 16 | **PV** | Chip select. The TRM prints PU; measured PV (§2.2b) |
 | 17–24 | D7–D0 | Data bus |
 | 25 | INHIBIT | Prohibits ROM select of the PC-1500, when connected to GND |
 | 26 | WEX | External WAIT signal |
@@ -98,7 +98,7 @@ There is no dedicated bank-select address register on the connector for any regi
 | 59 | ME1 | ME1 area designation |
 | 60 | OD | Output disable |
 
-*Source: Sharp PC-1500 Technical Reference Manual, section 4-3-2, with contact 44 corrected from the PC-1500 main-PCB artwork and a measurement (§2.2b). Note in source: "PB0 of No. 9 may be NC depending on production month. PB1 of No. 39 may be NC depending on production month."*
+*Source: Sharp PC-1500 Technical Reference Manual, section 4-3-2, with contacts 15, 16 and 44 corrected by measurement (§2.2b). Note in source: "PB0 of No. 9 may be NC depending on production month. PB1 of No. 39 may be NC depending on production month."*
 
 This is the PC-1500(A)'s side expansion connector: the CE-150 plugs into it via a 60-pin male connector, and per the TRM §4-3 note above, the CE-150's own 64-pin female connector at its rear is pin-compatible with it — letting a further peripheral (typically a CE-158) chain onto the CE-150 in turn. This connector is the PC-1500's I/O expansion bus, distinct in purpose from the 40-pin memory-expansion connector in §2.1: it carries the full 16-bit address and 8-bit data bus (like the 40-pin connector), but adds cassette I/O (CMTIN/CMTOUT), an interrupt line (INT), an external WAIT mechanism (WEX/W1), and a second WAIT-qualified chip-select/area pair (DME1/ME1) alongside DME0 — none of which appear on the 40-pin connector at all.
 
@@ -117,7 +117,7 @@ The PC-1600's 60-pin system bus connector (§4.0 below) is a documented match in
 - Pin 56: DME0 — identical signal, same pin, on both.
 
 **Divergences** (real architectural differences between the LH5801-based PC-1500 and the Z-80/LH5803-based PC-1600, not transcription errors — the PC-1600 replaces the PC-1500's direct PU/PV CPU flipflops with a gate-array-buffered PT/PU/PVOUT triple, and its Z-80 core has separate RD/WR/IORQ/MREQ/INT/M1 lines where the LH5801 has a single R/W and a single INT):
-- Pins 15–16: PC-1500 TRM has PV then PU; PC-1600 TRM has PU then PVOUT. **Both measured: PC-1500 15 = PV, 16 = PU; PC-1600 15 = PU, 16 = PVOUT. The two machines really differ here (§2.2b).**
+- Pins 15–16: PC-1500 TRM has PV then PU; PC-1600 TRM has PU then PVOUT. **Not a real difference: measured on both machines, 15 = PU and 16 = PV (PVOUT on the PC-1600, which carries the LH5803's PV). The PC-1500 TRM has 15/16 swapped (§2.2b).**
 - Pins 9–10, 13–14: PC-1500 has PB0/PC7 (unused)/NC/NC; PC-1600 has INT1̄/M1̄/RSTE/PT — the PC-1600 uses this range for Z-80-specific control and the sub-CPU's PT bank-select bit.
 - Pins 26, 28, 30: PC-1500 WEX/W1/INT vs. PC-1600 IORQ/WAIT/IRQ — both pairs are WAIT- and interrupt-related, but the PC-1600 versions are genuine Z-80 bus signals rather than the PC-1500's simpler external-WAIT/interrupt lines.
 - Pins 39, 42: PC-1500 has PB1 (unused)/VCC; PC-1600 has VGG/NC.
@@ -125,27 +125,33 @@ The PC-1600's 60-pin system bus connector (§4.0 below) is a documented match in
 - Pin 55: GND (PC-1500) vs. NC (PC-1600).
 - Pins 57–60: PC-1500 has R/W, DME1, ME1, OD; PC-1600 has WR̄, ELH̄, IOE, RD̄ — the PC-1500's single-strobe LH5801 read/write and second-bank chip-select signals are replaced by the Z-80's split RD̄/WR̄ strobes and the PC-1600-specific ELH̄/IOE lines.
 
-**Net assessment:** the two scans agree exactly, pin-for-pin, on every signal common to both CPU architectures (address bus, data bus, INHIBIT/INH, CMTIN/CMTOUT, VCC/GND placement, BFO/φOS, DME0) — strong evidence neither transcription has a shifted or misread pin in those ranges. The divergences are concentrated exactly where the two machines' CPUs and bus protocols genuinely differ (bank-select signal set, interrupt/WAIT signals, read/write strobes, ground/battery pin counts), which is what a real hardware difference should look like rather than an OCR error. Pin 44 did turn out to be an error in the PC-1500 TRM table (F-GND, not VBAT); pins 15–16 are as the PC-1500 TRM prints (measured). See §2.2b.
+**Net assessment:** the two scans agree exactly, pin-for-pin, on every signal common to both CPU architectures (address bus, data bus, INHIBIT/INH, CMTIN/CMTOUT, VCC/GND placement, BFO/φOS, DME0) — strong evidence neither transcription has a shifted or misread pin in those ranges. The divergences are concentrated exactly where the two machines' CPUs and bus protocols genuinely differ (bank-select signal set, interrupt/WAIT signals, read/write strobes, ground/battery pin counts), which is what a real hardware difference should look like rather than an OCR error. Two places did turn out to be errors in the PC-1500 TRM table, both settled by measurement: pins 15–16 (PU and PV swapped) and pin 44 (F-GND, not VBAT). See §2.2b.
 
-#### 2.2b Measured: on the PC-1500, pin 15 = PV, pin 16 = PU
+#### 2.2b Measured: 60-pin 15 = PU, 16 = PV on both machines; PC-1500 40-pin 2 = PU, 3 = PV
 
-The manuals contradict each other:
+**Both PC-1500 TRM tables have PU and PV swapped.** Measured on real hardware, 2026-10-03:
 
-| Source | Pin 15 | Pin 16 |
-|---|---|---|
-| PC-1500 TRM §4-3-2 (PDF p.108, printed p.103) | PV | PU |
-| PC-1600 TRM §10.3(1) | PU | PVOUT |
-| PC-1600 Service Manual, CN-9 system-bus table | PU | PVOUT |
-| PC-1500 main-PCB artwork (connector) | PU0 | PU1 |
-| **Continuity measurement on a real PC-1500** | **PV** | **PU** |
+| Source | 40-pin 2 | 40-pin 3 | 60-pin 15 | 60-pin 16 |
+|---|---|---|---|---|
+| PC-1500 TRM §4-3-1 / §4-3-2 (clean scans, PDF pp.107–108) | PV | PU | PV | PU |
+| PC-1600 TRM §10.3(1), Service Manual CN-9 | — | — | PU | PVOUT |
+| PC-1500 PCB artwork (connector, LH5801 footprint) | — | — | PU0 = PU | PU1 = PV |
+| **Measured, PC-1500** | **PU** | **PV** | **PU** | **PV** |
+| **Measured, PC-1600** | — | — | **PU** | **PVOUT** |
 
-**Measurement (2026-10-03, unpowered, continuity).** Orientation: 60-pin connector viewed straight on, key at the top, rows counted from the left; 40-pin connector viewed from the rear, calculator face up.
-- 60-pin bottom row: positions 6–9 and 17–18 from the left are ground, nothing in the top row is. So the bottom row is contacts 60…31 from the left (52–55 GND, 43–44 F-GND). This confirms contact 44 = F-GND, not the TRM's VBAT. VBAT (45–48) has no continuity to battery + (likely a diode or switch in between).
-- 60-pin top row: positions 19/20 from the left beep with VCC, so the top row is contacts 30…1 from the left (11/12 = VCC). Contact *n* sits opposite *n*+30, as in the artwork.
-- 40-pin top row from the right: 1st = VCC (pin 1), 2nd = pin 2 (PV), 3rd = pin 3 (PU), per the undisputed 40-pin table. A PCB silkscreen labels the 40-pin contacts the same way: pin 1 top right, 20 top left, 21 bottom right, 40 bottom left. The bottom-left contact (pin 40) is ground as measured; pin 21 (bottom right, also GND per the TRM) didn't beep to the same ground.
-- PU/PV run straight through (most other bus lines don't beep, so they're probably buffered): 60-pin top row 16th from the left (**contact 15**) ↔ 40-pin pin 2 (**PV**); 15th from the left (**contact 16**) ↔ 40-pin pin 3 (**PU**).
+**Orientation used for all measurements.** 60-pin connector viewed straight on, key at the top: the bottom row runs contacts 60…31 from the left, the top row 30…1 (contact *n* opposite *n*+30). Top-row position *k* from the left is contact 31 − *k*, bottom-row position *k* is contact 61 − *k*. 40-pin connector seen from the rear, calculator face up: pin 1 top right, 20 top left, 21 bottom right, 40 bottom left (also printed so on a PCB silkscreen).
 
-**So the PC-1500 TRM is right: 15 = PV, 16 = PU.** The artwork's PU0/PU1 names map as **PU0 = PV, PU1 = PU** (0/1 read as bit weights, PV the low bit, as in the PC-1600's PT/PU/PVOUT order). An earlier reading of the LH5801 footprint here (ME1/ME0 order → PU0 = pin 61 = PU) gave the opposite and was wrong: either the LH5801's ME0/ME1 pin numbers differ from the LH5803's 29/30, or the pin-number assumption is off.
+**PC-1500 (unpowered, continuity):**
+- **LH5801 pin 60 (PV) ↔ 60-pin contact 16; LH5801 pin 61 (PU) ↔ contact 15.** This is the deciding measurement. PV = pin 60 has three sources: an LH5801 datasheet pinout (PV 60, PU 61), the PC-1600 Service Manual (LH5803 PV = pin 60), and the PC-1500 main circuit diagram (CPU symbol: pin 60 = PV, then "PUW").
+- 40-pin pin 2 ↔ 60-pin contact 15 (PU), pin 3 ↔ contact 16 (PV). PU/PV run straight through; most other bus lines don't beep, so they're probably buffered.
+- 60-pin bottom row: contacts 52–55 (GND) and 43–44 (F-GND) beep to ground, nothing in the top row does. **Contact 44 is F-GND**, not the TRM's VBAT. VBAT (45–48) has no continuity to battery + (likely a diode or switch in between). Contacts 11/12 are VCC.
+- 40-pin pin 1 is VCC, pin 40 GND. Pin 21 (GND per the TRM) didn't beep to the same ground.
+
+**PCB artwork agrees.** The PC-1500 main-PCB artwork names the lines PU0/PU1, on the LH5801 footprint and on the 60-pin connector alike. Along the footprint edge the labels run R/W, P?, **PU1, PU0**, φOS, XL0…; the datasheet runs R/W, PΦ, **PV, PU**, φOS, XL0…, so PU1 = PV and PU0 = PU. The connector artwork has PU0 on contact 15 and PU1 on 16. (The artwork's labels aren't flawless: its top edge reads D0, ME1, ME0, OD, H0, H4, H2, H6…, where the datasheet has D0, ME0, ME1, OD, H0…H7. ME0/ME1 pin numbers also differ between sources: this LH5801 datasheet gives ME0 = 30, ME1 = 29, the PC-1600 Service Manual gives the LH5803 ME0 = 29, ME1 = 30.) The PC-1500 main circuit diagram uses PV/PU at the CPU and PU0/PU1 on the 40-pin connector symbol, but doesn't link the two names.
+
+**Likely origin of the TRM error:** reading PU0 as "bit 0 = PV" (PV as the low bit) gives exactly both TRM tables.
+
+**Why it matters:** the CE-150 gates its ROM on PV, the CE-158 gates its ROM on PV and switches its two 8 KB halves on PU (`PU-PV-Signals.md` §5). With the same 15 = PU, 16 = PV on both machines, the cards work on the PC-1500 and the PC-1600 alike.
 
 **PC-1600, measured (2026-10-03, unpowered, continuity, same orientation as above; the 60-pin top row assumed to run 30…1 from the left as on the PC-1500, which the VCC hit at position 20 = contact 11 supports).** Memory-slot pins against the 60-pin connector, the same on Slot 1 and Slot 2:
 
@@ -158,11 +164,21 @@ The manuals contradict each other:
 | 19 PT | 17th | 14 | PT ✓ |
 
 - **The PC-1600 tables are right: 60-pin 14 = PT, 15 = PU, 16 = PVOUT**, the same nets as slot pins 19/3/5.
-- **So the two machines really differ on 15/16:** PC-1500 15 = PV, 16 = PU; PC-1600 15 = PU, 16 = PVOUT.
 - **Slot pin 2 ("PVIN") is VCC on both slots**, not the LH5803's PV. It's the programming-voltage input: the CE-1620M circuit diagram wires it to its EPROM's Vpp (A14 comes from PVOUT, pin 5). The TRM's "LH-5803 PV signal input (direct from LH-5803 pin 60)" describes the SC7852's PVIN pin (SC7852 pin 8), not this slot contact.
 
-**Open: how a CE-150/CE-158 works on the PC-1600.** It reads PV on contact 15 and PU on contact 16, which on the PC-1600 carry the SC7852's PU and PVOUT. For its ROM to switch, the SC7852 has to drive those outputs from the LH5803's state while the LH5803 runs: PU (15) from the LH5803's PV, and PVOUT (16) from whatever selects the CE-158's 8 KB half. The Service Manual's notes point that way but don't spell it out: "the PV signal of the LH-5803 is directly sent by PVOUT of the SC7852", and the LHNMIO note (SC7852 pin 92), "…when PU = PV is high (CE-158 internal ROM)". Continuity can't show this; it needs a logic probe on contacts 15/16 while the LH5803 switches PV/PU, or the ROM's own bank-switching code.
-- **Separate open point, PC-1600 PU:** the SC7852's pin table has a PVIN input for the LH5803's PV, but no input for the LH5803's PU. The SC7852's PU output is a Port 31H bank bit. So it's unclear what reaches a CE-158's PU contact while the LH5803 runs. The Service Manual's note on SC7852 pin 92 (LHNMIO) reads, in poor OCR, "goes high when the LH-5803 is 94**H and when PU = PV is high (CE-158 internal ROM)". That suggests the gate array handles the CE-158 case, but it doesn't say how.
+**How the LH5803's PU and PV reach the PC-1600 connector** (PC-1600 Service Manual schematic, read 2026-10-03; ICN2 is hard to read):
+
+| Net | Members |
+|---|---|
+| PU | LH5803 PU (pin 61) · SC7852 PU (pin 6) · ICN2-60 · slot pin 3 (both slots) · 60-pin contact 15 |
+| PVOUT | SC7852 PVOUT (pin 7) · ICN2-59 · slot pin 5 (both slots) · 60-pin contact 16 |
+| PV | LH5803 PV (pin 60) → SC7852 PVIN (pin 8) |
+
+- **PU is one shared line.** While the Z-80 runs, the SC7852 drives it with the Port 31H bank bit; while the LH5803 runs, the LH5803's own PU drives it (the SC7852 must release it then, as the LH5803 releases PV while the Z-80 runs). That's why the SC7852 needs no PU input.
+- **PV goes through the SC7852**: PVIN in, PVOUT out — the Service Manual's "the PV signal of the LH-5803 is directly sent by PVOUT of the SC7852".
+- So while the LH5803 runs, contact 15 carries its PU and contact 16 its PV, as on the PC-1500.
+- The PC-1600's own LH5803 ROM uses only `SPV`/`RPV`, never `SPU`/`RPU`.
+- Not verified: the drive handover on PU (needs a logic probe) and the hard-to-read ICN2 pin numbers.
 
 ---
 
@@ -179,7 +195,7 @@ Four pins carry a different signal depending on the model. This is a **connector
 | 17 | S2 (&5000–&57FF) | S4 (&6000–&67FF) |
 | 18 | S3 (&5800–&5FFF) | S5 (&6800–&6FFF) |
 
-Every other pin — including YO (pin 4), Y2 (pin 19), PU/PV (pins 3/2), DME0 (pin 6), and the full address/data bus — is unchanged between models. A module's hardware never has to know which machine it's plugged into: it just reacts to whatever strobe physically arrives on its fixed pins.
+Every other pin — including YO (pin 4), Y2 (pin 19), PU/PV (pins 2/3, §2.2b), DME0 (pin 6), and the full address/data bus — is unchanged between models. A module's hardware never has to know which machine it's plugged into: it just reacts to whatever strobe physically arrives on its fixed pins.
 
 ### 3.2 The ceiling: S5 never reaches the connector on the PC-1500 at all
 
@@ -227,7 +243,7 @@ The PC-1600 has three expansion connectors in total: a 60-pin system bus connect
 | 14 | PT | 29 | CMTOUT | 44 | FG | 59 | IOE |
 | 15 | PU | 30 | IRQ | 45 | VBAT | 60 | RD̄ |
 
-This is a different, larger connector than the two memory slots — it exposes Z-80 control signals (M1̄, INT1̄, IORQ, WAIT, IRQ) that the memory slots don't, plus cassette I/O (CMTIN/CMTOUT), battery-backup (VBAT), and the sub-CPU timing signals (BFO, φOS) that never appear on a memory-only connector. PT, PU and PVOUT (pins 14, 15, 16) carry the bank number of the page being accessed, MSB first (`../PC-1600/PC-1600-Memory-Bank-Switching.md` Part 2): on a 4000–7FFF access, Port 31H b3/b2/b1. A 60-pin peripheral ROM decodes its bank from them, as the CE-1600P does for Banks 4/5. Measured: 14/15/16 are the same nets as memory-slot pins 19/3/5 (PT/PU/PVOUT). The PC-1500 has PV on 15 and PU on 16 (also measured), so a PC-1500 card sees PU on its PV contact; how the SC7852 drives them while the LH5803 runs is open (§2.2b).
+This is a different, larger connector than the two memory slots — it exposes Z-80 control signals (M1̄, INT1̄, IORQ, WAIT, IRQ) that the memory slots don't, plus cassette I/O (CMTIN/CMTOUT), battery-backup (VBAT), and the sub-CPU timing signals (BFO, φOS) that never appear on a memory-only connector. PT, PU and PVOUT (pins 14, 15, 16) carry the bank number of the page being accessed, MSB first (`../PC-1600/PC-1600-Memory-Bank-Switching.md` Part 2): on a 4000–7FFF access, Port 31H b3/b2/b1. A 60-pin peripheral ROM decodes its bank from them, as the CE-1600P does for Banks 4/5. Measured: 14/15/16 are the same nets as memory-slot pins 19/3/5 (PT/PU/PVOUT). While the LH5803 runs, 15 carries its PU (a shared line) and 16 its PV (via PVIN → PVOUT), the same as the PC-1500's 15 = PU, 16 = PV (§2.2b).
 
 ### 4.1 Memory Slot 1 (S1) Connector, per TRM §10.3
 
