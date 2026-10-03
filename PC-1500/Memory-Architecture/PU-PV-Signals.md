@@ -157,8 +157,8 @@ The machine-language area at &7C01–&7FFF is part of the second figure, not the
 | Property | PU | PV |
 |----------|----|----|
 | Type | 1-bit CPU flipflop output | 1-bit CPU flipflop output |
-| Set instruction | SPU (FD D5) | SPV (FD D7) |
-| Reset instruction | RPU (FD D4) | RPV (FD D6) |
+| Set instruction | SPU (E1) | SPV (A8) |
+| Reset instruction | RPU (E3) | RPV (B8) |
 | 40-pin connector pin | Pin 3 | Pin 2 |
 | Primary hardware use | Sub-bank select for &8000–&9FFF; TRAMsoft module bank switch | Bank select for &8000–&BFFF (peripheral ROM: CE-150, CE-158) |
 | Used by system ROM | Occasionally (PU sub-banking) | Heavily (every BASIC extension table access) |
