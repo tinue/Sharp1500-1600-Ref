@@ -4,7 +4,8 @@ Which program/data transfer commands work on the PC-1600, per MODE (0 = native, 
 PC-1500 compatible) and per attached peripheral, and where the result ends up. Derived
 from the fully commented "new" ROM disassembly (`~/Development/sharp/pc1600/disasm/rom/pc1600/new/`,
 CE-1600P banks in `disasm/rom/ce1600p/new/`). Bank names as there: P0-B0, P1-B0, P1-B3, rom3b =
-P1-B3B, P2-B6, B5 = the CE-1600P ROM's bank 5, LH5803 = the LH-5803's own ROM.
+P1-B3B, P2-B6, B5 = the CE-1600P ROM's bank 5, LH5803 = the LH-5803's own ROM. CE-158 addresses
+are from its annotated ROM (`~/Development/sharp/pc1500/disasm/rom/ce158/CE-158-LOW.asm`).
 
 Assumption throughout: the memory configuration allows MODE 1 (no more than 16 KB base
 memory added), so the configuration form of ERROR 110 doesn't occur. Note that error
@@ -60,8 +61,8 @@ appears in the tables.
 | `SAVE` / `LOAD`, `BSAVE` / `BLOAD` | ✓ native, no MODE check | ✓; `CAS:` untested ⚠ (the low-level tape routines switch format on MODE) | ✓ | ✓ |
 | `CLOAD`, `CLOAD?`, `MERGE`, `CHAIN` | — | ✓ **PC-1500 tape format** (`K_CLOAD` B5 `6974H`, `CHAIN` `68FFH`, `MERGE` `6969H`) | ✓ CE-150 ROM on the LH-5803, PC-1500 format | ✓ `CLOAD`/`MERGE` over RS-232 once CI is declared ⚠ |
 | `CSAVE` | — | ✗ 110 (`K_CSAVE` B5 `66A0H`) | ✓ | ✓ once CO is declared ⚠ |
-| `CLOAD M` | — | ✓ PC-1500 ML tape | ✓ | — (no ML transfer on the CE-158) |
-| `CSAVE M` | — | ✗ 110 (inside `K_CSAVE`, after the MODE check) | ✓ | — |
+| `CLOAD M` | — | ✓ PC-1500 ML tape | ✓ | ✓ over RS-232 once CI is declared: the CE-158's `CLOAD` entry parses the `r`, `M` and `a` suffixes (CE-158 ROM `90C8H`, `M` at `90D5H`) ⚠ |
+| `CSAVE M` | — | ✗ 110 (inside `K_CSAVE`, after the MODE check) | ✓ | `CSAVE` (`90BBH`) shares the suffix parser, so `M` is accepted; the save path is not traced ⚠ |
 | `PRINT#-1` (F2AEH) | — | ✗ 110 (B5 `6F35H`) | ✓ | CE-158 `PRINT#` once CO is declared |
 | `INPUT#-1` (F2AFH) | — | ✓ per the ROM (B5 `6F31H`, PC-1500 header variant); the TRM says data can't be loaded in MODE 1 through the CE-1600P ⚠ | ✓ | CE-158 `INPUT#` once CI is declared |
 | `CSAVEa/r`, `CLOADa/r`, `MERGEa` | — | — | — | ✓ once CO/CI is declared ⚠ |
