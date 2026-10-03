@@ -49,6 +49,7 @@ computers (PC-1211, PC-1350, PC-1403, PC-G850, …) are not covered.
 | F000H–FFFFH BASIC/IOCS work area, PTR1–PTRG, named variables, program pointers, `ADTBL` | `PC-1600-Work-Area-Map.md` |
 | Emulator: injecting a tokenised BASIC program into banked memory | `PC-1600-BASIC-Program-Placement.md` |
 | Which load/save commands work per MODE × peripheral, token routing | `PC-1600-Load-Save-Matrix.md` |
+| What MODE 1 switches (every `BMODE` b6 test), `XCALL`/`XPEEK`/`XPOKE` per MODE, CE-150/CE-158 per MODE, POKE-forced MODE 1 | `PC-1600-MODE0-MODE1.md` |
 | SC7852 CPU: programmer's model, Z-80A instruction set, wait state, interrupts, RST map, pinout | `PC-1600-CPU-SC7852-Z80.md` |
 | LH5803 side: memory map, LH5801 deltas, `CALLH`, PC-1500 compatibility | `PC-1600-CPU-LH5803-Compat.md` |
 | Sub-CPU LU-57813P: power, reset cause, handshake, command set, timer/RTC | `PC-1600-SubCPU-LU57813P.md` |

@@ -110,7 +110,7 @@ This folder covers the **Sharp PC-1600** in enough detail to build an emulator, 
 
 | Area | Documents |
 |---|---|
-| Machine, CPUs | `PC-1600-Machine-Overview.md`, `PC-1600-CPU-SC7852-Z80.md`, `PC-1600-CPU-LH5803-Compat.md`, `PC-1600-SubCPU-LU57813P.md` |
+| Machine, CPUs | `PC-1600-Machine-Overview.md`, `PC-1600-CPU-SC7852-Z80.md`, `PC-1600-CPU-LH5803-Compat.md`, `PC-1600-MODE0-MODE1.md`, `PC-1600-SubCPU-LU57813P.md` |
 | Memory | `PC-1600-Memory-Architecture.md`, `PC-1600-Memory-Bank-Switching.md`, `PC-1600-Work-Area-Map.md`, `PC-1600-BASIC-Program-Placement.md`, `PC-1600-Memory-Modules.md` *(stub)* |
 | Firmware / ROM | `PC-1600-IOCS.md`, `PC-1600-ROM-Jump-Table.md`, `PC-1600-ROM-Versions.md`, `PC-1600-ROM-Disassembly.md` |
 | Display, keyboard, I/O | `PC-1600-Display-HD61202.md`, `PC-1600-Keyboard.md`, `PC-1600-IO-Ports.md` |

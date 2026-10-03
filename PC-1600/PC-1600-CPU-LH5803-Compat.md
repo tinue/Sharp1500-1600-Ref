@@ -86,6 +86,9 @@ The BASIC-level equivalents (TRM Appendix E/H) are `XCALL` (run LH-5803 code) vs
 
 ## 4. MODE 0 / MODE 1
 
+The complete list of what the MODE 1 flag changes, with ROM addresses, and the
+POKE-forced MODE 1 are in `PC-1600-MODE0-MODE1.md`. This section is the summary.
+
 `MODE0` / `MODE1` are the two **display modes**, set by the BASIC `MODE` command (not the
 physical `[MODE]` key, which is the PRO/RUN/RESERVE editor toggle). Confirmed from the
 PC-1600 German user manual, §9.2 / Appendix H (`PC-1600-Memory-Architecture.md` §5):

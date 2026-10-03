@@ -507,4 +507,4 @@ In MODE 1 the LH5803 runs genuine PC-1500 object code that (a) addresses its RAM
 
 The **RAM-disk exception** is consistent: a module used purely as a RAM disk contributes *nothing* to the directly-addressable 0000–3FFF window — its banking is performed per-access by the file-system driver, and the module window stays flat/free — so MODE 1 is still possible. Formatting must be done in MODE 0 because the `INIT "Sn:","F"` format path itself is native Z-80 code that isn't run from the MODE 1 environment.
 
-See `PC-1600-CPU-LH5803-Compat.md` §5 for the MODE 1 command-porting rules that go with this.
+See `PC-1600-CPU-LH5803-Compat.md` §5 for the MODE 1 command-porting rules that go with this, and `PC-1600-MODE0-MODE1.md` §6 for what happens when MODE 1 is forced past this gate with `POKE &F1BC`.
