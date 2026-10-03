@@ -30,10 +30,10 @@ Four dedicated instructions control PU and PV. None of them affect any status fl
 
 | Instruction | Operation | Opcode | Effect |
 |---|---|---|---|
-| SPU — Set PU | 1 → PU | FD D5 | Drives the PU pin high |
-| RPU — Reset PU | 0 → PU | FD D4 | Drives the PU pin low |
-| SPV — Set PV | 1 → PV | FD D7 | Drives the PV pin high |
-| RPV — Reset PV | 0 → PV | FD D6 | Drives the PV pin low |
+| SPU — Set PU | 1 → PU | E1 | Drives the PU pin high |
+| RPU — Reset PU | 0 → PU | E3 | Drives the PU pin low |
+| SPV — Set PV | 1 → PV | A8 | Drives the PV pin high |
+| RPV — Reset PV | 0 → PV | B8 | Drives the PV pin low |
 
 These are among the CPU control instructions, alongside `SDP`/`RDP` (LCD on/off), `SIE`/`RIE` (interrupt enable), `HALT`, and `OFF`.
 
