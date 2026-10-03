@@ -17,7 +17,7 @@ Plus the PC-1500-module-in-PC-1600 adaptation path.
   (`PC-1600-Memory-Bank-Switching.md` Part 7.)
 - **CE-1601M** — 64 KB, Slot 2 only, first module needing Port 28H vertical banking
   (2 vertical banks); `INIT` modes A–D. (Part 7a.)
-- **CE-1620M** — 32 KB EPROM, either slot, CE-1601E programmer, VPP 21 V.
+- **CE-1620M** — 32 KB EPROM, either slot, CE-1601E programmer, VPP 21 V (on slot pin 2, "PV IN"; VCC in the PC-1600).
   (`../Shared/Software-Defined-Memory-Extension.md` §3.)
 - **CE-1650M** — larger Japan-only module shown using the same vertical-bank scheme in the
   CE-1601M manual's memory map; no schematic-level source yet. (Part 7b footnote.)
