@@ -509,7 +509,7 @@ The `TC74HC139F` (one half of the dual 2-to-4 decoder) takes select inputs **{A1
 - **PVOUT** (pin 5) — the module's **A14-equivalent**: which 16KB half (= which of the slot's two banks). PVOUT is the LSB of the accessed page's bank number (Part 2); on an 8000–BFFF access that is Port 31H **b4**. `{PVOUT, A13}` together pick 1 of 4 chips.
 - **A0–A13** (pins 24–37) — address within the 16KB window. A14/A15 from the connector are unused; the module's 15th address bit is PVOUT.
 
-The `CE-1620M` (32KB ROM cartridge, `27C256`) uses the same scheme: CE ← RAMSN, A0–A13 ← connector, **A14 ← PVIN (pin 2)** — the pass-through counterpart of PVOUT. It too maps at 8000–BFFF.
+The `CE-1620M` (32KB ROM cartridge, `27C256`) uses the same scheme: CE ← RAMSN, A0–A13 ← connector, **A14 ← PVIN (pin 2)** — the pass-through counterpart of PVOUT. *(Doubtful: pin 2 measures tied to VCC on both slots of a real PC-1600, `../Shared/Expansion-Connectors.md` §2.2b, which would pin A14 high and show only one 16 KB half. Recheck the CE-1620M schematic.)* It too maps at 8000–BFFF.
 
 ### Memory Maps
 

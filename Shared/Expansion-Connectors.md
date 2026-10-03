@@ -117,7 +117,7 @@ The PC-1600's 60-pin system bus connector (§4.0 below) is a documented match in
 - Pin 56: DME0 — identical signal, same pin, on both.
 
 **Divergences** (real architectural differences between the LH5801-based PC-1500 and the Z-80/LH5803-based PC-1600, not transcription errors — the PC-1600 replaces the PC-1500's direct PU/PV CPU flipflops with a gate-array-buffered PT/PU/PVOUT triple, and its Z-80 core has separate RD/WR/IORQ/MREQ/INT/M1 lines where the LH5801 has a single R/W and a single INT):
-- Pins 15–16: PC-1500 TRM has PV then PU; PC-1600 TRM has PU then PVOUT. **Measured on a real PC-1500: 15 = PV, 16 = PU, as the PC-1500 TRM prints. So the two machines' tables really do differ; whether the PC-1600 tables are right is open (§2.2b).**
+- Pins 15–16: PC-1500 TRM has PV then PU; PC-1600 TRM has PU then PVOUT. **Both measured: PC-1500 15 = PV, 16 = PU; PC-1600 15 = PU, 16 = PVOUT. The two machines really differ here (§2.2b).**
 - Pins 9–10, 13–14: PC-1500 has PB0/PC7 (unused)/NC/NC; PC-1600 has INT1̄/M1̄/RSTE/PT — the PC-1600 uses this range for Z-80-specific control and the sub-CPU's PT bank-select bit.
 - Pins 26, 28, 30: PC-1500 WEX/W1/INT vs. PC-1600 IORQ/WAIT/IRQ — both pairs are WAIT- and interrupt-related, but the PC-1600 versions are genuine Z-80 bus signals rather than the PC-1500's simpler external-WAIT/interrupt lines.
 - Pins 39, 42: PC-1500 has PB1 (unused)/VCC; PC-1600 has VGG/NC.
@@ -147,7 +147,21 @@ The manuals contradict each other:
 
 **So the PC-1500 TRM is right: 15 = PV, 16 = PU.** The artwork's PU0/PU1 names map as **PU0 = PV, PU1 = PU** (0/1 read as bit weights, PV the low bit, as in the PC-1600's PT/PU/PVOUT order). An earlier reading of the LH5801 footprint here (ME1/ME0 order → PU0 = pin 61 = PU) gave the opposite and was wrong: either the LH5801's ME0/ME1 pin numbers differ from the LH5803's 29/30, or the pin-number assumption is off.
 
-**Open: the PC-1600 side.** The PC-1600 TRM and Service Manual both give 15 = PU, 16 = PVOUT, and the Service Manual says PVOUT carries the LH5803's PV (CE-150 ROM at PVOUT = 0, CE-158 ROM at PVOUT = 1). Taken literally, a CE-150 or CE-158 on a PC-1600 would see PVOUT on its PU contact and PU on its PV contact, and its ROM switching would break (the CE-158 gates its ROM on PV and switches its 8 KB halves on PU, `PU-PV-Signals.md` §5). Sharp sold both as working on the PC-1600. So either the PC-1600 tables have 15/16 swapped (both may come from one source), or the PC-1600 board crosses the lines. A continuity check on a PC-1600, or on a CE-150 between its plug and its PV-gated ROM select, would settle it.
+**PC-1600, measured (2026-10-03, unpowered, continuity, same orientation as above; the 60-pin top row assumed to run 30…1 from the left as on the PC-1500, which the VCC hit at position 20 = contact 11 supports).** Memory-slot pins against the 60-pin connector, the same on Slot 1 and Slot 2:
+
+| Slot pin (TRM) | 60-pin top row, from left | 60-pin contact | PC-1600 TRM, 60-pin |
+|---|---|---|---|
+| 1 VCC | 20th | 11 | VCC ✓ |
+| 2 PVIN | 20th | 11 | VCC: **pin 2 is tied to VCC**, 0 Ω to pin 1 |
+| 3 PU | 16th | 15 | PU ✓ |
+| 5 PVOUT | 15th | 16 | PVOUT ✓ |
+| 19 PT | 17th | 14 | PT ✓ |
+
+- **The PC-1600 tables are right: 60-pin 14 = PT, 15 = PU, 16 = PVOUT**, the same nets as slot pins 19/3/5.
+- **So the two machines really differ on 15/16:** PC-1500 15 = PV, 16 = PU; PC-1600 15 = PU, 16 = PVOUT.
+- **Slot pin 2 ("PVIN") is VCC on both slots**, not the LH5803's PV. The TRM's "LH-5803 PV signal input (direct from LH-5803 pin 60)" describes the SC7852's PVIN pin (SC7852 pin 8), not this slot contact.
+
+**Open: how a CE-150/CE-158 works on the PC-1600.** It reads PV on contact 15 and PU on contact 16, which on the PC-1600 carry the SC7852's PU and PVOUT. For its ROM to switch, the SC7852 has to drive those outputs from the LH5803's state while the LH5803 runs: PU (15) from the LH5803's PV, and PVOUT (16) from whatever selects the CE-158's 8 KB half. The Service Manual's notes point that way but don't spell it out: "the PV signal of the LH-5803 is directly sent by PVOUT of the SC7852", and the LHNMIO note (SC7852 pin 92), "…when PU = PV is high (CE-158 internal ROM)". Continuity can't show this; it needs a logic probe on contacts 15/16 while the LH5803 switches PV/PU, or the ROM's own bank-switching code.
 - **Separate open point, PC-1600 PU:** the SC7852's pin table has a PVIN input for the LH5803's PV, but no input for the LH5803's PU. The SC7852's PU output is a Port 31H bank bit. So it's unclear what reaches a CE-158's PU contact while the LH5803 runs. The Service Manual's note on SC7852 pin 92 (LHNMIO) reads, in poor OCR, "goes high when the LH-5803 is 94**H and when PU = PV is high (CE-158 internal ROM)". That suggests the gate array handles the CE-158 case, but it doesn't say how.
 
 ---
@@ -213,7 +227,7 @@ The PC-1600 has three expansion connectors in total: a 60-pin system bus connect
 | 14 | PT | 29 | CMTOUT | 44 | FG | 59 | IOE |
 | 15 | PU | 30 | IRQ | 45 | VBAT | 60 | RD̄ |
 
-This is a different, larger connector than the two memory slots — it exposes Z-80 control signals (M1̄, INT1̄, IORQ, WAIT, IRQ) that the memory slots don't, plus cassette I/O (CMTIN/CMTOUT), battery-backup (VBAT), and the sub-CPU timing signals (BFO, φOS) that never appear on a memory-only connector. PT, PU and PVOUT (pins 14, 15, 16) carry the bank number of the page being accessed, MSB first (`../PC-1600/PC-1600-Memory-Bank-Switching.md` Part 2): on a 4000–7FFF access, Port 31H b3/b2/b1. A 60-pin peripheral ROM decodes its bank from them, as the CE-1600P does for Banks 4/5. Pin 16 (PVOUT) carries the LH5803's PV while the LH5803 runs. On the PC-1500, PV is on pin 15 (measured), so one of the two tables can't match what the cards expect; open, §2.2b.
+This is a different, larger connector than the two memory slots — it exposes Z-80 control signals (M1̄, INT1̄, IORQ, WAIT, IRQ) that the memory slots don't, plus cassette I/O (CMTIN/CMTOUT), battery-backup (VBAT), and the sub-CPU timing signals (BFO, φOS) that never appear on a memory-only connector. PT, PU and PVOUT (pins 14, 15, 16) carry the bank number of the page being accessed, MSB first (`../PC-1600/PC-1600-Memory-Bank-Switching.md` Part 2): on a 4000–7FFF access, Port 31H b3/b2/b1. A 60-pin peripheral ROM decodes its bank from them, as the CE-1600P does for Banks 4/5. Measured: 14/15/16 are the same nets as memory-slot pins 19/3/5 (PT/PU/PVOUT). The PC-1500 has PV on 15 and PU on 16 (also measured), so a PC-1500 card sees PU on its PV contact; how the SC7852 drives them while the LH5803 runs is open (§2.2b).
 
 ### 4.1 Memory Slot 1 (S1) Connector, per TRM §10.3
 
@@ -257,7 +271,7 @@ Uses the module-hardware-confirmed assignment (§4.2a): RAM1/K0–K2 on the phys
 
 | Pin | Signal | Function |
 |---|---|---|
-| 2 | PVIN | LH-5803 PV signal input (direct from LH-5803 pin 60) — PC-1500-compatibility CPU mode |
+| 2 | PVIN | TRM: LH-5803 PV signal input (direct from LH-5803 pin 60). **Measured: tied to VCC on both slots** (§2.2b); the TRM text fits the SC7852's own PVIN pin, not this contact. |
 | 3 | PU | Bank select bit, from I/O port 31H |
 | 4 | RAM2 (Slot 1) / RAM1 (Slot 2) | Chip select for the respective slot's RAM banks. Called **RAMSN** on the CE-1600M/CE-1620M schematics. Asserted (low) **only** for 8000–BFFF accesses when the Port 31H page-2 field selects this slot (banks 0/1 → Slot 1; banks 2/3 → Slot 2). Never asserts for 4000–7FFF or any other window — a memory-bay module cannot answer outside 8000–BFFF. |
 | 5 | PVOUT | The selected module's **A14-equivalent** — which 16 KB half / which of the slot's two banks. **= Port 31H bit b4** (LSB of the 8000–BFFF bank field), i.e. the bit distinguishing bank 0 from 1 (Slot 1) or bank 2 from 3 (Slot 2). *Not* Port 31H bit b0: b0 is also nicknamed "PVOUT" but is the 0000–3FFF page / LH5803-PV bit and does not reach this pin. (Corrected here from an earlier "from I/O port 31H b0" — confirmed against the CE-1600M schematic, which uses pin 5 as one of the two `{A13, PVOUT}` select inputs to its 4-way SRAM decoder, and Part 7a's CE-1601M description of the same pin distinguishing "Z-80 Bank 2 vs. Bank 3".) |
