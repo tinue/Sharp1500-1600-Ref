@@ -45,7 +45,7 @@ The PC-1500 exposes the expansion bus on a 40-pin edge connector on the rear (co
 
 For the full 40-pin table (and the PC-1500A's pin reassignment, and the PC-1600's CN-7/CN-8 slot connectors), see `Expansion-Connectors.md`.
 
-PU and PV also reach the 60-pin connector: PU on contact 15, PV on contact 16, the same on the PC-1500 and the PC-1600. The PC-1500 TRM prints the two swapped; the PCB artwork settles it (`Expansion-Connectors.md` §2.2b).
+PU and PV also reach the 60-pin connector: PV on contact 15, PU on contact 16 on the PC-1500 (measured, as the PC-1500 TRM prints). The PC-1600 manuals give the opposite order; that's open (`Expansion-Connectors.md` §2.2b).
 
 PV and PU appear at pins 2 and 3, described in the TRM as "chip select" signals — modules can use them as additional gating inputs for chip-select logic, alongside their role as CPU flipflop outputs. YO (pin 4) is the primary chip select for the &0000–&3FFF module RAM region. There is no dedicated bank-select address register on the connector for that region — the PU and PV pins are the only CPU-flipflop mechanism for communicating a state change to a module beyond the address and data buses.
 
@@ -85,7 +85,7 @@ The CE-158 RS-232/Centronics interface contains a 16KB system ROM. This ROM prov
 
 Sources: the TRM's "Memory Map I for the PC-1500A" (PDF p.174, printed p.167). It draws the 16KB CE-158 box across &8000–&9FFF only, under the PV column, split by a dashed line that matches the "PU | PU̅" legend. Jeff Birt's CE-158 ROM dumps agree: they are named `CE-158_ROM_SPV_RPU_LOW` and `CE-158_ROM_SPV_SPU_HIGH`.
 
-PU sits on 60-pin contact 15 and PV on contact 16, on both machines (`Expansion-Connectors.md` §2.2b; the PC-1500 TRM prints them swapped). The CE-158 decodes both, so a swap would break it, not just disable it.
+On the PC-1500, PV sits on 60-pin contact 15 and PU on contact 16 (measured); the PC-1600 manuals give the opposite order (`Expansion-Connectors.md` §2.2b). The CE-158 decodes both, so a swap would break it, not just disable it.
 
 **This is why the TRAMsoft 32kB-RAM/ROM module conflicts with the CE-158.** TRAMsoft uses PU to switch its two 16KB RAM banks in &0000–&3FFF; the CE-158 uses PU to switch its ROM halves in &8000–&9FFF. Different address ranges, but the same physical PU line on the connector.
 
