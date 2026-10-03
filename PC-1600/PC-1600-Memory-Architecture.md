@@ -206,7 +206,7 @@ The single most important detail in the §3.12.1 figure, and the answer to "a CE
 
 | Module | Size | Slot(s) | Covers (in location A / bank 0) |
 |---|---|---|---|
-| CE-151 | 4 KB | S1 only | **B000–BFFF** (low B000-worth… i.e. top 4 KB) |
+| CE-151 | 4 KB | S1 only | **B000–BFFF** (top 4 KB; its S1/S2 chips at B800/B000 with Port 3CH = 1AH, measured — `PC-1600-Memory-Bank-Switching.md` Part 4) |
 | CE-155 | 8 KB | S1 only | **A000–BFFF** (top 8 KB) |
 | CE-159 | 8 KB (program) | S1 only | **A000–BFFF** (top 8 KB) |
 | CE-161 | 16 KB | S1 **or** S2 | **8000–BFFF** (fills the whole location) |

@@ -50,7 +50,7 @@ Writing to Z-80 I/O port 31H selects which bank appears in each page:
 | b3 | Bank select for 4000-7FFF, MSB |
 | b4 | Bank select for 8000-BFFF, LSB of the 3-bit field b6:b5:b4 |
 | b5 | Bank select for 8000-BFFF, middle bit |
-| b6 | Bank select for 8000-BFFF, MSB. **Separately**, also controls LHS1/LHS2/LHS3 memory select remapping (Part 4) |
+| b6 | Bank select for 8000-BFFF, MSB. (The LHS1/LHS2/LHS3 remap is bit 6 of Port **3CH**, not this bit -- Part 4.) |
 | b7 | Bank select for C000-FFFF **only** (1 bit, independent of b0 above) |
 
 **The bank lines PT / PU / PVOUT are not register bits.** The SC-7852 has three bank-signal outputs (pins 5–7: PT, PU, PVOUT) for eight register bits. They output the **bank number of the page being accessed**, MSB first: PT = bit 2, PU = bit 1, PVOUT = bit 0 of that bank number. So a 4000–7FFF access puts b3/b2/b1 on PT/PU/PVOUT, an 8000–BFFF access puts b6/b5/b4 there, and a 0000–3FFF or C000–FFFF access drives only PVOUT (b0 or b7). This is Sharp's own table (TRM §7.2.1, "SC-7852 Access Memory Areas and Contents of I/O Port 31H", PDF p.232), which has PT/PU/PVOUT output columns for every page. (Its page-2 bank-7 row prints PVOUT = 0, a misprint.) It is also what the peripherals need: the CE-1600P selects its ROM on PT high / PU low and uses PV to pick bank 4 or 5 (`PC-1600-Peripherals-Hardware.md` §1.2.2), and the memory modules use PVOUT as the page-2 LSB (Part 7). An earlier revision of this table named b1 "PU" and b2 "PT"; that naming is wrong. While the LH-5803 runs, PVOUT carries the LH-5803's PV instead (Part 8).
@@ -287,9 +287,9 @@ Generated internally by the SC7852 custom CPU, based on bank selection register 
 | RAM3 | 49 | High | Internal 16KB RAM C000-FFFF Bank 0 |
 | RAM2 | 50 | Low | Slot 1 (S1) RAM 8000-BFFF Bank 0/1 |
 | RAM1 | 51 | Low | Slot 2 (S2) RAM 8000-BFFF Bank 2/3 |
-| LHS1 | 46 | Low | Sub-select within 8000-BFFF (remappable) |
-| LHS2 | 47 | Low | Sub-select within 8000-BFFF (remappable) |
-| LHS3 | 48 | Low | Sub-select within 8000-BFFF (remappable) |
+| LHS3 | 46 | Low | 2 KB sub-select within 8000-BFFF, bank 0 (remappable) |
+| LHS2 | 47 | Low | 2 KB sub-select within 8000-BFFF, bank 0 (remappable) |
+| LHS1 | 48 | Low | 2 KB sub-select within 8000-BFFF, bank 0 (remappable) |
 
 **INH signal** (on slot connectors): inhibits the internal ROM (CS001/CS123), letting an external slot module override internal memory.
 
@@ -331,13 +331,40 @@ Generated internally by the SC7852 custom CPU, based on bank selection register 
 - **RAM2#** (Slot 1) asserts on bank **0 or 1**, 8000H–BFFFH; **RAM1#** (Slot 2) asserts
   on bank **2 or 3**, 8000H–BFFFH.
 
-**LHS1/LHS2/LHS3 remapping via bit b6 of I/O 31H:**
+**LHS1/LHS2/LHS3 remapping via bit b6 of I/O 3CH** (TRM SC7852 pin table, pins 46-48; the
+TRM's "A800-FAFF" is a misprint for A800-AFFF):
 
 | Signal | b6=0 | b6=1 |
 |--------|------|------|
 | LHS1 | A800-AFFF (Bk 0) | B000-B7FF (Bk 0) |
-| LHS2 | B000-B7FF (Bk 0) | A800-FAFF (Bk 0) |
+| LHS2 | B000-B7FF (Bk 0) | A800-AFFF (Bk 0) |
 | LHS3 | B800-BFFF (Bk 0) | A000-A7FF (Bk 0) |
+
+**On the Slot 1 connector the order is reversed** -- pin 16 (S1) carries LHS3, pin 17 (S2)
+LHS2, pin 18 (S3) LHS1 (measured on a real PC-1600, 2026-10-03, below):
+
+| Slot 1 pin | b6=0 | b6=1 |
+|---|---|---|
+| 16 (S1) | B800-BFFF | A000-A7FF |
+| 17 (S2) | B000-B7FF | A800-AFFF |
+| 18 (S3) | A800-AFFF | B000-B7FF |
+
+**Who sets b6: the boot probe** (P0-B0 `03CF`-`03EE`). With Port 3CH = 0 it tests bank 0
+B000H, then A800H, for memory (`MEMORYCHK`, CY = nothing there) and writes the result to
+Port 3CH and its mirror F08DH:
+
+| Probe result (3CH = 0) | Port 3CH | Module |
+|---|---|---|
+| nothing at B000H | 1BH | empty slot |
+| memory at B000H, none at A800H | 1AH (b6=0) | CE-151 (S1+S2 -> B800H + B000H) |
+| memory at B000H and A800H | 5BH (b6=1) | CE-155/159 (S1-S3 -> A000H-B7FFH, own Y7 decoder -> B800H), CE-161, CE-1600M |
+
+The PC-1500 modules thus land top-justified below the internal RAM, as TRM §3.12.1 draws
+them: CE-151 B000-BFFF, CE-155/159 A000-BFFF. **Measured** on a real PC-1600 with a CE-155
+in Slot 1: MEM 20026 (+8192), 3CH = 5BH, four separate 2 KB blocks at A000-BFFF, BASIC
+start A0C5H. With the CE-155's pins 4 and 18 taped off (S1+S2 chips only, electrically a
+CE-151, Service Manual schematic 5-3): MEM 15930 (+4096), 3CH = 1AH, RAM at B000H and B800H
+only, BASIC start B0C5H. Only the reversed pin order fits both.
 
 ---
 
@@ -698,7 +725,7 @@ Execute: `CALL 01C6H` (CALLH)
 
 | Port | Dir | Function |
 |------|-----|----------|
-| **31H** | R/W | **PRIMARY BANK SELECT REGISTER** (IOW MAP / IOR MAP). b0: Page 0 bank (PVOUT), independent 1 bit. b1-b3: Page 1 bank (4000-7FFF), independent 3-bit field, 8 banks. b4-b6: Page 2 bank (8000-BFFF), independent 3-bit field, 8 banks. b6: also separately controls LHS1/2/3 remapping. b7: Page 3 bank (C000-FFFF), independent 1 bit -- **corrected, was previously described as sharing a bit with b0/Page 0; see Part 2's correction note.** |
+| **31H** | R/W | **PRIMARY BANK SELECT REGISTER** (IOW MAP / IOR MAP). b0: Page 0 bank (PVOUT), independent 1 bit. b1-b3: Page 1 bank (4000-7FFF), independent 3-bit field, 8 banks. b4-b6: Page 2 bank (8000-BFFF), independent 3-bit field, 8 banks. b7: Page 3 bank (C000-FFFF), independent 1 bit -- **corrected, was previously described as sharing a bit with b0/Page 0; see Part 2's correction note.** |
 | **3DH** | W | **HIDDEN ROM / EXTENDED ADDRESS** (IOW C/D). b2: normally set; clearing selects Bank 3b. D0-D2: latched to gate array A14A-A16A. |
 | **28H** | W | **SLOT 2 VERTICAL-BANK SELECT.** Values 0-7 (CE-1601M manual, Part 7a; *superRAM* manual, Part 7b) select which 32KB "vertical bank" occupies Banks 2+3 (8000-BFFF) -- decoded on the module itself, not by the mainboard. 8 banks x 32KB = 256KB ceiling for Slot 2 with a standard 3-to-8 on-module decoder; see Part 2. |
 | 30H | R/W | Module control (IOW MOD / IOR MOD) |
