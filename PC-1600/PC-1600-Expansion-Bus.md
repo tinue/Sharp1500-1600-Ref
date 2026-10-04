@@ -95,13 +95,15 @@ which the firmware never touches — the way Port 28H extends the memory slots.
   jump-table contract (entries at +2…+15H), autostart, keyword tables.
 - **Worked example:** a minimal I/O peripheral on the 60-pin bus (address decode + one
   readable/writable register + optional interrupt), end to end.
-- **Unresolved:** the Slot 1 / Slot 2 ↔ K0–K2 / S1–S3 connector-label discrepancy
-  (`Expansion-Connectors.md` §4.2a) — needs a continuity check on real hardware.
+- ~~**Unresolved:** the Slot 1 / Slot 2 ↔ K0–K2 / S1–S3 connector-label discrepancy.~~
+  Resolved: only the TRM §10.3 table headings are swapped. The TRM's own connector
+  circuit diagram puts RAM2/S1–S3 on Slot 1 and RAM1/K0–K2 on Slot 2
+  (`Expansion-Connectors.md` §4.2a).
 
 ## What partially exists elsewhere
 
 - `../Shared/Expansion-Connectors.md` §4–5 — raw pinouts, signal-by-function
-  summary, label discrepancy.
+  summary, the TRM §10.3 heading swap.
 - `PC-1600-Memory-Bank-Switching.md` Part 3 (gate array), Part 5, Part 6 (module headers/
   boot), Part 10 (adapting a PC-1500 module), Part 11 (signal summary).
 - An emulator with CE-1600F / CE-1600P device models is a behavioural cross-reference for this bus (see `README.md` — Sources & validation).

@@ -392,9 +392,8 @@ Physical 3-pin header, separate from the serial connectors, carrying the raw sig
 
 `AIN` reaches this connector directly from the gate array (`AIN(CN2-10)` on the main
 board) — it does not pass through the TC8576F UART or the BX7269W RS-232C level shifter
-(`PC-1600-Serial-Hardware-Notes.md` §1). Source: PC-1600 main-board wiring diagram scan
-(2026-09-04); pin labels 2/3 are legible, exact silkscreen names not cross-checked
-against the TRM.
+(`PC-1600-Serial-Hardware-Notes.md` §1). Source: TRM §9.1(4) Connector Circuit Diagram
+(printed p.267), connector CN6 "ANALOG": 1 GND, 2 NC, 3 AIN, with AIN going to CN2-10.
 
 ### 7.3 Command-byte pacing: IOCS 25H and `F0B8H` bit 0 (ROM disassembly)
 

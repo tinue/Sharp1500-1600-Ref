@@ -94,7 +94,10 @@ per-section:
 - **PC-1600 Technical Reference Manual** (English) and the **PC-1600 Systemhandbuch**
   (Holtkötter, German) — the same manual; the German scan is cleaner and is what most of
   the transcription was read from. Covers the memory map, IOCS, the BASIC interpreter,
-  the work area, the hardware chapter, and the Z-80 mnemonic tables.
+  the work area, the hardware chapter, and the Z-80 mnemonic tables. Edition: © 1986,
+  back cover "6L 3.0-I (TMANE1005ECZZ)". The chapter 9 circuit diagrams are too coarse to
+  read in the PDF scan. Photos of the printed pages (§9.1(1) F.P.C. p.264, §9.1(4)
+  Connector p.267, §9.2(1) CE-1600P p.268) were used instead.
 - **Winfried Baum, *PC-1600 Systemhandbuch*** (ISBN 3-924327-31-9, German) — a separate,
   third-party book despite the shared title; cited as "Baum". Its Anhang A (I/O port list,
   pp.93–97) is the source for the ON-key live level, the 17H cassette sync tone and the

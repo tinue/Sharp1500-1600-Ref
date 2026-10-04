@@ -245,45 +245,64 @@ The PC-1600 has three expansion connectors in total: a 60-pin system bus connect
 
 This is a different, larger connector than the two memory slots — it exposes Z-80 control signals (M1̄, INT1̄, IORQ, WAIT, IRQ) that the memory slots don't, plus cassette I/O (CMTIN/CMTOUT), battery-backup (VBAT), and the sub-CPU timing signals (BFO, φOS) that never appear on a memory-only connector. PT, PU and PVOUT (pins 14, 15, 16) carry the bank number of the page being accessed, MSB first (`../PC-1600/PC-1600-Memory-Bank-Switching.md` Part 2): on a 4000–7FFF access, Port 31H b3/b2/b1. A 60-pin peripheral ROM decodes its bank from them, as the CE-1600P does for Banks 4/5. Measured: 14/15/16 are the same nets as memory-slot pins 19/3/5 (PT/PU/PVOUT). While the LH5803 runs, 15 carries its PU (a shared line) and 16 its PV (via PVIN → PVOUT), the same as the PC-1500's 15 = PU, 16 = PV (§2.2b).
 
-### 4.1 Memory Slot 1 (S1) Connector, per TRM §10.3
+### 4.1 Memory Slot 1 (S1) Connector — CN7
 
-*Source: PC-1600 Technical Reference Manual §10.3(2), "Memory slot 1 (S1) connector."*
+*Source: PC-1600 TRM §9.1(4) "Connector Circuit Diagram" (printed p.267, PDF p.275),
+`SLOT1` / CN7. The pin layout is the one in TRM §10.3, whose two slot tables have their
+headings swapped (§4.2a).*
 
 | Pin | Signal | Pin | Signal | Pin | Signal | Pin | Signal |
 |-----|--------|-----|--------|-----|--------|-----|--------|
 | 1 | VCC | 11 | D3 | 21 | NC | 31 | A6 |
 | 2 | PVIN | 12 | D2 | 22 | A15 | 32 | A5 |
 | 3 | PU | 13 | D1 | 23 | A14 | 33 | A4 |
-| 4 | **RAM1** | 14 | D0 | 24 | A13 | 34 | A3 |
+| 4 | **RAM2** | 14 | D0 | 24 | A13 | 34 | A3 |
 | 5 | PVOUT | 15 | INH | 25 | A12 | 35 | A2 |
-| 6 | MREQ | 16 | K0 | 26 | A11 | 36 | A1 |
-| 7 | D7 | 17 | K1 | 27 | A10 | 37 | A0 |
-| 8 | D6 | 18 | K2 | 28 | A9 | 38 | RD |
+| 6 | MREQ | 16 | **S1** | 26 | A11 | 36 | A1 |
+| 7 | D7 | 17 | **S2** | 27 | A10 | 37 | A0 |
+| 8 | D6 | 18 | **S3** | 28 | A9 | 38 | RD |
 | 9 | D5 | 19 | PT | 29 | A8 | 39 | WR |
 | 10 | D4 | 20 | VGG | 30 | A7 | 40 | GND |
 
-### 4.2 Memory Slot 2 (S2) Connector, per TRM §10.3
+### 4.2 Memory Slot 2 (S2) Connector — CN8
 
-*Source: PC-1600 Technical Reference Manual §10.3(3), "Memory slot 2 (S2) connector."*
+*Source: same diagram, `SLOT2` / CN8.*
 
 Identical layout to §4.1 except:
-- Pin 4 = **RAM2** (instead of RAM1)
-- Pin 16 = **S1**, Pin 17 = **S2**, Pin 18 = **S3** (instead of K0/K1/K2)
+- Pin 4 = **RAM1** (instead of RAM2)
+- Pin 16 = **K0**, Pin 17 = **K1**, Pin 18 = **K2** (instead of S1/S2/S3)
 
-### 4.2a Discrepancy: TRM connector tables vs. real module hardware
+**Pin 21 (NC) has a factory option on both slots.** On Slot 2 it runs to an open jumper
+**J1**. The far side of J1 is the net that also feeds R1, the pull-up on KC2 (CN2-58),
+which reads as VCC. On Slot 1 the pin-21 trace is marked **CUT**. Neither is fitted on a
+production board as drawn, so pin 21 is unconnected, which agrees with the tables.
 
-The TRM pin tables above (§4.1–4.2) put **K0/K1/K2 and RAM1 on the connector labeled "Memory slot 1"**, and **S1/S2/S3 and RAM2 on the connector labeled "Memory slot 2."** This is the **opposite** of what two independent pieces of real-hardware evidence say:
+### 4.2a Resolved: TRM §10.3 swaps the two slot tables
 
-- The **CE-1601M**'s own manual (`PC-1600-Memory-Bank-Switching.md` Part 7a) states outright that the module "must be mounted in the PC-1600 memory slot S2" — and its own schematic shows its onboard decoder driven directly by pins labeled **K0** and **K2** on the module's edge connector.
-- The ***superRAM*** modern module (Part 7b) likewise must go in Slot 2, and relies on the same Port 28H / K0–K2 mechanism.
+TRM §10.3(2) "Memory slot 1 (S1) connector" lists **RAM1 + K0/K1/K2**, and §10.3(3)
+"Memory slot 2 (S2) connector" lists **RAM2 + S1/S2/S3** (checked again in the English
+PDF, pp.286–287). Every other source puts them the other way round, and so does the TRM
+itself in two other places:
 
-Both modules require the K0–K2 signal set, and both are only usable in the physical bay marketed as **Slot 2** — directly contradicting the TRM table's own section header, which puts K0–K2 on "Memory slot 1." This isn't a new error introduced here: the pre-existing `PC-1600-Memory-Bank-Switching.md` (sourced from the Service Manual rather than the TRM) already had CN-8/"Slot 2" carrying RAM1/K0–K2, i.e. it already matched the module-hardware evidence rather than this TRM scan. Sharp's own TRM has documented transcription/labeling errors elsewhere in this project's PC-1500 material (see `PC-1500-Address-Decoding.md`'s "Appendix: PC-1500 Chip-Select Table" for two confirmed examples), so a swapped section header here — "Memory slot 1" and "Memory slot 2" simply mislabeled relative to the product's own physical/marketed slot numbering — is the most likely explanation, though not confirmed against a second TRM scan or the physical connector's own silkscreen.
+- **TRM §9.1(4) Connector Circuit Diagram** (printed p.267): `SLOT1`/CN7 pin 4 = RAM2 and
+  pins 16–18 = S1/S2/S3; `SLOT2`/CN8 pin 4 = RAM1 and pins 16–18 = K0/K1/K2. This is
+  legible in a sharp photo of the printed page; the PDF scan is too coarse to read.
+- **TRM §7 RAM-select text**: "The RAM2 signal is a memory select signal for the memory
+  slot 1 (S1)… The RAM1 signal is a memory select signal for the memory slot 2 (S2)."
+  This matches SC-7852 pins 50/51 (`../PC-1600/PC-1600-CPU-SC7852-Z80.md` §6).
+- The **CE-1601M** (`PC-1600-Memory-Bank-Switching.md` Part 7a) must go in slot S2, and
+  its decoder is driven by its edge-connector pins K0 and K2. ***superRAM*** (Part 7b) also
+  goes in Slot 2 and uses the same Port 28H / K0–K2 mechanism.
+- Measured: the Slot 1 pins 16–18 carry the 2 KB strobes of a CE-151/155/159
+  (`PC-1600-Memory-Bank-Switching.md` Part 4).
 
-**Practical resolution used throughout this project's documentation:** trust the module-hardware evidence. Wherever "Slot 2" is stated elsewhere in these documents (Port 28H, the CE-1601M, *superRAM*), it refers to the physical bay carrying RAM1 and K0–K2 — i.e., the connector the TRM's own table happens to head "Memory slot 1." If you have a way to check the physical PC-1600's own case silkscreen/labeling against a connector multimeter trace, that would settle this definitively.
+So the error is in the two §10.3 headings only; the pin layout itself is right. §4.1–4.2
+above give the corrected assignment, and "Slot 1" and "Slot 2" mean the same physical bay
+in every document in this corpus.
 
 ### 4.3 Key signals, by function
 
-Uses the module-hardware-confirmed assignment (§4.2a): RAM1/K0–K2 on the physical bay marketed as Slot 2, RAM2/S1–S3 on Slot 1.
+RAM2/S1–S3 on Slot 1, RAM1/K0–K2 on Slot 2 (§4.1–4.2a).
 
 | Pin | Signal | Function |
 |---|---|---|
