@@ -4,7 +4,11 @@
 > repository, left unchanged there). That document also covers the PC-1261, PC-1401,
 > and PC-1403 cassette formats, which are out of scope here and were not copied.
 > Derived from analysis of the `bin2wav` C reference encoder (version 2.1.1 c1d) and
-> verified against real WAV/img pairs.
+> verified against real WAV/img pairs. **Corrected 2026-10-04** against the CE-1600P ROM
+> and ROM-made recordings (Calc-U-1600 `CSAVE` / `CSAVE M`): see
+> [Verified against the ROMs](#verified-against-the-roms-and-rom-made-recordings) at the
+> end. Two statements below were wrong and are fixed in place: the PC-1500 length field
+> (count − 1) and the PC-1600 data checksum (one, not one per 256 bytes).
 
 **Scope:** The `.img` file is the raw binary body of the program (no headers). This
 spec covers what is prepended (binary header) and how the combined stream is encoded
@@ -71,8 +75,8 @@ stopb2=6).  The 40 data bytes are followed by a 2-byte checksum:
 | 8      | 1    | Sub-ident: `0x01` (BASIC image), `0x00` (binary), `0x02` (RSV), `0x03` (DEF), `0x04` (DAT) |
 | 9–24   | 16   | Filename, NUL-padded to 16 characters |
 | 25–33  | 9    | Reserved / null bytes |
-| 34–35  | 2    | Load address, big-endian (default 0x00C5 for BASIC IMG) |
-| 36–37  | 2    | Buffer size = body byte count, big-endian |
+| 34–35  | 2    | Load address, big-endian (the CE-150's `CSAVE` writes the program start, `40C5` on a stock PC-1500; `bin2wav` writes `00C5`) |
+| 36–37  | 2    | Body byte count **− 1**, big-endian (a BASIC body counts its trailing `FF` end mark) |
 | 38–39  | 2    | Entry address, big-endian |
 | 40–41  | 2    | Checksum of bytes 0–39 (2-byte simple sum, big-endian) |
 
@@ -261,9 +265,11 @@ checksum = count & 0xFFFF  # written as [count>>8, count&0xFF]
 
 #### Body
 
-Written with ORDER_E (byte-level, MSB-first).  A 2-byte bit-count checksum
-is appended after every 256 bytes (`BLK_E_DAT = 256`).  Running count resets
-after each checksum.
+Written with ORDER_E (byte-level, MSB-first). **One** 2-byte bit-count checksum
+follows the whole data stream, then a closing "1" (CE-1600P `CMRDDATA` `64FCH`, which
+despite its label writes the data, and `CMWRCSUM` `666EH`). The earlier reading of a
+checksum after every 256 bytes (`BLK_E_DAT`) was wrong: ROM-made `CSAVE M` recordings of
+255, 256 and 257 bytes, and `bin2wav`'s own output, carry a single checksum.
 
 #### Footer
 
@@ -305,7 +311,8 @@ Before the header block, `WriteSyncToEWav` writes:
 
 Between header and data blocks, `WriteSyncToEWav` writes the same pattern
 but with `SYNC_E_DATA = 20` instead of `SYNC_E_HEAD = 40`, and a longer
-leading Bit0 run of **10 744 bits** (0x2AF8) instead of 10 000 (0x2710).
+leading Bit0 run of **11 000 bits** (0x2AF8; the ROM's `DATA SHORT 1`, F1A3H) instead of
+10 000 (0x2710). (0x2AF8 is 11 000, not 10 744 as this section first said.)
 (Verified against Sharp PC-1600 Systemhandbuch, chapter 12.)
 
 #### Byte framing (E-series)
@@ -336,7 +343,7 @@ start bit.  The start bit is always Bit1 (1 200 Hz, long period).
 | Model   | Sample rate | Bit0 freq | Bit1 freq | Bits/byte | Checksum period | Checksum type   |
 |---------|-------------|-----------|-----------|-----------|-----------------|-----------------|
 | PC-1500 | 44 100 Hz   | ≈1 225 Hz | ≈2 450 Hz | 22        | 80 bytes        | byte-sum (2B)   |
-| PC-1600 | 48 000 Hz   | 3 000 Hz  | 1 200 Hz  | 9 (no stop) | 256 bytes (body) | bit-count (2B) |
+| PC-1600 | 48 000 Hz   | 3 000 Hz  | 1 200 Hz  | 9 (no stop) | header; whole body once | bit-count (2B) |
 
 ### Byte-sum checksum detail (PC-1500, 2-byte)
 
@@ -372,3 +379,61 @@ checksum_lo = count & 0xFF
 4. **Filename encoding:** PC-1500 and PC-1600 store filenames in plain ASCII
    order (no nibble-swap, no reversal) — unlike the GRP_NEW models
    (PC-1261/1401/1403), which use `SwapByte`.
+
+## Verified against the ROMs and ROM-made recordings
+
+Checked 2026-10-04 by decoding the Calc-U-1600 tape matrix (`headless/tape-matrix/`:
+the emulated CE-150 and CE-1600P ROMs `CSAVE` / `CSAVE M`, timed to match real units),
+the 5 kHz PC-1500 game recordings in `pc1500/Downloaded/` (with their reference `.bin`
+files), and `bin2wav` output. SharpDataExchange's `sharpdx::wav` implements exactly this
+and loads its own WAVs through the emulated ROMs' `CLOAD`.
+
+**PC-1500 / CE-150**
+
+- Nibble frame: start "0", 4 data bits LSB first, **6** stop "1"s — the ROM's own count
+  (all nibbles), same as `bin2wav`. A reader should accept any number ≥ 1.
+- Length field = byte count − 1 (as the CE-158's). A BASIC body is the program plus the
+  `FF` end mark, and the `FF` counts: `LANDER`, 814 program bytes, has length field 814
+  and 815 bytes on tape. Machine code has no end mark. This settles the open question in
+  `PC-1500-Tape-Format.md`.
+- A checksum (16-bit byte sum, big-endian) follows every 80 body bytes **and** the final
+  partial block (the `FF` included); then a pause and `55`.
+- What the ROM writes: BASIC start `40C5`, entry `0000`; `CSAVE M` start = the first
+  address, entry `FFFF` (= none, unless `CSAVE M` named one).
+- Timing: the leader is ≈ 2540 "1" bits (≈ 8 s); pauses of ≈ 78 "1" bits follow the
+  header and surround the end byte. The emulated ROM's tones measure 2667 / 1263 Hz
+  (nominal 2500 / 1250).
+- `CLOAD` needs only ≈ 0.6 s of leader in the emulator (not on a real recorder with the
+  remote; allow for motor start).
+
+**PC-1600 / CE-1600P, MODE 0** (bank 5, `6000H`–)
+
+- Byte: start "1" + 8 bits MSB first (`CMWRBYTE` `61A5H`); no stop bit.
+- Checksum: number of 1 bits, 16-bit, big-endian, written with a start bit each
+  (`CMWRBYTE1`), then one closing "1" — once after the 48-byte header, once after the
+  whole data stream (see above).
+- Header leader: 10 000 "0", 40 "1", 40 "0", one "1" (`CMLEADER`, `CASTIMING` `60CDH`);
+  data leader 11 000 / 20 / 20 / 1. `CLOAD` counts 5000 "0" cycles (F1AAH) before it
+  looks for the mark, after ≈ 0.6 s for the motor (`CASMOTOR`).
+- Header (`CASHDRFILL` `736EH`), as written by `CSAVE` / `CSAVE M`:
+  `00` = 02 BASIC / 01 ML; `01`–`10` the name as typed, NUL-padded (up to 16 bytes, not
+  space-padded 8.3); `11` = `0D`; `12` length, **exact** (not − 1); `14` load (BASIC
+  `0000`); `16` entry (`FFFF` + `1F` = `FF` = none); `18` = 01 BASIC / 00 ML / 02 RESERVE;
+  `19`–`1C` month, day, hour, minute from the clock (binary); `1D`–`1F` the top bytes.
+  `bin2wav` appends `.BAS` to a BASIC name.
+- The ROM's half periods are unequal (30/23 and 79/71 ticks), so decode whole cycles.
+
+**PC-1600 + CE-150 (MODE 1)**
+
+- The CE-150 ROM runs on the LH-5803 (`PC-1600-Load-Save-Matrix.md`), so the tape is
+  PC-1500 format in every bit. Its header holds what the PC-1500 code sees: the program
+  start in LH-5803 form. The LH-5803 sees the Z-80's `C000H`– at `4000H`–, so `CSAVE`
+  from the internal-RAM area (Z-80 `C0C5H`) writes start **`40C5`**, as a stock PC-1500
+  does. (A program area in a module would give another start, e.g. `00C5`; not run.)
+- The program keeps PC-1500 token values (MODE 1 tokenizes like the PC-1500, jump-line
+  numbers in ASCII); no conversion happens anywhere.
+- So **nothing in the tape tells a PC-1600 + CE-150 tape from a PC-1500 one**. A tool can
+  only report it as a PC-1500 tape. Writing for a PC-1600 in MODE 1 means writing a
+  PC-1500 tape; with start `40C5` it also suits the CE-1600P's MODE 1 `CLOAD`, which
+  loads to the header's address unconverted.
+
