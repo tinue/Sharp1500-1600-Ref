@@ -52,7 +52,7 @@ memory-area indicator): this is consistent with a "16 symbols" count without the
 sixteen visually-separate icons. **This resolves why the DEG/PRO/I indicators an actual
 boot shows never appear in an emulation that only ever draws into the 156×32 dot-matrix
 area**: they are architecturally a completely separate display region from that area,
-driven by whatever discrete segment lines the HD61203/gate array expose for this strip —
+driven by whatever discrete segment lines exist for this strip (the LR38041 pin table has none) —
 not more page/column-addressed HD61102 writes. **Still needed**: the actual per-segment
 port/bit mapping (which `SMBLSET` bit lights which named position) — TRM §3.1 p28's own
 bit map, not yet transcribed (see this doc's TODO).
@@ -95,7 +95,7 @@ segment) is still not given by this diagram and remains open (§6.3/TODO).
 The HD61102s sit in the Z-80 I/O space at **50H–5BH** (6800-family bus via the SC-7852
 `E` strobe, pin 60, which fires on any I/O access to 40H–5FH — issued a half-cycle after
 `IORQ`). Each HD61102 has three chip-select inputs **CS1#, CS2#, CS3**, and is selected
-only when **all three** are asserted. The gate array wires each CS to a different low
+only when **all three** are asserted. The board wires each CS to a different low
 address bit so the two controllers (and the register-select within each) decode from the
 port number:
 

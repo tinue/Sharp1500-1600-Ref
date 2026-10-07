@@ -17,7 +17,7 @@ The PC-1600 is a dual-CPU pocket computer with a sophisticated bank-switched mem
 | IC1 | SC7852 | Main CPU 2 (Z-80 compatible, CMOS, 3.58MHz) |
 | IC2 | LH5803 | Main CPU 1 (8-bit, CMOS, 2.6MHz / 1.3MHz internal) |
 | IC3 | LU57813P | Sub CPU (4-bit, CMOS, 307.2KHz) -- power mgmt, RTC |
-| IC4 | LR38041 | Gate Array -- central memory management and bus routing |
+| IC4 | LR38041 | Gate Array -- glue logic: slot-select buffering, Port 3DH latch, sub-CPU data buffer, serial routing (Part 3). Memory decoding is inside the SC7852 (Part 4) |
 
 ### Memory PWB Chips
 
@@ -120,7 +120,7 @@ Plain 3-bit binary value of b6:b5:b4; b0–b3 not involved. During an 8000–BFF
 | 8000-BFFF | Slot 1a (RAM2) | Slot 1b (RAM2) | Slot 2a (RAM1) | Slot 2b (RAM1) |
 | C000-FFFF | Internal 16KB RAM (RAM3) | **`b7`=1: open.** The TRM §7.2.1 table only lists `b7` as a "bank 0/1" select for the page, and no Sharp manual reviewed for this project (TRM, Service Manual, German user manual) says what bank 1 holds. The chip-select table (Part 4) gives **RAM3** for C000–FFFF **Bank 0** only, and no other internal chip select covers C000–FFFF on the Z-80 side, so nothing on the mainboard answers when `b7`=1. Whether a device on the 60-pin system bus can respond there, and which bus signal would tell it to, is undocumented. It is also a rarely-exercised path — `b7`=1 swaps out the F000–FFFF IOCS/BASIC work area (`PC-1600-Work-Area-Map.md`), so the firmware could only use it transiently. | -- | -- |
 
-**† A memory-bay card never decodes a 4000–7FFF access itself — confirmed at schematic level.** (Bank 1 there holds slot RAM only through the gate-array remap below; Bank 2 is empty in Sharp's own map, TRM §7.2.1.) Part 4's chip-select table decodes the entire 4000–7FFF window with **CS24** alone (SC7852 pin 45), and Part 12 wires CS24 only to the internal Memory-PWB ROM (IC5) — it never reaches the slot connectors. The **CE-1600M schematic** (Sharp's own 32KB RAM module, Part 7) and the **CE-1620M schematic** (Sharp's 32KB ROM cartridge for the memory bay) both tie their chip-enable to connector **pin 4 (RAMSN = RAM1#/RAM2#)**, which the gate array asserts only for the **8000–BFFF** window. Neither module has any connector signal telling it a 4000–7FFF access is in progress, and neither wires PU (pin 3) or PT (pin 19) at all. Memory-bay module headers are at 8000H/A000H/B000H (Part 6), i.e. page 2, matching. The one concrete 4000–7FFF ROM device, the CE-1600P (bank 4), is a **60-pin system-bus** unit. The firmware's "Page-1 module / EXROM at offset 4000H or 6000H, banks 1–7" machinery (Part 6: F0AEH/F0AFH bitmaps, EXROM1–EXROME, `CALL 02DFH` Creg 01–0E) is real but belongs to the **60-pin system bus**, not the 40-pin memory slots. **For an emulator: memory-slot connectors are consulted only for 8000–BFFF accesses; never route 4000–7FFF through them.** (PT/PU/PVOUT carry the bank number of the page being accessed — Part 2. The 32KB memory modules use only PVOUT, which on an 8000–BFFF access is b4, the LSB of that bank field. See Part 7's connector table.)
+**† A memory-bay card never decodes a 4000–7FFF access itself — confirmed at schematic level.** (Bank 1 there holds slot RAM only through the SC7852's Port 3CH remap below; Bank 2 is empty in Sharp's own map, TRM §7.2.1.) Part 4's chip-select table decodes the entire 4000–7FFF window with **CS24** alone (SC7852 pin 45), and Part 12 wires CS24 only to the internal Memory-PWB ROM (IC5) — it never reaches the slot connectors. The **CE-1600M schematic** (Sharp's own 32KB RAM module, Part 7) and the **CE-1620M schematic** (Sharp's 32KB ROM cartridge for the memory bay) both tie their chip-enable to connector **pin 4 (RAMSN = RAM1#/RAM2#)**, which the SC7852 asserts only for the **8000–BFFF** window. Neither module has any connector signal telling it a 4000–7FFF access is in progress, and neither wires PU (pin 3) or PT (pin 19) at all. Memory-bay module headers are at 8000H/A000H/B000H (Part 6), i.e. page 2, matching. The one concrete 4000–7FFF ROM device, the CE-1600P (bank 4), is a **60-pin system-bus** unit. The firmware's "Page-1 module / EXROM at offset 4000H or 6000H, banks 1–7" machinery (Part 6: F0AEH/F0AFH bitmaps, EXROM1–EXROME, `CALL 02DFH` Creg 01–0E) is real but belongs to the **60-pin system bus**, not the 40-pin memory slots. **For an emulator: memory-slot connectors are consulted only for 8000–BFFF accesses; never route 4000–7FFF through them.** (PT/PU/PVOUT carry the bank number of the page being accessed — Part 2. The 32KB memory modules use only PVOUT, which on an 8000–BFFF access is b4, the LSB of that bank field. See Part 7's connector table.)
 
 Additional banks in 4000-7FFF:
 
@@ -147,7 +147,7 @@ Additional banks in 8000-BFFF:
 | `SLOT2MAP` 0199H | 02H | Slot 2a at **Bank 1, page 1** and Slot 2b at **Bank 1, page 0** (Slot 2a is not mapped to page 1 if Slot 1 already uses it) | b4 |
 | either | 00H | normal: slot RAM only in page 2 | cleared |
 
-The module is unaware — the gate array asserts its ordinary RAM1#/RAM2# select for the remapped access. For an emulator this is a mainboard-side address rewrite feeding the 8000–BFFF slot decode, never a connector pin. No ROM bank calls either routine; they exist for user programs. **Open:** the boot code writes Port 3CH = 1BH, 1AH or 5BH (P0-B0 `03E1H`–`03EEH`, after probing Slot 1), all with b4 set. If b4 is active-high, Slot 2 is remapped into Bank 1 of pages 0/1 by default. Not checked on hardware.
+The module is unaware — the SC7852 asserts its ordinary RAM1#/RAM2# select (pins 51/50) for the remapped access; Port 3CH is one of its own registers, and the LR38041 sees neither RAM1#/RAM2# nor A14/A15. For an emulator this is a mainboard-side address rewrite feeding the 8000–BFFF slot decode, never a connector pin. No ROM bank calls either routine; they exist for user programs. **Open:** the boot code writes Port 3CH = 1BH, 1AH or 5BH (P0-B0 `03E1H`–`03EEH`, after probing Slot 1), all with b4 set. If b4 is active-high, Slot 2 is remapped into Bank 1 of pages 0/1 by default. Not checked on hardware.
 
 ### Auxiliary Bank Control Ports
 
@@ -208,9 +208,9 @@ This exceeds the Z-80's own 64KB address space because `MEM` counts total storag
 
 ---
 
-## Part 3: Gate Array LR38041 -- The Memory Management Hub
+## Part 3: Gate Array LR38041 -- Glue Logic
 
-The LR38041 gate array (IC4 on FPC PWB) handles all memory address decoding, bank switching signal generation, bus arbitration between the two CPUs, and chip select generation.
+The LR38041 gate array (IC4 on FPC PWB) is, in the TRM's words (§7.8), "gate circuits necessary for the connection between the LSIs". It does **not** decode memory: the chip selects (CS001/CS123/CS24, RAM1–3, LHS1–3), the PT/PU/PVOUT bank lines, the Port 31H/3CH registers and the CPU hand-off (`ELH#`) are all SC7852 functions (Part 4, `PC-1600-CPU-SC7852-Z80.md` §6). The gate array has no chip-select outputs and sees only A13 and A14 of the address bus (A14 "insignificant"). What it does: latch Port 3DH into A14A–A16A, derive A13A, buffer the SC7852's slot selects to the slots with safe levels at power-off / low battery, hold the sub-CPU return-data buffer (I/O 33H), route the serial lines (PRIM), pass the UART clock, and build the shared `RD` strobe while the LH-5803 runs.
 
 ### Full pin table (TRM §7.8)
 
@@ -220,7 +220,7 @@ trailing `#`.
 
 | Pin | Signal | Dir | Active | Function |
 |---|---|---|---|---|
-| 1 | SLCB | In | | `PI` signal from the sub-CPU (system-operation compatibility). Goes high when the system is off → (1) D2–D0 pulled low, (2) all outputs except A13A pulled to a fixed level. |
+| 1 | SLCB | In | | `PI` signal from the sub-CPU, marking system operation. Goes high when the system is off → (1) D2–D0 fixed low, (2) all outputs except A13A fixed low or high. |
 | 2 | Q3 | In | | Hardware low-battery detect. Low = battery OK. High (low battery) → S1/S2/S3/K0/K1/K2 forced high, KH pulled low, RD set high-Z. |
 | 3 | Z12 | In | | High when on. |
 | 4 | Z13 | In | Low | Poll of BREAK/ON status while the sub-CPU is in power-save; held high during power-save to keep KH low. |
@@ -231,18 +231,20 @@ trailing `#`.
 | 9–16 | R20–R33 | In | | Return data from the sub-CPU; becomes Z-80 data when the Z-80 reads I/O 33H. |
 | 17 | PRIM | In | | RS-232C (high) vs. SIO (low) select. Drives SDA/SDF/RXD routing (see `PC-1600-Serial-Hardware-Notes.md`). |
 | 18 | TXD | In | Low | Transmit data, from the TC8576F UART. |
-| 19 | RXD | Out | Low | Receive data, into the RS-232C interface. |
-| 20 | RDA | In | Low | RS-232C-side transmit routing; asserted low when PRIM low. |
-| 21 | RDF | In | High | SIO-side receive input. |
-| 22 | SDF | Out | High | SIO-side transmit output; asserted when PRIM high. |
-| 24 | CKOS | In | | Part of the LH-5803 read-timing set (with ME0/ME1/OD/BRQ) that gates pin-8 RD. |
+| 19 | RXD | Out | Low | Receive data, to the TC8576F UART (from RDF or RDA per PRIM). |
+| 20 | RDA | In | Low | Receive data from the RS-232C interface. |
+| 21 | SDA | Out | High | Transmit data to the RS-232C connector; held low while PRIM is low. |
+| 22 | RDF | In | High | Receive data from the SIO interface. |
+| 23 | SDF | Out | High | Transmit data to the SIO connector; held low while PRIM is high. |
+| 24 | CKOS | In | | With ME0/ME1/OD/BRQ, builds pin-8 RD: the LH-5803's OD alone is also low outside reads and need not match Z-80 timing, so RD goes low only while the LH-5803 really reads memory or I/O. |
 | 25 | VCC | — | | Power (system VGG input). |
 | 26 | GND | — | | Power. |
 | 27 | BRQ | In | | See pin 24. |
-| 28–35 | D0–D7 | I/O / Out | | Z-80 data bus. When SLCB is asserted (system off) D2–D0 are pulled low to fix the input level. |
+| 28–30 | D0–D2 | In/Out | | Z-80 data bus; the inputs of the Port 3DH latch. Fixed low while SLCB is high (system off). |
+| 31–35 | D3–D7 | Out | | Z-80 data bus (return data for I/O 33H). |
 | 36 | C/D | In | High | Goes high when the Z-80 writes I/O 3DH. |
 | 37 | IORP# | In | Low | Places R33–R20 on the Z-80 data bus; low when the Z-80 reads I/O 33H. |
-| 38 | CL# | In | Low | **System reset.** Forces A13A high, A15A low, A14A high. |
+| 38 | CL# | In | Low | **System reset.** Forces A16A high, A15A low, A14A high (TRM §7.8 and Service Manual §9-4 agree). The firmware then writes 3DH = 04H (A14A low). |
 | 39 | A13 | In | | CPU address A13. |
 | 40 | A14 | In | | CPU address A14 (marked "insignificant"). |
 | 41 | DSR | Out | | Not used. |
@@ -253,6 +255,7 @@ trailing `#`.
 | 48–50 | LHS1–LHS3 | In | Low | Memory-select signals from the SC-7852, buffered to the slots. |
 | 51–53 | KA0–KA2 | In | Low | I/O-select signals from the SC-7852, buffered to the slots. |
 | 54–56 | S1–S3 | Out | Low | Buffered LHS1–3 to the expansion slots. All high when the system is off or on low battery. |
+| 57–58 | — | | | Not listed in the TRM §7.8 or Service Manual §9-4 pin tables. |
 | 59–61 | K0–K2 | Out | Low | Buffered KA0–2 to the expansion slots. Same. |
 | 62 / 63 / 64 | ME1 / ME0 / OD | In | | LH-5803 memory-enable / output-disable strobes; feed the pin-8 RD generation. |
 
@@ -262,7 +265,7 @@ a safe inactive level.
 
 ### Key Gate Array Functions
 
-1. **Bus Arbitration:** Manages shared bus between Z-80 (SC7852) and LH-5803. Signal ELH: High = Z-80 operating, Low = LH-5803 operating.
+1. **Shared read strobe:** while the LH-5803 runs, builds `RD` from ME0/ME1/OD/CKOS/BRQ (pin 8, wired-OR with the Z-80 `RD#`). Bus arbitration itself is the SC7852's: its `ELH#` (pin 77; high = Z-80, low = LH-5803) drives the LH-5803's BRQ.
 
 2. **Address Line Translation:**
    - A13A: Inverted A13, used as 8KB half-select for RAM chips
@@ -272,6 +275,8 @@ a safe inactive level.
 3. **Slot Signal Buffering:** LHS1-3 and KA0-K2 from SC7852 are buffered to S1-S3 and K0-K2 for expansion slots. Required because SC7852 power is off during system-off while gate array maintains levels.
 
 4. **Reset Behavior:** When CL goes low, A16A forced high, A15A forced low, A14A forced high -- establishing known initial bank config.
+
+5. **Sub-CPU and serial glue:** the R20–R33 return-data buffer (I/O 33H via `IORP#`), `CL2` → `CLK1` UART clock, BREAK/ON → `KH`, and the PRIM serial routing.
 
 ---
 
@@ -532,7 +537,7 @@ The 40-pin slot connector, as actually wired on the module ("Battery side" pins 
 
 The `TC74HC139F` (one half of the dual 2-to-4 decoder) takes select inputs **{A13, PVOUT}** and enable **`1G` = RAMSN**; its four active-low outputs each drive one 8KB SRAM's chip-enable. So:
 
-- **RAMSN** (pin 4) — the whole-module enable. The gate array asserts it only when the Z-80 addresses **8000–BFFF** and the Port 31H page-2 bank field points at this slot (banks 0/1 → Slot 1's RAM2#; banks 2/3 → Slot 2's RAM1#). There is no 4000–7FFF path.
+- **RAMSN** (pin 4) — the whole-module enable. The SC7852 asserts it (RAM1#/RAM2#) only when the Z-80 addresses **8000–BFFF** and the Port 31H page-2 bank field points at this slot (banks 0/1 → Slot 1's RAM2#; banks 2/3 → Slot 2's RAM1#). There is no 4000–7FFF path.
 - **PVOUT** (pin 5) — the module's **A14-equivalent**: which 16KB half (= which of the slot's two banks). PVOUT is the LSB of the accessed page's bank number (Part 2); on an 8000–BFFF access that is Port 31H **b4**. `{PVOUT, A13}` together pick 1 of 4 chips.
 - **A0–A13** (pins 24–37) — address within the 16KB window. A14/A15 from the connector are unused; the module's 15th address bit is PVOUT.
 

@@ -153,7 +153,7 @@ to SIO after an RS-232C session to save battery (see also `PC-1600-Serial-Hardwa
 
 - `RSTIN#` (SC-7852 pin 79) is forced low for **30 ms** by the sub-CPU on power-on, ACL,
   or RESET.
-- On reset the gate array forces `A13A` high, `A15A` low, `A14A` high — establishing the
+- On reset the gate array forces `A16A` high, `A15A` low, `A14A` high — establishing the
   initial bank configuration (`PC-1600-Memory-Bank-Switching.md` Part 3).
 - `ELH#` goes high → the SC-7852 runs first.
 - Standard Z-80 reset state, then the reset routine selects IM 2, sets the IRQ mask, and

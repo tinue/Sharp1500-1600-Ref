@@ -73,7 +73,7 @@ primary sources.
 - `../Shared/Software-Defined-Memory-Extension.md` — §3: PC-1600 module
   emulation table (enable / bank-select conditions per module).
 - `../PC-1500/Memory-Architecture/PU-PV-Signals.md` — the PV signal path relayed from the LH5803
-  into the PC-1600 gate array.
+  through the SC-7852 (PVIN → PVOUT).
 - `../PC-1500/Memory-Architecture/PC-1500-Bank-Switching.md` — §9–10: CE-163 behaviour in PC-1600
   Slot 1 vs. Slot 2, and the `OUT &28/&29` A0 quirk.
 - `../PC-1500/Memory-Architecture/PC-1500-Address-Decoding.md` — PC-1600 rows in the `MEM` /
