@@ -44,7 +44,19 @@ contents).
 Seven read/write registers. Reading or writing one is accompanied by a read/write on the
 matching Z-80 I/O address. These drive the SC-7852's PA0–PA7 (pins 62–70, keyboard
 strobes), PB2/PB5/PB6/PB7 (pins 71–74), and the PC-port outputs PC6 (buzzer, pin 75) and
-SD0 (cassette write, pin 76). Not synchronised to φOS.
+SD0 (cassette write, pin 76). Not synchronised to φOS (the TRM's I/O-map wording,
+for Z-80 accesses; pin 4 says φOS "is used for the sync signal of the internal LH-5810
+corresponding port").
+
+**The LH-5803 reaches the same registers at ME1 F000H–F00FH** (F00xH = port 1xH), the
+PC-1500's own LH5810 address: pin 78 PCSTB goes high when "the Z-80 writes 18H … or the
+LH-5803 is F008H of the ME1". The LH-5803 ROM counts the 1/64 s pulse on `#(F00FH)` b5,
+reads IF at `#(F00BH)` and scans the keyboard through `#(F00CH)`/`#(F00EH)`. Details in
+`PC-1600-CPU-LH5803-Compat.md` §2a.
+
+**Keyboard strobes need DDA.** A PA line drives its strobe low only while it is an
+output (`DDA` bit = 1) and `OPA` bit = 0 (§2.3); as an input it floats high. Both ROMs
+select one column through `DDA` (`PC-1600-Keyboard.md` §2).
 
 Appendix 6 labels the whole block "compatible to the PC-1500's port chip **LH-5811**" (an
 earlier draft of this doc, sourced from TRM §7.9 alone, called it LH-5810/LH-5811 —

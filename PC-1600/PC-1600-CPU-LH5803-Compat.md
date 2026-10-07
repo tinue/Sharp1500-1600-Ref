@@ -48,6 +48,34 @@ PU is one net shared by the LH-5803 and SC-7852 pin 6 (`../Shared/Expansion-Conn
 a real PC-1500/1500A, and the open question about the S6 display-buffer / S7 stack region
 inside 4000H–7FFFH are in `PC-1600-Memory-Architecture.md` §5–6.
 
+## 2a. I/O the LH-5803 shares with the SC-7852
+
+The LH-5803 has no I/O space; it reaches the SC-7852's ports as ME1 addresses. The ROM
+uses these forms:
+
+| LH-5803 ME1 | = Z-80 port | Used for | Evidence |
+|---|---|---|---|
+| `#(F000H)`–`#(F00FH)` | 10H–1FH, the LH-5810-compatible block (MSK, IF, DDA, DDB, OPA, OPB, OPC) | keyboard strobes, the 1/64 s pulse on PB5 (`DELAY64` EEB2H/EEECH), IF in the interrupt handler, BREAK (`CHK_BRK` E451H) | pin 78 PCSTB "goes high when the Z-80 writes 18H … or the LH-5803 is F008H of the ME1"; pin 4 φOS "used for the sync signal of the internal LH-5810 corresponding port" (TRM §7.1.1(2)) |
+| `#(0021H)`, `#(0023H)`, `#(0033H)` | 21H/23H (TC8576F), 33H (sub-CPU answer) | sub-CPU commands (`SUBCMD` E530H) | ROM |
+| `#(A030H)`–`#(A03FH)` | 30H–3FH | control registers | TRM I/O-map table (PDF p.222) |
+| `#(A058H)`/`#(A059H)`, `#(8055H)`/`#(8059H)` | 55H–59H, the HD61102s | LCD writes and busy polls (`LCD1500_ALL` E84AH, `LCD1500_BYTE` E7E1H) | ROM; the SC-7852 evidently ignores A8–A14 here |
+
+The TRM's I/O-map table (PDF p.222) lists LH-5803 addresses only for 30H–3FH; the
+10H–1FH row ("port corresponding to LH-5810 (LH-5811) contained in the SC7852, not
+synchronized with φOS") has none, and §7.9 describes those registers from the Z-80 side
+only. The F000H mapping rests on the pin descriptions above and the ROM.
+
+The LH-5803's input port `IN0–IN7` (`ITA`) is wired to the keyboard sense lines
+(`PC-1600-Keyboard.md` §2).
+
+**Instruction differences (TRM §7.1.2, PDF p.223):** `SDP`, `RDP` and **`OFF`** execute
+as NOPs on the LH-5803. A PC-1500 program's `OFF` does not power anything down.
+
+**Interrupt inputs (PDF p.224):** NMI (pin 15) vectors through FFFCH/FFFDH ("a high
+input state causes an interrupt … unconditionally accepted"); MI (pin 16) through
+FFF8H/FFF9H when IE is set. The SC-7852 drives them from `LHNMIO`/`LHMIO` (pins 92/91);
+IRQ (pin 80) is "an interrupt to the CPU (Z-80, LH-5803)" from PC-1500 peripherals.
+
 ## 3. The Z-80 → LH-5803 bridge: `CALLH` (TRM §5.14)
 
 `CALLH` at **01C6H** hands control from the SC-7852 to an LH-5803 machine subroutine and
@@ -233,6 +261,12 @@ nothing raises the NMI: the A04 handler is only `RTI`.
 - **PU is decoded**, per the Service Manual's wording. The SC-7852 has no PU input pin, so
   it must read the shared PU net on pin 6. (The CE-158 low bank, PU = 0, executes code all
   over 94xxH and has an operand byte at 9400H.)
+
+**Real-world trigger (emulator, 2026-10-07):** the CE-158 terminal's horizontal scroll.
+`TERMINAL` or `DTE` in MODE 1, F4 (Ent) in the menu, then received lines longer than 26
+characters: each scroll step enters 93F9H and traps at 9400H (36 traps for 62 received
+characters). The CE-158 demo's `LPRINT`/`SETDEV` path also reaches 93F9H, but in the
+low bank (PU = 0), where no trap fires.
 
 Open, testable in MODE 1 without a CE-158: `SPU`, `SPV`, jump to 9400H vs. 9401H; the
 same with `RPU`; and with port 30H b0 cleared, to see whether `P_MOD` b0 also gates the

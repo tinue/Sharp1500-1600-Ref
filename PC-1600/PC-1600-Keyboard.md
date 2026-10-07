@@ -51,6 +51,17 @@ Pin-level detail (for a schematic-accurate model): the strobes physically leave 
 SC-7852 on `PA0–PA7` (pins 62–70) and `PB6` (pin 73); the sense lines return on
 `KIN0–KIN7` (pins 95–100, 1, 2), internally pulled to VCC (200–500 kΩ). Port directions
 are set in `DDA` (1CH) / `DDB` (1DH), output latches in `OPA` (1EH) / `OPB` (1FH).
+A strobe line is driven low only while it is an output (`DDA`/`DDB` bit = 1) with its
+latch bit 0 (TRM §7.9 (3), pin 62–70 note). Both ROMs select one column through `DDA`:
+the Z-80 with `DDA` = bit, `OPA` = ~bit (bank 3 47D8H), the LH-5803 with `DDA` = bit,
+`OPA` = 0 (`ISKEY`, E41AH).
+
+**The LH-5803 reads the same matrix.** Its input port `IN0–IN7` (pins 66–73, read with
+`ITA`) is on the same net as the SC-7852's `KIN0–KIN7` and the key PWB lines CN1-03…10
+(TRM §9.1(1) F.P.C. circuit diagram, printed p.264). It drives the strobes through the
+SC-7852's LH-5810-compatible block at ME1 F00CH/F00EH (= ports 1CH/1EH,
+`PC-1600-CPU-LH5803-Compat.md` §2a), so PC-1500 keyboard code (`ISKEY`/`KEY_2_ASCII`,
+E418H–E450H) works unchanged in MODE 1 — the CE-158 terminal's menu keys go this way.
 
 ## 3. Wake / power
 

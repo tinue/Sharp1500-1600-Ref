@@ -57,7 +57,7 @@ German-scan values, which had every label one slot too low):**
 | F21DH–F31CH | **Edit buffer** (256 bytes = F21D…F31C exactly) |
 | F31DH–F3C6H | **Interpreter work II** |
 | F3C7H–F4FFH | **Default FCB** (313 bytes; F3C7H + 139H = F500H exactly) |
-| F500H–F5FFH | **Z-80 stack area** (256 bytes; enlarged relative to the PC-1500) |
+| F500H–F5FFH | **Z-80 stack area** (256 bytes; enlarged relative to the PC-1500). At the BASIC prompt SP = F5F5H, and the half-second sub-CPU interrupt routine pushes down to about F5C7H, so bytes such as F5CFH hold stale or changing stack data, not pointers |
 
 The 313-byte-FCB and 256-byte-stack sums both land exactly on F500H, which is the
 arithmetic check that this slot assignment (not the German scan's `…FCB @ F31DH, stack
