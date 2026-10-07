@@ -53,6 +53,21 @@ Sub‑16 KB modules are **top‑justified** in their 16 KB window (TRM §3.12.1)
 
 The 8000..(base‑1) part of a small module's window is dead address space.
 
+**How the ROM finds the base.** It never computes one from a module size. The module map
+(P1‑B3 `67B2`–`6892`) tries fixed addresses with `MEMORYCHK` (018DH: writes and reads back
+8 bytes) and takes the first one with RAM:
+
+| Slot | Tried in order | Area |
+|---|---|---|
+| Slot 1 (bank 0) | 8000H → A000H → B000H | base … BFFFH |
+| Slot 2 (bank 2) | 8000H → A000H (no B000H case) | base … BFFFH |
+| bank 1 / 3 (2nd half of a 32 KB module) | 8000H only (`SMAPPAIR` 6898H) | 8000H … BFFFH |
+
+So 8000H, A000H and B000H are the only bases, and the area always ends at BFFFH. A module
+whose RAM is not top‑justified (e.g. 8000–9FFF only) is one the ROM cannot use either.
+CE‑151 and CE‑155 reach B000H / A000H through the Slot 1 S1–S3 remap the boot probe sets in
+Port 3CH (P0‑B0 `03CF`; `PC-1600-Memory-Bank-Switching.md` Part 4).
+
 ---
 
 ## 2. Two cases
@@ -106,11 +121,13 @@ Decoded TRM examples:
 
 ```
 FUNCTION window_base(bank):
-    slot   = 1 if bank in (0,1) else 2
-    module = module_in_slot(slot)
-    # for a 32 KB module both of its banks are full -> 0x8000
-    if module.size_in_this_bank >= 0x4000: return 0x8000
-    return 0xC000 - module.size_in_this_bank        # top-justified: 0xB000 / 0xA000
+    # the ROM's own probe (P1-B3 67B2-6892): first base with RAM, area to BFFF
+    candidates = { 0: [0x8000, 0xA000, 0xB000],    # Slot 1
+                   2: [0x8000, 0xA000],            # Slot 2
+                   1: [0x8000], 3: [0x8000] }[bank] # 2nd half of a 32 KB module (SMAPPAIR 6898)
+    FOR base IN candidates:
+        IF has_ram(bank, base): return base           # MEMORYCHK at base
+    return NONE                                       # no module RAM in this bank
 
 segments = []                       # {bank, base, top}  physical bank + inclusive Z-80 addr range
 IF 1 <= S0MTb <= 5:
