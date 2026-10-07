@@ -118,8 +118,22 @@ configuration; ⚠ = follows from the ROM routing but not run on a machine.
    entry use the PC-1600 names (you type `XCALL`; TRM "rename by hand"). The CE-158's
    `CLOADa` probably tokenizes on the LH-5803 with the PC-1500 names (`CALL`) — not
    verified.
-2. **Are all shared tokens identical?** The ROM assumes so (no conversion on `CLOAD`);
-   not checked token by token.
+2. ~~**Are all shared tokens identical?**~~ **Yes, by code** (checked 2026-10-07, table
+   against table: PC-1500 A04 `B_TBL_C000_CMD_LST`, the LH-5803 image's copy of it, the
+   PC-1600 built-in table P2-B6 `B6DEH` in NEW and OLD, the CE-150 and CE-158 tables).
+   - The LH-5803 image's table is A04's, entry for entry (85).
+   - Of A04's 85 codes, 79 carry the same keyword on the PC-1600. Five keep their code
+     under a new name: F16EH `PEEK#` → `XPEEK#`, F16FH `PEEK` → `XPEEK`, F18AH `CALL` →
+     `XCALL`, F1A0H `POKE#` → `XPOKE#`, F1A1H `POKE` → `XPOKE`. The PC-1600's own `PEEK#`,
+     `PEEK`, `CALL`, `POKE` are new codes (F26EH, F26DH, F282H, F28CH). The 85th, F1A3H,
+     is A04's untypeable placeholder `"P    "` (handler `ERR1`).
+   - CE-150: 18 codes the same, F0B7H `LINE` → `LLINE`, and E683H `LCURSOR` has no
+     PC-1600 entry (the CE-1600P's `LCURSOR` is F0A5H; the one rename the TRM leaves to
+     the user, §4). CE-158: 25 the same; E881H `PROTOCOL` has no PC-1600 entry.
+   - OLD and NEW differ only in NEW's nine masked entries (`W\0DTH` F087H and the kanji
+     functions F262H–F26CH), which cannot be typed.
+   So `CLOAD`'s "no conversion" is safe: a PC-1500 program keeps its meaning and lists
+   under the PC-1600 names; only `LCURSOR` needs the hand edit.
 3. **`INPUT#-1` in MODE 1 through the CE-1600P:** allowed by the ROM, excluded by the
    TRM.
 4. **`SAVE`/`LOAD "CAS:"` in MODE 1:** the FILE functions of the cassette module call
