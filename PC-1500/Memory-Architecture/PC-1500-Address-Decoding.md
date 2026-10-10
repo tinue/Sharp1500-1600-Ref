@@ -68,6 +68,42 @@ Confirmed by direct teardown of both a PC-1500 unit and a PC-1500A unit, and —
 
 The PC-1500A simply populates four of the eight possible 2KB blocks (S0, S1, S2, S7) with an identical, off-the-shelf 2K×8 SRAM part (reused four times), where the PC-1500 only populated one full block (S0) and half of another (S7, via a narrower 1K×4bit part).
 
+### 2.4 Which strobes are qualified by ME0
+
+The LH5801 drives ME0 for `(addr)` accesses and ME1 for `#(addr)` accesses, on the same 16 address lines. Whether a chip answers in ME1 at all, and so whether ME1 "mirrors" ME0 there, depends on whether its chip select includes ME0. The "Chip select circuit" schematic (PC-1500A TRM p.163; the PC-1500's own sheet has the same structure) shows exactly where ME0 enters:
+
+| Decoder input | Driven by |
+|---|---|
+| TC40H139F half 1: 1G̅ (enable) | **BF0** (CPU flip-flop output, reset by `OFF`) |
+| TC40H139F half 1: 1A / 1B | AD14 / AD15 |
+| TC40H138F: G1 (active-high enable) | **ME0** |
+| TC40H138F: G2A̅ | 1Y1 (&4000–&7FFF) |
+| TC40H138F: G2B̅ | resistor / diode / Zener network to Vcc and GND (not explained in the source; most likely a supply-sense input that deselects RAM when power fails) |
+| TC40H138F: A / B / C | AD11 / AD12 / AD13 |
+| TC40H139F half 2: 2G̅ / 2A / 2B | S6 / AD8 / DME0 |
+
+ME0 goes to **one** pin: the '138's G1. So the ME0 check is inherited by everything downstream of the '138, and by nothing else:
+
+| Strobe | Range | Goes to | ME0-qualified? |
+|---|---|---|---|
+| S0–S2 | &4000–&57FF | built-in user RAM (S1/S2 also on 40-pin pins 16/17 on the PC-1500) | **yes**, via '138 G1 |
+| S3–S5 | &5800–&6FFF | module unit (40-pin pins 16–18 / 5) | **yes**, via '138 G1 |
+| S6 → V2/V3 | &7600–&77FF (mirrored &7000–&75FF) | display chips | **yes**, via '138 G1, and again through DME0 on 2B |
+| S6 · WEX | &7000–&77FF | I/O port interrupt input | **yes**, via '138 G1 |
+| Y7 | &7800–&7FFF | system RAM | **yes**, via '138 G1 |
+| Y0 (1Y0) | &0000–&3FFF | module unit (40-pin pin 4) | **no**, only BF0 |
+| Y2 (1Y2) | &8000–&BFFF | module unit (40-pin pin 19) | **no**, only BF0 |
+| 1Y3 | &C000–&FFFF | system ROM (CS613128F) **and** I/O port (LH5811) | **no**, only BF0 |
+
+This is the hardware behind the TRM table footnote *"S0–S7, V2, and V3 are applicable only for the ME0 area"* (appendices below).
+
+Consequences:
+
+- **&4000–&7FFF never answers in ME1.** All built-in RAM (user, system, display) and every 2KB module strobe S1–S5 sit behind the '138, so `#(&4000)`…`#(&7FFF)` select nothing on the mainboard. A module chip wired to one of these strobes is ME0-only too, even when the module has no ME logic of its own. **CE-151** (S1/S2 only) and **CE-155/CE-159's** three S-strobe chips therefore cannot appear in ME1.
+- **Y0 and Y2 carry no ME qualification.** The 40-pin connector has no ME0 or ME1 pin, only DME0 (pin 6). A module on Y0 or Y2 that ignores DME0 answers in both ME0 and ME1. On the CE-155/CE-159, the fourth chip (&3800–&3FFF, Y0 + its own '138 decode) does not check ME0, so from the schematics it should also appear at ME1 #3800–#3FFF. That follows from the schematics and has not yet been checked on hardware.
+- **1Y3 cannot tell the ROM and the LH5811 apart by ME.** It feeds both, and the ROM lives in ME0 while the LH5811 is accessed with ME1. So each part must take ME0/ME1 (or DME0) on a pin that this sheet does not show. Whether the system ROM also appears in ME1 cannot be decided from this schematic.
+- **BF0 gates every top-level strobe.** After `OFF` resets the BF flip-flop, no ROM, RAM, display or module select can be asserted. The '138 hangs off 1Y1, so it is disabled too.
+
 ---
 
 ## 3. The Expansion Connector and the PC-1500 → PC-1500A Pin Rewiring
@@ -307,7 +343,7 @@ Reproduced from the photographed TRM page described in §2.2/§2.1 — a bad sca
 *Footnote in the source: "S0–S7, V2, and V3 are applicable only for the ME0 area." The V3 row's decoder pin is `2Y3` — the original address-map scan showed V3 also labeled `2Y2` (the same as V2), which is a genuine error in that source table, not a scan-reading problem: confirmed against the separate "Chip select circuit for the PC-1500A" schematic (TRM p.163), which explicitly shows two distinct NAND gates driven by `2Y2` and `2Y3` respectively, producing "To Display chip 1,3" and "To Display chip 2,4."*
 
 **Further confirmed by that same schematic** (TC40H139F + TC40H138F chip-select circuit, TRM p.163):
-- TC40H138F's select inputs are wired exactly as expected: A=AD11, B=AD12, C=AD13, with its main enable (G1) driven by the Y1 signal from the other decoder — matching §2.2's "active only while Y1 is asserted."
+- TC40H138F's select inputs are wired exactly as expected: A=AD11, B=AD12, C=AD13. Its enables are G2A̅ = Y1 (1Y1, the &4000–&7FFF block), matching §2.2's "active only while Y1 is asserted", and **G1 = ME0**. An earlier revision of this bullet put Y1 on G1. With ME0 on G1, every S-strobe and Y7 is ME0-only; §2.4 covers this.
 - The system ROM chip's designation is legible here as **CS613128F** — converging with the "SC61328F"/"SC61329F"/"SC613128" readings from other low-quality sources elsewhere in this document; all are almost certainly the same part, read slightly differently off different scans.
 - **LH5811** (I/O port) is confirmed again as a direct schematic destination — consistent with teardown of this specific unit, though see §2.1 for why LH5810 also appears in older Sharp material.
 - **Y7 feeds "System RAM" directly**, consistent with §2–4 throughout. Y6 (the S6 block, &7000–&77FF) separately feeds a NAND gate together with a signal labeled **WEX**, whose output goes to the I/O port — a Sharp Service Manual excerpt for the PC-1500 describes this exact mechanism in words: *"With low state of AD11 and high state of AD12 and AD13, S6 goes to the low state to receive the interrupt input from an option into the I/O port (7000~77FF address setup)."* This is a legitimate function spanning the *entire* S6 block, not something specific to any sub-range within it — see the PC-1500 Chip-Select Table appendix below for why &7000–&75FF specifically is the part marked "redundant," which turns out to be a separate, unrelated mechanism.

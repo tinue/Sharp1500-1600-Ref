@@ -45,6 +45,8 @@ The PC-1500 exposes its expansion bus on a 40-pin edge connector on the rear (co
 
 **YO** (pin 4) is the sole chip select for the entire &0000–&3FFF module RAM/ROM region — a 16KB window with no further narrowing done by the mainboard. A module populating this window must do its own internal sub-decoding (see the CE-155 example in `PC-1500-Address-Decoding.md` §3.2).
 
+**ME0 qualification.** The connector has no ME0 or ME1 pin. S1–S4 come from the mainboard TC40H138F, which is enabled by ME0, so a chip on those strobes is ME0-only without any logic of its own. YO and Y2 come from the TC40H139F, which ME0 does not gate, so a module on YO or Y2 that ignores DME0 (pin 6) answers in ME1 as well (`PC-1500-Address-Decoding.md` §2.4).
+
 There is no dedicated bank-select address register on the connector for any region — PU/PV (write-only CPU flipflops) and the address-range strobes (Y0, Y2, S1–S3, S4) are the only mechanisms available for a module to learn "which bank" or "which sub-region" the host is addressing.
 
 ### 2.2 60-Pin Connector
