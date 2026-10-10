@@ -9,152 +9,199 @@ set (TRM §3.6.3). The line-signal hardware (TC8576F, PRIM, level shifter) is in
 
 ## Part 1 — BASIC commands relevant to serial communication
 
-### INIT
+The full user-level description is chapter 12 and the part "Serial communication in practice"
+of `$BAS/PC-1600-BASIC-Reference.md` (`SharpBasicReference`), built from the manuals, the TRM, the
+Systemhandbücher and the ROM. This part is a compact summary with the ROM evidence. Addresses
+are NEW ROM (`B3B` = P1-B3B, `B3` = P1-B3, `B6` = P2-B6). Bits are numbered from 0. The
+Operation Manual numbers them from 1 on the SNDSTAT/RCVSTAT/INSTAT pages.
 
-Sets the receive buffer size. Default is 40 bytes after power on.
+### Common rules
 
-`INIT "COM1:" <buffer>`
+- **One UART, two ports.** `"COM1:"` = RS-232C, `"COM2:"` = SIO, `"COM:"` = the currently
+  selected port (F14EH b6). Power-on selects COM2 (COMDEF2, B6 9F29).
+- **What a power-off resets** (COMDEF2): the INIT buffer size (back to 40 bytes), SNDSTAT/RCVSTAT
+  masks and timeouts, OUTSTAT mode (back to automatic), and SETDEV (back to COM2, no PO/KI).
+- **What survives:** SETCOM, PCONSOLE and PZONE. Only a reset copies the full defaults
+  (COMDEF1, B6 9F5A).
 
-- buffer: Size of the buffer in bytes.
+### INIT "COMn:"
 
-Example: `INIT "COM1:",4096`
+`INIT "COMn:",<size>` (B3B 52BC → CSRCVB B6 9EA4)
 
-### SETCOM
+- `0` or omitted = the built-in 40-byte buffer at F158–F17F (no user memory).
+- Otherwise 80–16383. Out of range → **ERROR 19**. **ERROR 141** only means not enough memory.
+- The buffer is taken from S0 free memory (EXROMWK slice 0FH); it holds `size` − 1 bytes.
+- **One buffer for both ports**: the device name is not used.
+- Refused while any file is open (ERROR 154) and inside FOR…NEXT.
+- Clears the buffer and the error flags.
+- Undocumented extra form: `INIT "COMn:",size,s1$,s2$` stores two strings of up to 3 characters
+  at F135/F138. These appear to be kanji shift sequences.
 
-Sets the protocol settings for the serial port.
+Example: `INIT "COM1:",1024`
 
-`SETCOM "COM1:",[BR],[WL],[PR],[ST],[XO],[SI]`
+### SETCOM / COM$
 
-- BR: Baud rate (50 - 38400)
-- WL: Word length (5-8 bits)
-- PR: Parity (E, O, N)
-- ST: Stop Bits (1 or 2)
-- XO: XON / XOFF (X = Yes, N = no)
-- SI: Shift in/out protocol (S = yes, N = no)
+`SETCOM "COMn:",[BR],[WL],[PR],[ST],[XO],[SI]` (B3B 5382)
 
-Example: `SETCOM "COM1:", 9600,8,N,1,N,N`
+- **BR:** 50–38400, the only field that may be an expression (BAUDCHK 5787, constant 9600H =
+  38400). The divisor is round(76800 / BR), so rates snap, e.g. 14400 → 15360.
+- **WL** `5`–`8`, **PR** `E`/`O`/`N`, **ST** `1`/`2`, **XO** `X`/`N`, **SI** `S`/`N`: literal
+  characters, not expressions. Anything else → ERROR 140.
+- **SI** is active only with 7 data bits (`AND 8CH / XOR 88H`, B6 A17C); with 8 bits it is inert.
+- Omitted fields keep their value. `SETCOM "COMn:"` alone → `1200,8,N,1,X,S` (B3B 54A3), for
+  COM2 too.
+- No per-port restriction.
+- On the selected port the CPC is reprogrammed at once, and the receive buffer and errors are
+  cleared. For the other port the values are only stored.
+- `COM$` returns the effective values, so the baud rate is computed back from the divisor.
+
+Example: `SETCOM "COM1:",9600,8,N,1,N,N`
+
+### SNDSTAT / RCVSTAT
+
+`SNDSTAT "COMn:",<protocol>[,<timeout>]` and `RCVSTAT …` (B3B 55B0/55C3 → GETSTATARG 5860)
+
+The protocol is masked with **1CH** (58A9): b2 = CTS, b3 = CD, b4 = DSR. **0 = must be on, 1 =
+don't care.** So 24 ≡ 59 (CTS) and 28 ≡ 63 (none). The manual's "set unused bits to 0" and the
+TRM's 59/63 are the same settings.
+
+| Bit | 7 | 6 | 5 | 4 | 3 | 2 | 1 | 0 |
+|-----|---|---|---|---|---|---|---|---|
+| | ignored | ignored | ignored | DSR | CD | CTS | ignored | ignored |
+
+- **SNDSTAT** = real flow control for PC-1600 → other side. Before every byte the ROM waits
+  until the required lines are on (B6 A51E), with the timeout counted per byte → ERROR 143.
+- **RCVSTAT** is a filter, **not** flow control. Bytes arriving while a required line is off
+  are discarded silently (B3 6407, COM1 only). Its timeout applies while a read waits on an
+  empty buffer.
+- **Timeout** 0–255 × 0.5 s, 0 = infinite.
+- **Power-on defaults:** send = CTS required, receive = nothing required, both infinite. With
+  CTS unwired, sending hangs until BREAK.
+- **Omitted parameters (ROM quirk, NEW and OLD):** an omitted protocol becomes 04H (CD + DSR
+  required). An omitted timeout becomes 3FH (RCVSTAT, 31.5 s) or 3BH (SNDSTAT, 29.5 s), not
+  infinite (B3B 5861–586F). Always write both values.
+- **COM2:** only the timeout is stored; the protocol is ignored without error.
+
+Examples:
+
+- `SNDSTAT "COM1:",24,0` — wait for CTS before each byte, no timeout.
+- `SNDSTAT "COM1:",28,0` — send without any handshake (3-wire cable).
+- `RCVSTAT "COM1:",28,0` — accept everything. This is the right setting also when the host uses
+  RTS/CTS to send to the PC-1600; flow control in that direction is the PC-1600's RTS, see
+  OUTSTAT.
 
 ### OUTSTAT
 
-Force-sets the state of the control signals for the serial port.
+`OUTSTAT "COM1:"[,setting]` (B3B 5511 → CWOUTS B6 9FBE)
 
-`OUTSTAT "COM1:" [,setting]`
-
-- setting means:
+With a setting, the value is masked to 2 bits and the lines are fixed (manual mode, F14FH b7).
+All automatic RTS/DTR handling is then off.
 
 |   | RTS  | DTR  |
 |---|------|------|
-| 0 | high | high |
-| 1 | high | low  |
-| 2 | low  | high |
-| 3 | low  | low  |
+| 0 | on (high) | on (high) |
+| 1 | on   | off  |
+| 2 | off  | on   |
+| 3 | off  | off  |
 
-Example: `OUTSTAT "COM1:"`, i.e. without setting, to make RTS/DTR work
-dynamically.
+Without a setting: automatic mode, and RTS/DTR go off immediately. From then on:
+
+- **RTS + DTR on** while a port command runs or a port file is open.
+- **RTS off** at 8 free bytes in the buffer (B3 64F8), and after every 256-byte record of
+  LOAD/INPUT#/COPY (COMRDEND B3 60B8).
+- **RTS on again** when the reader drains the buffer to 8 unread bytes, or finds it empty
+  (RINGNEXT B6 A0C4).
+
+So in automatic mode RTS means "PC-1600 ready to receive": the flow control for other side →
+PC-1600. No effect on COM2.
 
 ### INSTAT
 
-Returns the current settings of the control signals for the serial port.
+`INSTAT "COM1:"` (B3B 5551 → CRCTRL B6 A382)
 
-`INSTAT "COM1:"`
-
-The state is returned as an integer, with each bit representing a signal.
-Values are inversed, i.e. `0` means `high`, and `1` means `low`.
+The state is returned as an integer, with each bit representing a line. **0 = on (high), 1 = off
+(low).** 63 = all off, the idle reading with nothing connected. On COM2 the result is always 0.
 
 | Bit | 7      | 6      | 5  | 4   | 3  | 2   | 1   | 0   |
 |-----|--------|--------|----|-----|----|-----|-----|-----|
-|     | unused | unused | CI | DSR | CD | CTS | RTS | DTR |
+|     | always 0 | always 0 | CI | DSR | CD | CTS | RTS | DTR |
 
-Example: `PRINT INSTAT "COM1:"`: Prints the current state
+CI comes from the sub-CPU; RTS and DTR are read from the F14FH shadow.
 
-### SNDSTAT
+Example: `PRINT INSTAT "COM1:"`
 
-Sets the send handshake protocol, and the timeout for the serial port.
+### XON/XOFF and shift in/out
 
-`SNDSTAT "COM1:",<protocol>[,<timeout>]`
+**When the PC-1600 receives:**
 
-- Timeout is between 0 and 255, in units of 0.5 seconds. 0 disables the timeout.
-- Protocol is as follows:
+- It sends XOFF at exactly 8 free bytes (B3 64CC), from inside the interrupt; only 7 more bytes
+  fit after that.
+- LOAD, INPUT# and COPY also send XOFF after every 256-byte record.
+- It sends XON at 8 unread bytes, or when a read finds the buffer empty.
+- One unsolicited XON is sent after every buffer clear (CCLRRB sets F152H b7).
+- With X on, received 11H/13H are removed from the data (B6 A0A5). With X off, and always in
+  binary file transfers, they are passed on as data.
 
-| Bit | 7   | 6   | 5   | 4   | 3  | 2   | 1   | 0   |
-|-----|-----|-----|-----|-----|----|-----|-----|-----|
-|     | n/a | n/a | n/a | DSR | CD | CTS | n/a | n/a |
+**When the PC-1600 sends:** a received XOFF pauses before each byte, bounded by the SNDSTAT
+timeout.
 
-- Bit = `1` means "ignore"
-- Bit = `0` means "set high"
+**Shift in/out** (7 bits only):
 
-Examples:
+- On sending: SO (0EH) before bytes ≥ 80H, SI (0FH) before the next byte < 80H and before CR.
+- On receiving: while shifted, 21H–7EH get bit 7 set.
 
-- `SNDSTAT "COM1:",24`: Enables CTS (what we need for this project)
-- `SNDSTAT "COM1:",28`: Disable all flow control.
+### SETDEV, DEV$, RXD$
 
-### RCVSTAT
+`SETDEV "COM1:"[,KI][,PO]` (B3B 54BF → CWDEV B6 A3F1)
 
-Sets the receive handshake protocol and the timeout for the serial port
+- Selects the port: PRIME switches to RS-232C or SIO, then a wait of about 0.1 s.
+- Loads the port's SETCOM block and clears the receive buffer.
+- **KI:** INPUT reads from the port. **PO:** LPRINT, LLIST and LFILES write to the port.
+- Without options, it still selects the port, but routes output back to the printer and input to
+  the keyboard.
+- `SETDEV "COM:"` → ERROR 155. A COM file open → ERROR 144. A bad option → ERROR 158.
+- A bare `SETDEV` with no device is not handled by the native code (the ROM falls through to the
+  CE-158 command tables). Use `SETDEV "COM2:"` to release RS-232C. Unverified on hardware.
 
-`RCVSTAT "COM1:",<protocol>[,<timeout>]`
+Example: `SETDEV "COM1:",KI,PO`
 
-- Timeout is between 0 and 255, in units of 0.5 seconds. 0 disables the timeout.
-- Protocol is as follows:
+**DEV$** has no native handler. Its token E857H is the CE-158 one and goes to the LH5803 function
+dispatcher. Unverified on hardware.
 
-| Bit | 7   | 6   | 5   | 4   | 3  | 2   | 1   | 0   |
-|-----|-----|-----|-----|-----|----|-----|-----|-----|
-|     | n/a | n/a | n/a | DSR | CD | CTS | n/a | n/a |
+**RXD$** (B6 AA5E) uses CRCV1, so it **consumes** one byte. It returns that byte as a 1-character
+string.
 
-- Bit = `1` means "ignore"
-- Bit = `0` means "must be high"
-
-Examples:
-
-- `RCVSTAT "COM1:",24`: Enables CTS handshake (what we need for this project)
-- `SNDRCVSTAT "COM1:",28`: Disable all flow control.
-
-Note: The manual mentions _Note that bits 1,2,6,7, and 8 are not used; set them to 0._  
-However, most of the examples
-found online, and even in the manual itself, set one of more of these bits to 1. As a result, one can find
-different numbers for "enable CTS", such as 59. This number also works, but 24 would be correct according to
-the manual.
-
-### SETDEV
-
-Specifies the serial port as input and output for some Basic commands.
-`SETDEV` without parameters releases the port and resets input / optput to
-keyboard / printer.
-
-`SETDEV "COM1:"[,KI][,PO]`
-
-- ,KI: Sets COM1: as device for the command `INPUT`.
-- ,PO: Sets COM1: as device for the commands `LPRINT`, `LLIST` and `LFILES`.
-
-Example: `SETDEV "COM1:",KI,PO`: Redirects both input and output to COM1
+- Nothing received → 2 blanks.
+- Error → `"?"` + 2 blanks, and the buffer and errors are cleared.
 
 ### PCONSOLE
 
-Set the line length and end of line code for communication through the serial port.
+Set the line length and end-of-line code for LPRINT/LLIST/LFILES through the serial port.
 
 `PCONSOLE "COM1:",[line length],[EOL code]`
 
-- Line length: 16-255 (0 means no limit)
-- EL Code: 0 = CR, 1 = LF, 2 = CR/LF
+- Line length: 16–255 (0 means no limit)
+- EOL code: 0 = CR (default), 1 = LF, 2 = CR/LF
 
-Example: `PCONSOLE "COM1:",80,2`: Set the line length to 80 chars, and use CR/LF
-(i.e. Windows style) for the line ending.
+File transfers (SAVE/LOAD/PRINT#/INPUT#) always use CR+LF. Kept per port (F13B/F13C) over
+power-off.
 
-### SAVE
+Example: `PCONSOLE "COM1:",80,2`
 
-Save a program via serial port.
+### SAVE / LOAD
 
-`SAVE "<COM1:>"[,A]`
+`SAVE "COM1:"[,A]` and `LOAD "COM1:"[,R]` (COMWRITE B3 60FD, COMREAD B3 6012)
 
-- A: ASCII format (instead of compressed binary format)
+- **ASCII** (`,A`): CR+LF line ends, 1AH = end of file.
+- **Binary:** first byte FFH, then a 16-byte header; the length is in header bytes 5–7.
+- Reading is done in records of up to 256 bytes; the whole file never has to fit in the buffer.
+- No baud limit is enforced. The manual's 9600/38400/4800 limits are reliability advice.
 
-### LOAD
+### Errors
 
-Loads a program from serial port.
-
-`LOAD "<COM1:>"[,R]`
-
-- R: Auto-starts the program after loading.
+- **142:** parity, framing, overrun, buffer full, a received break, and for file reads also the
+  receive timeout. It is reported on the next read, before the data still in the buffer.
+- **143:** send timeout (lines or missing XON). Also the receive timeout for INPUT via KI.
 
 ---
 

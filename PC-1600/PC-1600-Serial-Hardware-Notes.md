@@ -119,20 +119,53 @@ The wiring is as follows (pin 1 is the rightmost pin of the PC-1600's 15-pin ser
 | 3   | RX             | TX                                 | orange              |
 | 4   | RTS            | CTS                                | brown               |
 | 5   | CTS            | RTS                                | green               |
-| 7   | TX             | Ground                             | black               |
+| 7   | SG (ground)    | Ground                             | black               |
 
 Note: Do not connect the red cable (5V) of the adapter.
 
-## Problem with Apple Silicon Mac
+## RTS/CTS with this cable on macOS and Linux
 
-On a Mac with the Apple Silicon chip, the USB UART Adapter does not work as it should,
-probably due to a bug in the driver. The protocol that is used for flow control
-is "RTS/CTS". In this, the sender (i.e. the Mac) requests to send a byte by raising
-the RTS line ("request to send"). Then it is supposed to wait until the receiver
-(the PC-1600) acknowledges readiness by raising the CTS line ("clear to send").
-However, the Mac does not wait and starts to send right away, and the data
-is lost. The other direction (PC-1600 to Mac) works fine.
+*Corrected 2026-10-10. The earlier version of this section said the Mac's driver does not wait for
+CTS. The analysis below makes a driver bug unlikely. Nothing below has been retested on the
+PC-1600 yet.*
 
-As a workaround: build the transfer tool on the Mac and send it to a Raspberry Pi via `scp`.
-The PC-1600 is connected to the Raspberry Pi, and sending / receiving happens
-on the Raspberry Pi via a remote `ssh` session from the Mac.
+**The original observation.** On an Apple-Silicon Mac, data sent *to* the PC-1600 was lost with
+RTS/CTS flow control enabled: the Mac apparently did not wait for CTS. The other direction
+(PC-1600 to Mac) worked. The workaround was to run the transfer on a Raspberry Pi.
+
+**How RTS/CTS works here.** Each direction uses one wire of the pair; the sender does not
+"request" with RTS and wait for an answer.
+
+| Direction | Wire | PC-1600 setting |
+|---|---|---|
+| Mac → PC-1600 | PC-1600 RTS (pin 4) → adapter CTS | `OUTSTAT "COM1:"` (automatic mode) and `RCVSTAT "COM1:",28,0` |
+| PC-1600 → Mac | adapter RTS → PC-1600 CTS (pin 5) | `SNDSTAT "COM1:",24,0` |
+
+In automatic mode the PC-1600 drops its RTS at 8 free buffer bytes and after every 256-byte record
+of LOAD/INPUT#. The adapter must then stop. `RCVSTAT` is not involved in this direction; it only
+makes the PC-1600 discard bytes that arrive while its own CTS input is off.
+
+**What the drivers do with the FT232R.** This comes from disassembling and reading the drivers.
+
+- **macOS, built-in AppleUSBFTDI (DriverKit):** `CRTSCTS` puts the chip into hardware RTS/CTS mode,
+  and the chip gates sending on CTS by itself.
+  - Setting only output CTS flow control (`CCTS_OFLOW`) is dropped and never reaches the chip.
+  - `IXON` on its own never reaches the chip either. `IXON` + `IXOFF` together does work.
+  - With XON/XOFF active the driver deletes every received 11H/13H, even data bytes.
+  - Errors are reported per USB packet of up to 62 bytes, not per byte.
+- **FTDI's own macOS VCP driver (1.6.0):** unsuitable. It hardcodes the XON/XOFF characters to
+  04H/05H and never reports receive errors.
+- **Linux `ftdi_sio`:** `CRTSCTS` works in the chip, and wins over `IXON`. `IXON` switches on the
+  chip's own XON/XOFF; this is correct since a 2018 fix.
+- **FT232R chip:** about 183 baud to 3 Mbaud, so the PC-1600's 50–150 baud rates are unusable.
+  128-byte receive and 256-byte transmit buffers. FTDI does not document how many characters
+  still go out after CTS drops.
+
+**Likely causes of the original failure:**
+
+- the program set only `CCTS_OFLOW` instead of the full `CRTSCTS`;
+- an older macOS version;
+- a PC-1600 setting such as `RCVSTAT "COM1:",24` (which can discard data) or OUTSTAT left in manual mode.
+
+Retest with the full `CRTSCTS`, `OUTSTAT "COM1:"`, `RCVSTAT "COM1:",28,0`, `INIT "COM1:",1024`
+and a file larger than the buffer (e.g. 8 KB).
