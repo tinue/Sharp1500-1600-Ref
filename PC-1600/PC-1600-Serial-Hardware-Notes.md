@@ -57,6 +57,49 @@ directly from the gate array to the 5-pin SIO connector without passing through 
 physical confirmation that SIO stays at TTL/CMOS levels and only the RS-232C path needs
 level shifting.
 
+### 1.2 SIO (`COM2:`): what is known, and open questions
+
+The manuals call SIO the "optical" serial port. The connector itself is **electrical**: the
+optics are presumably in the plug of the CE-1600L fibre-optic cable. SIO has had little
+research so far.
+
+**Known (from the documents, not measured):**
+
+- **Connector pinout** (Operation Manual p. 52; German manual 6-16):
+
+  | Pin | Signal | Direction |
+  |---|---|---|
+  | 1 | RD | in |
+  | 2 | GND | — |
+  | 3 | SD | out |
+  | 4, 5 | Vcc, 4–5.5 V while the computer is on | out |
+
+  Two supply pins suggest that the plug powers an optical transmitter and receiver.
+- **5 V logic, no level shifter.** SDF/RDF go straight from the LR38041 gate array to the 5-pin
+  connector (main-board wiring diagram, §1.1).
+- **Inverted data.** TRM §7.6 says the UART's TXD/RXD are placed **inverted** on SDF/RDF. That
+  would make the line idle low: RS-232 polarity at TTL level.
+- **Accessories:** CE-1600L optical fibre cable, CE-1602T SIO/RS-232C converter (system diagram,
+  Operation Manual p. 42).
+- **Speed:** the manual gives "up to 38400 baud in half-duplex mode".
+- **Defaults and port selection:** SETCOM default `38400,7,E,2,X,S`. SIO is the port selected
+  at power-on (PRIM low).
+- **No handshake lines:** the ROM stores only the SNDSTAT/RCVSTAT timeouts for COM2 and ignores
+  the protocol. OUTSTAT does nothing, and INSTAT returns 0 (see
+  `PC-1600-Serial-Commands.md`).
+
+**Open questions (need hardware):**
+
+1. The actual idle level and polarity on pins 1 and 3, measured with a scope or a meter.
+2. Whether a plain 5 V TTL USB adapter with inverted RX/TX works on the SIO connector without
+   the CE-1600L.
+3. What is inside the CE-1600L plug and the CE-1602T converter. There are no schematics or
+   photos in the corpus.
+4. Why the manual calls SIO half-duplex, since the UART is full-duplex. Possibly an optical
+   reason, e.g. light echoing between the two fibres (a guess).
+5. Whether 38400 baud is reliable over a direct electrical connection.
+6. The connector type and part number, for making a cable.
+
 ### TC8576F pinout (as wired in the PC-1600)
 
 Partial, from TRM §7.6. The complete 44-pin table, including the parallel side and the
