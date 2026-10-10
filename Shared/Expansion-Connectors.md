@@ -25,7 +25,7 @@ The PC-1500 exposes its expansion bus on a 40-pin edge connector on the rear (co
 | 3 | **PV** | CPU flipflop output (chip select function). The TRM prints PU; measured PV (§2.2b) |
 | 4 | YO | Address &0000–&3FFF chip select |
 | 5 | S4 | Address &6000–&67FF select (may be NC depending on production month) |
-| 6 | DME0 | Chip select with WAIT condition (ME0 area). The connector's only ME qualifier: ME0 with WAIT timing |
+| 6 | DME0 | Chip select with WAIT condition (ME0 area). The connector's only ME qualifier: issued by the I/O port controller for ME0 cycles, with precharge time for slow/dynamic memory (`PC-1500-Address-Decoding.md` §2.4) |
 | 7–14 | D7–D0 | Data bus |
 | 15 | INHIBIT | Prohibits ROM select when connected to GND |
 | 16 | S1 | Address &4800–&4FFF select |
@@ -45,7 +45,7 @@ The PC-1500 exposes its expansion bus on a 40-pin edge connector on the rear (co
 
 **YO** (pin 4) is the sole chip select for the entire &0000–&3FFF module RAM/ROM region — a 16KB window with no further narrowing done by the mainboard. A module populating this window must do its own internal sub-decoding (see the CE-155 example in `PC-1500-Address-Decoding.md` §3.2).
 
-**ME0 qualification.** The connector has no ME0 or ME1 pin. S1–S4 come from the mainboard TC40H138F, which is enabled by ME0, so a chip on those strobes is ME0-only without any logic of its own. YO and Y2 come from the TC40H139F, which ME0 does not gate, so a module on YO or Y2 must gate itself with DME0 (pin 6, ME0 with WAIT timing), as the CE-155's YO chip does; one that ignores DME0 answers in ME1 as well (`PC-1500-Address-Decoding.md` §2.4).
+**ME0 qualification.** The connector has no ME0 or ME1 pin. S1–S4 come from the mainboard TC40H138F, which is enabled by ME0, so a chip on those strobes is ME0-only without any logic of its own. YO and Y2 come from the TC40H139F, which ME0 does not gate, so a module on YO or Y2 must gate itself with DME0 (pin 6, the ME0 enable timed for slow memory), as the CE-155's YO chip does; one that ignores DME0 answers in ME1 as well (`PC-1500-Address-Decoding.md` §2.4).
 
 There is no dedicated bank-select address register on the connector for any region — PU/PV (write-only CPU flipflops) and the address-range strobes (Y0, Y2, S1–S3, S4) are the only mechanisms available for a module to learn "which bank" or "which sub-region" the host is addressing.
 
