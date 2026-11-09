@@ -281,6 +281,18 @@ The five results are compared with &7860–&7864; a difference sets bit 2 of &7A
 
 **The CE-161 procedure (Instruction Manual pp. 17–25).** With the switch off: `NEW 256`, enter the program, run the manual's fill program (fills from the end marker to &3FF8 with &FF and writes `FE FF 03 F1 8E 0D FF` = line `65279 END` + end marker at &3FF9–&3FFF), `POKE 0,85,0,1,0,0,0,0,255`; OFF, switch on, ON, `NEW 0`. The ROM does not require &0100: with `NEW 0` and a header pointing at &00C5 (`POKE 0,85,0,0,197,0,0,0,255`) the module behaves the same and holds 59 bytes more, like the CE-502B. The manual's CE-153 variant loads that board's machine code at &0100 (`CALL &100`/`&104`/`&108`) and starts BASIC at &052A (`POKE 0,85,0,5,42,0,0,0,255`).
 
+**Why the &FF fill.** A search that reaches a block's end marker doesn't stop: `LINE_SEARCH` (D2E0) skips &FF bytes, bounded by `BASPRG_END`, and reads the first other byte as the start of the next block (the MERGE mechanism). Between the module program's end and &4000 only &FF is certain to be skipped; anything else is read as a block of lines and the search loses its way before the RAM program. Measured with the module protected and a RAM program with a label at &4000:
+
+| Contents after the module program | Module labels, `RUN`, `LIST` | Label in the RAM program |
+|---|---|---|
+| &FF to &3FF8 + `65279 END` (manual) | OK | OK |
+| &FF to &3FFF, no `END` line | OK | OK |
+| old contents of the card | OK | ERROR 11 |
+| zeros, gap a multiple of 3 | OK | OK |
+| zeros, gap not a multiple of 3 | OK | ERROR 11 |
+
+Zeros only work by luck: `00 00 00` reads as an empty line 3 bytes long, which lands exactly on &4000 only if the gap divides by 3. The module's own program needs no fill. The `65279 END` line made no difference in these tests; its purpose is open.
+
 The CE-502B and protected-CE-161 layouts above were checked on the Calc-U-1600 emulator with the A04 ROM; the PC-1500A MEM figures follow from the RAM boundaries.
 
 ---
