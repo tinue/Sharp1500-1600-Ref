@@ -250,6 +250,21 @@ The screen reverse program is 18 bytes long. The start addresses are therefore a
 
 A **program module** holds a BASIC program and its reserve-key contents in memory the CPU can't write: a mask-ROM module such as the CE-502B, or a CE-161 whose write-protect switch (in the RAMs' R/W line, CE-161 Service Manual) is set. The system ROM recognizes it at power-on and then lays out memory differently from §5.1–§5.4.
 
+**Layout of a program module.** Sharp's program modules share one layout: the mask-ROM CE-502B as well as a CE-161 prepared by its manual (both end in the same bytes at &3FF9–&3FFF):
+
+| Address (module at page &00) | Contents |
+|---|---|
+| &0000–&0007 | Header: &55, module page, program start (page offset, low byte), 3 bytes not read by the scan, list flag |
+| &0008–&00C4 | Reserve area: the DEF-key labels and key strings |
+| &00C5 or &0100 → | The tokenized BASIC program, ending in the usual &FF end marker |
+| … – &3FF8 | &FF fill |
+| &3FF9–&3FFE | `FE FF 03 F1 8E 0D` = line `65279 END` |
+| &3FFF | &FF, its end marker |
+
+- **Program start:** the CE-502B starts at &00C5, the CE-161 manual at &0100 (&052A with the CE-153's machine code at &0100). The ROM accepts any start from &00C5 up; why Sharp chose &0100 for the CE-161 is unknown.
+- **&FF fill:** needed. It lets the block search skip the gap to a RAM program at &4000 (measured, see below).
+- **`65279 END`:** present in the CE-502B mask ROM and written by the CE-161 procedure, but its purpose is unknown. On A01, A03 and A04, &FF up to &3FFF without this line worked the same.
+
 **Recognition (A04 `RESET_9`…`RESET_18`, E098–E0FD).** The reset routine walks the pages &00–&6F. It writes &5A and &A5 to `xx00`, reads them back and restores the byte. The first writable page becomes `RAM_ST` (&7863), the first non-writable page after the RAM block `RAM_END` (&7864). A page that is *not* writable and holds &55 at `xx00` is a module header; only the first one counts:
 
 | Offset | Meaning | Result |
