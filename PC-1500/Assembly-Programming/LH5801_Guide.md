@@ -2010,7 +2010,8 @@ On the PC-1600, the start is not set with an absolute address, because the LH580
 | `ERR_*` | `0x78B2` | Where the last ERROR happened: address, line number, program start |
 | `ON_ERR_*` | `0x78B8` | `ON ERROR GOTO` target: address, line number, program start |
 | `DATA_PTR` | `0x78BE` | Cursor into `DATA` statements |
-| `RAM_END` | `0x7A13` / `0x7A33` | High byte of the physical RAM limit |
+| `RAM_END` | `0x7864` | High byte of the physical RAM limit (first page past RAM) |
+| `ST_ROM_MOD` | `0x7860` | Page of a write-protected program module found at power-on; `0xFF` = none (`PC-1500-Address-Decoding.md` §5.6) |
 | `WARM_START` | `0x7A20` | Warm-start flag: `0x01` = warm start, else cold start |
 | `STK_SAVE` | `0x7A21` | Stack pointer restored during warm start |
 

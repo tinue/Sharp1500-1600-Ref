@@ -225,6 +225,8 @@ These figures follow directly from the chip population in §2–§3: the size of
 
 (Exact `NEW`/MEM figures depend on the specific module's own firmware reserve — see its own documentation.)
 
+Sharp's own 16 KB module, the **CE-161** (battery-backed RAM, Y0), has this layout with no firmware reserve: `NEW 0` gives MEM 18234 on the PC-1500. Its Instruction Manual prescribes `NEW 256` (BASIC from &0100, MEM 18175) so that the program can later be write-protected as a program module (§5.6).
+
 ### 5.4 Calculations
 
 Find the `[RAM start]` with `256 * PEEK(&7863)`
@@ -243,6 +245,43 @@ The screen reverse program is 18 bytes long. The start addresses are therefore a
 * PC-1500 / CE-158: `NEW &38D7`; Add 197
 * PC-1500A / a memory module: `NEW` offset depends on the module's own firmware reserve (see the module's own documentation)
 * PC-1600: `NEW "S0:",&D7`: Add 197
+
+### 5.6 Machine plus a program module (ROM module, or a write-protected CE-161)
+
+A **program module** holds a BASIC program and its reserve-key contents in memory the CPU can't write: a mask-ROM module such as the CE-502B, or a CE-161 whose write-protect switch (in the RAMs' R/W line, CE-161 Service Manual) is set. The system ROM recognizes it at power-on and then lays out memory differently from §5.1–§5.4.
+
+**Recognition (A04 `RESET_9`…`RESET_18`, E098–E0FD).** The reset routine walks the pages &00–&6F. It writes &5A and &A5 to `xx00`, reads them back and restores the byte. The first writable page becomes `RAM_ST` (&7863), the first non-writable page after the RAM block `RAM_END` (&7864). A page that is *not* writable and holds &55 at `xx00` is a module header; only the first one counts:
+
+| Offset | Meaning | Result |
+|---|---|---|
+| +0 | &55 | – |
+| +1 | page override (&FF = this page) | &7860 = module page |
+| +2 | program start, page offset; bit 7 set = no program | &7861 = module page + offset |
+| +3 | program start, low byte | &7862 |
+| +4…+6 | not read by the scan | – |
+| +7 | bit 7 set: the module's lines may be listed / edited; clear: ERROR 31 | read by `LAST_LINE_2_INBUF` (D277) |
+
+The five results are compared with &7860–&7864; a difference sets bit 2 of &7A20 and the computer asks `NEW0? :CHECK`. A writable page is never taken as a module, whatever it holds — a CE-161 with its switch off is plain RAM (§5.3). The CE-502B's header is `55 00 00 C5 40 00 00 FF` (program at &00C5); the CE-161 manual's `POKE 0,85,0,1,0,0,0,0,255` writes `55 00 01 00 00 00 00 FF` (program at &0100).
+
+**Layout with a program module (PC-1500; PC-1500A: RAM to &57FF).**
+
+| | No module | RAM module in Y0 (e.g. CE-161, switch off) | Program module in Y0 |
+|---|---|---|---|
+| &7860 / &7863 / &7864 | FF / 40 / 48 | FF / 00 / 48 | 00 / 40 / 48 |
+| Reserve area | &4008–&40C4 | &0008–&00C4 | in the module, &0008–&00C4 |
+| BASIC after `NEW 0` | &40C5 | &00C5 | &4000 |
+| Variables | down from &47FF | down from &47FF | down from &47FF |
+| MEM, empty (PC-1500 / PC-1500A) | 1850 / 5946 | 18234 / 22330 | 2047 / 6143 |
+
+- **Reserve area:** `RSRV_MEM_START` (CE9F) returns `ST_ROM_MOD`:08 when &7860 ≠ FF, else `RAM_ST`:08. The reserve keys are the module's and can't be reprogrammed (the routine hands back error code 24 for that case).
+- **RAM BASIC:** `BCMD_NEW` (C80A) sets `NEW 0` to `RAM_ST`:00 instead of `RAM_ST`:C5 — the &C5 bytes only exist for the reserve area, which now lives in the module.
+- **Program start:** `PRG_SA_2_XREG` (VMJ 12, DF93) returns the module's program start (&7861/&7862) when &7861 bit 7 is clear, else `BASPRG_ST`. `RUN` starts the module's program.
+- **Module and RAM program:** a label (DEF key, `RUN "label"`, `GOTO "label"`) is found in either program; a line number is not — `GOTO`/`LIST` of a RAM line number from the module side, or of a module line from a RAM line, gives ERROR 11. A RAM program next to a program module is therefore started by label, as the CE-161 manual (p. 37) requires.
+- **Plugging in or out:** the scan result changes, so `NEW 0` is needed and moves RAM BASIC between `RAM_ST`:00 and `RAM_ST`:C5. The built-in RAM's program and variables are lost; the module keeps its program and reserve contents.
+
+**The CE-161 procedure (Instruction Manual pp. 17–25).** With the switch off: `NEW 256`, enter the program, run the manual's fill program (fills from the end marker to &3FF8 with &FF and writes `FE FF 03 F1 8E 0D FF` = line `65279 END` + end marker at &3FF9–&3FFF), `POKE 0,85,0,1,0,0,0,0,255`; OFF, switch on, ON, `NEW 0`. The ROM does not require &0100: with `NEW 0` and a header pointing at &00C5 (`POKE 0,85,0,0,197,0,0,0,255`) the module behaves the same and holds 59 bytes more, like the CE-502B. The manual's CE-153 variant loads that board's machine code at &0100 (`CALL &100`/`&104`/`&108`) and starts BASIC at &052A (`POKE 0,85,0,5,42,0,0,0,255`).
+
+The CE-502B and protected-CE-161 layouts above were checked on the Calc-U-1600 emulator with the A04 ROM; the PC-1500A MEM figures follow from the RAM boundaries.
 
 ---
 
