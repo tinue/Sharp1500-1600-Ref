@@ -85,6 +85,51 @@ The practical takeaway: **the PC-1600's `NEW &C5`-style reserve-area convention 
 
 ---
 
+### 3.1 Where variables live, and how large an array can be (ROM-verified, measured)
+
+**Three kinds of variable, two places.** The single-letter variables `A`–`Z`, `A$`–`Z$` and `@()` are *fixed variables*: `VARADR` (P0-B0 `29D0H`) computes their address in the work area (`F600H`–`F7FFH`, `PC-1600-Work-Area-Map.md` §1) and never searches. Everything else is *variable-area* data: **two-letter variables and every `DIM`med array** (the `@()` array excepted). `VARADR` finds these by walking the variable area upward from `VARPTR` (`F899H`), record = name (2 B) + size (2 B) + data; `VARALLOC` (`2B7CH`) creates one by moving `VARPTR` down.
+
+**`VARPTR` is a *logical* address, not a Z-80 address.** The variable area is accessed only through `VARPEEK`/`VARPOKE`/`VARGET`/`VARLET` (`02A7H`/`02B0H`/`02A4H`/`02ADH`), each of which runs the address through `LOGADR` (`02D7H`) and then page-2 switches (`SELPG2B`, port 31H bits 6–4, saved and restored around the access):
+
+| Logical | Maps to |
+|---|---|
+| 0000–3FFF | `ADTBL`+3 bank, at Z-80 8000–BFFF |
+| 4000–7FFF | `ADTBL`+4 bank, at Z-80 8000–BFFF |
+| 8000–BFFF | `ADTBL`+5 bank, at Z-80 8000–BFFF |
+| C000–EFFF | internal RAM, directly (no switch; the routines test `H ≥ C0H`) |
+
+The variable area starts at the top (EFFF) and grows down. When internal RAM is full it simply continues in the `ADTBL`+5 bank, then +4, then +3. So variables are **not** confined to the fixed internal RAM: with module RAM merged into S0 they sit in whatever bank their logical address falls in. The bank in `ADTBL`+2 (the first S0 bank, which also holds the header) has no logical mapping for variables: `LOGEND` (`02DAH`) returns 0000 for a program end outside `ADTBL`+3…+5, and `VARALLOC` fails (carry) if the new `VARPTR` would not stay above `LOGEND`.
+
+**Arrays can exceed 16 KB.** `VARGET`/`VARLET` split a copy where it crosses the end of the page-2 window (C000H): they copy the first part, run `LOGADR` on the next logical address, select the next bank and copy the rest. Elements are at most 80 bytes, so one split suffices. `ARRAYIND` (`0259H`) returns a plain 16-bit logical element address and does not care which bank it lands in. The limits come from elsewhere:
+
+1. **Per dimension:** `DIM` rejects an index whose high byte is non-zero (`K_DIM`, P1-B0 `5C3AH` → `ERR13P`, **ERROR 19**). Maximum index 255 (256 elements per dimension); string length `*n` at most 80 (`*81` → ERROR 19).
+2. **Total size:** (n+1)·(m+1)·element size + 7 (header) is computed with a 16-bit `MUL16`; a carry gives **ERROR 10**. Element size is 8 for numerics, 16 for strings by default, `*n` up to 80.
+3. **Free logical space:** the logical map ends at 61 440 bytes (0000–EFFF), shared with the BASIC program text.
+
+**Measured** (Calc-U-1600, two CE-1600M merged, `NEW0`, `MEM` = 77 370):
+
+| Statement | Bytes | Result |
+|---|---|---|
+| `DIM A(83,90)` | 61 159 | accepted; all 7 644 elements written and read back, 0 errors (it spans internal RAM and all three logical banks) |
+| `DIM A(84,90)` | 61 887 | ERROR 10 (does not fit the logical span) |
+| `DIM A$(255)*80` | 20 487 | accepted; 256 strings written and verified, 0 errors |
+| `DIM A(255,255)` | ≈ 524 K | ERROR 10 (16-bit overflow) |
+| `DIM A(256)`, `DIM A(300,2)`, `DIM A$(255)*81` | – | ERROR 19 |
+
+The largest working size lies between 61 159 and 61 887 bytes, consistent with the 61 440-byte logical span. Although the machine has 77 370 bytes free, **no single array (and no set of variables) can use more than about 61 KB**, because the bank in `ADTBL`+2 is not addressable by the variable routines. **`MEM` ignores variables; `STATUS` has the variable-aware figures.** `MEM` (= `STATUS 0`) counts only the memory behind the end of the program (`(F864):00 − (F867+1)` plus 4000H per unused bank, LH5803 `BCMD_STATUS_FREE` `$CC30`). It stayed at 77 370 with a 61 159-byte array in place. The variable-aware values (measured, S0, two CE-1600M, empty program, `NEW0`):
+
+| Function | Meaning | Empty | After `DIM A(50,50)` | After `DIM A(83,90)` |
+|---|---|---|---|---|
+| `STATUS 0` / `MEM` | free behind the program, variables not counted | 77 370 | 77 370 | 77 370 |
+| `STATUS 258` | **free between program end and variable start, i.e. free after variables** (`P_STATUS2` `$C384`, bank-aware) | 77 370 | 56 555 | 16 211 |
+| `STATUS 3` | start of the variables: offset within its bank window (internal RAM reads as 4000H + offset) | 28 416 (6F00H) | 7 601 | 25 |
+| `STATUS 257` | hardware bank of the variable start (bank of the `ADTBL` entry its top bits select; the internal-RAM case reads as `ADTBL`+5) | 1 | 1 | 3 |
+| `STATUS 1` / `2` / `4` | program size / program end + 1 / last line (as on the PC-1500) | 0 / 198 / 0 | – | – |
+
+There is no `STATUS` for the variable size itself; it is **`STATUS 0` − `STATUS 258`**. Checked: `DIM A(10)` 95 B, `DIM A(10,10)` 975 B, `DIM A(50,50)` 20 815 B, `DIM A$(255)*80` 20 487 B, `DIM A(83,90)` 61 159 B, each = data + the 7-byte header. A two-letter numeric variable costs 15 B (`AB=1`), a two-letter string 23 B (`AB$="HI"`), i.e. 7 + 8 and 7 + 16. So the 61 159 above is the whole array including its header, and the free memory shown by `STATUS 258` (16 211) is what is left after it, even though the array cannot use the bank in `ADTBL`+2 (above).
+
+*Scope:* verified for S0 (`TITLE "S0:"`) only. How variables behave when a program runs in an S1/S2 program area is not examined.
+
 ## 4. The `NEW` Command Across S0/S1/S2, and Where Machine-Language Programs Land
 
 The TRM generalizes the PC-1500(A)'s single-target `NEW <expr>` into a three-target form:
@@ -169,7 +214,7 @@ The manual says `NEW` "clears all BASIC and machine programs", but **real-hardwa
 
 The PC-1600 firmware draws a hard line between RAM the CPU addresses directly and RAM reached only through the file system; on the CPU-addressable side it further separates **program memory** from **expansion memory**, and almost every "why does `MEM` report *X*" question resolves to which of these three a byte falls in:
 
-- **Work area / expansion memory** — the RAM that holds the *currently active* BASIC program, its variables, and the machine-language area: §3's internal 11,834-byte user area, plus any module RAM glued onto it. "Expansion memory" is the manual's term for that glued-on module part. Directly CPU-addressable: the OS points the page-2/page-3 bank registers at it and *leaves them there*, so BASIC and ML code touch it as ordinary memory with no per-access bank juggling. **This is the one and only thing `MEM` counts.** Module RAM is folded in **automatically at boot** — a CE-1600M in either slot, Slot 1 modules generally, and vertical bank 0 of a vertical-banked Slot 2 module (CE-1601M, …) alike. `INIT "S2:","M"` (and the (32−*n*) remainder of `INIT "S2:","P",n`) only re-types a module that is currently a program module or RAM disk back to expansion memory — see §4b.3(d). Its module-side bookkeeping lives in main-unit RAM, so a Slot 2 module's expansion-memory contribution does **not** survive a battery swap. **Ceiling ≈ 77 KB**: internal 16 KB + one 32 KB Slot 1 span + one 32 KB Slot 2 vertical bank (`PC-1600-Memory-Bank-Switching.md` Part 2, "the theoretical maximum").
+- **Work area / expansion memory** — the RAM that holds the *currently active* BASIC program, its variables, and the machine-language area: §3's internal 11,834-byte user area, plus any module RAM glued onto it. "Expansion memory" is the manual's term for that glued-on module part. Directly CPU-addressable: the OS points the page-2/page-3 bank registers at it and *leaves them there*, so BASIC and ML code touch it as ordinary memory with no per-access bank juggling for the program text and ML area, but the variable area (two-letter variables, arrays) is reached through logical addressing with a page-2 switch per access (§3.1). **This is the one and only thing `MEM` counts.** Module RAM is folded in **automatically at boot** — a CE-1600M in either slot, Slot 1 modules generally, and vertical bank 0 of a vertical-banked Slot 2 module (CE-1601M, …) alike. `INIT "S2:","M"` (and the (32−*n*) remainder of `INIT "S2:","P",n`) only re-types a module that is currently a program module or RAM disk back to expansion memory — see §4b.3(d). Its module-side bookkeeping lives in main-unit RAM, so a Slot 2 module's expansion-memory contribution does **not** survive a battery swap. **Ceiling ≈ 77 KB**: internal 16 KB + one 32 KB Slot 1 span + one 32 KB Slot 2 vertical bank (`PC-1600-Memory-Bank-Switching.md` Part 2, "the theoretical maximum").
 - **Program memory** — a *separate, resident program-storage area*, set up by `INIT "S2:","P"` (or the *n* KB named in `INIT "S2:","P",n`). Also directly CPU-addressable when active, but it holds a parked BASIC program rather than extending the current work area, so **`MEM` never reflects it** — allocating it leaves `MEM` unchanged. `TITLE`-named, cleared with `NEW 0`, held in the module SRAM so it *does* survive a battery swap. Internally it has the same fixed layout as §3's internal RAM: an 8-byte header + a 189-byte "Reserve Program Area" + the **"BASIC text area"** (the tokenized program lines themselves) — the CE-1601M manual names those two sub-regions, but the only term that matters at the `INIT` level is "program memory".
 - **RAM file / RAM disk (data storage)** — reached *only* through the file system (`SAVE`/`LOAD`/`FILES`/`KILL`/`PRINT#`/`INPUT#`…). The file-system driver is the only code that issues per-access `OUT (28H)` vertical-bank writes, so it can walk all 8 vertical banks of a Slot 2 module (256 KB), of which only vertical bank 0 is ever eligible to become program or expansion memory. `DSKF` reports its free space; `MEM` never sees it.
 
@@ -234,7 +279,7 @@ Z-80 view, Bank 0                       MEM = 11 834
   C0C5 ├───────────────────┤ ◄─ BASIC text start   ┐
        │ BASIC program  ▲  │                       │
        │       ⋮           │  grows up             │ User Area
-       │ Variables      ▼  │  grows down from EFFF │ = 11 834 B
+       │ Variables      ▼  │  grows down from EFFF │ = 11 834 B   (§3.1: with module RAM merged it continues down into the module banks)
   EFFF ├───────────────────┤                       ┘
   F000 │ Work Area (fixed) │  4 KB, F000–FFFF (never moves, §2/§3)
   FFFF └───────────────────┘
@@ -397,14 +442,14 @@ This matches `PC-1600-Memory-Bank-Switching.md` Part 8's existing summary table 
 
 **Consequence for `MEM`:** the real-hardware test that prompted this section — a stock PC-1600 with a plain (non-vertical-banked, CE-163-class) 16KB `S0:`-expanded module in Slot 2 reporting **`MEM` = 28218 in both MODE 0 and MODE 1** — is now explained simply: `MEM` is native, always-Z-80-resident BASIC housekeeping, run by the identical routine regardless of which display mode is active. The identical figure isn't architecturally significant, just the same command computing the same thing every time.
 
-The address-adjacency fact is still real and still explains why the *number itself* is what it is: Slot 2's window (Z-80 8000–BFFF, page 2) sits directly below internal RAM (Z-80 C000–FFFF, page 3) — `BFFF`+1 = `C000` — so a module that fits within one 16KB bank merges into one physically contiguous 32KB span with internal RAM, needing only a static `RAM_START` pointer, no bank-switching-per-array-access trickery. With fixed overhead (header + 197-byte reserve + 4096-byte work area) totaling either 4293 or 4550 bytes depending on which of §3's two conflicting baselines is used, paid once at the bottom of that span:
+The address-adjacency fact is still real and still explains why the *number itself* is what it is: Slot 2's window (Z-80 8000–BFFF, page 2) sits directly below internal RAM (Z-80 C000–FFFF, page 3) — `BFFF`+1 = `C000` — so a module that fits within one 16KB bank merges into one physically contiguous 32KB span with internal RAM and needs no page switching at all. (Larger merged spans do need it, and the ROM does it per access: see §3.1.) With fixed overhead (header + 197-byte reserve + 4096-byte work area) totaling either 4293 or 4550 bytes depending on which of §3's two conflicting baselines is used, paid once at the bottom of that span:
 
 ```
 16384 − 4550 = 11834   (internal RAM alone — matches the real-hardware-anchored baseline)
 32768 − 4550 = 28218   (16KB module + 16KB internal RAM, contiguous — matches the observed figure exactly)
 ```
 
-Whether a 32KB+ `S0:` allocation (spanning two Z-80 banks, needing genuine dynamic bank-switching mid-array-access — the *superRAM*/CE-1601M examples in Part 7a–7b) behaves identically is untested and not addressed by the manual.
+Whether a 32KB+ `S0:` allocation (spanning two Z-80 banks, needing genuine dynamic bank-switching mid-array-access) behaves identically is settled in §3.1: it does. The ROM switches page 2 per variable access, and arrays larger than 16 KB work (measured, two CE-1600M).
 
 **Correction on "4000–7FFF: fixed, no banking" — this does not mean flat, undifferentiated RAM.** The TRM figure this section is built on only resolves the LH5803's memory map down to 4000H/8000H-level bank boundaries — the same coarse granularity as the Z-80's own top-level figure in §2, not the fine S0–S7/V2/V3-level detail the PC-1500's own TRM chip-select tables give (`PC-1500-Address-Decoding.md` §2.2 and its two Chip-Select Table appendices). Absence of sub-decode *in this figure* is not evidence of absence *in the hardware*.
 

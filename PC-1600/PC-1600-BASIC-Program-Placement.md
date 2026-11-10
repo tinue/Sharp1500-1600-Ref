@@ -141,7 +141,9 @@ segments.append({ bank: 0, base: 0xC000, top: internal_ceiling() })
 ```
 
 `internal_ceiling()` = `0xEFFF` minus the current variable‑area size at the top of
-internal RAM (0xF000–0xFFFF work area is off‑limits). If you are injecting into a freshly
+internal RAM (0xF000–0xFFFF work area is off‑limits). If the variables outgrow internal RAM
+they continue in the `ADTBL`+5, +4, +3 banks (`PC-1600-Memory-Architecture.md` §3.1), so the
+subtraction applies to the last segments in turn, not to internal RAM alone. If you are injecting into a freshly
 `NEW`'d machine, variables are empty and the ceiling is `0xEFFF`.
 
 Subtract the reserved region(s) from the segment base(s):

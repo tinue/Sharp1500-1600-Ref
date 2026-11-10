@@ -173,6 +173,11 @@ The variable area is reserved just **below `xx00H`**, next to the file buffer; t
 between `xx00H` and the start of the file buffer is unused. It is reserved in 256-byte
 chunks, but enlarging it does **not** shrink the program+variable area by the full chunk.
 
+This is the file buffer's reservation, not where the variables are. The variable area proper
+(two-letter variables and `DIM`med arrays) lies in S0's *logical* address space, grows down
+from EFFF, and can extend into the merged module banks; see `PC-1600-Memory-Architecture.md`
+§3.1. Only the single-letter fixed variables are in this work area (`F600H`–`F7FFH`).
+
 ## 3. Work-area map (§6.3) — named variables
 
 SC-7852-view addresses. `(L)`/`(H)` = low / high byte of a 2-byte value (stored L then H
@@ -718,7 +723,7 @@ value to start and end (rom3b `44DDH`/`4505H`), `LOAD` and `CLOAD` write the loa
 
 **Free space per area.** `MEM` (= `STATUS 0`) runs on the LH-5803 (`FUNC` → LH5803
 `BCMD_MEM` $CBF8 → $CC30) and always reports S0: `(F864):00 − (F867 + 1) + (5 − F02CH) ×
-4000H`, whatever `TITLE` selects; `STATUS 1`–`4` and 256/257 are S0-only as well. The S1/S2
+4000H`, whatever `TITLE` selects; `STATUS 1`–`4` and 256/257 are S0-only as well. `MEM` does **not** subtract the variable area. `STATUS 258` (`P_STATUS2`, `$C384`) is free memory after variables, `STATUS 3` / `257` give the variable start (offset / bank), and the variable size is `STATUS 0` − `STATUS 258`; see `PC-1600-Memory-Architecture.md` §3.1. The S1/S2
 counterparts are `STATUS 259` / `260` (`STATUS_SLOT` $CE41): limit page:00 − program end
 (desc +2 minus +7..+8, plus 4000H per bank between desc +3 and +9), nothing when SxMTb
 has b7 set (no program module). Confirmed on a 32 KB program module: empty, `STATUS 259` =
