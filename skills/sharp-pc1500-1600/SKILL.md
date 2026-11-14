@@ -29,7 +29,7 @@ rather than guessing.
 | `$BAS` | `SharpBasicReference/` ([GitHub](https://github.com/tinue/SharpBasicReference)) | BASIC language references, PC-1500 **and** PC-1600 |
 | `$P16ROM` | `PC-1600-ROM/` ([GitHub](https://github.com/tinue/PC-1600-ROM)) | PC-1600 + CE-1600P ROM dumps and annotated, reassemblable disassemblies |
 | `$P15DIS` | `Sharp_PC-1500_ROM_Disassembly/` ([GitHub](https://github.com/Jeff-Birt/Sharp_PC-1500_ROM_Disassembly)) | PC-1500 system ROM disassembly (A01/A03/A04), TASM dialect |
-| `$EMU` | `Calc-U-1600/` ([GitHub](https://github.com/tinue/Calc-U-1600)) | PC-1500/1500A/1600 emulator (GUI + headless CLI) |
+| `$EMU` | `calc-u/products/calc-u-1600/` ([GitHub](https://github.com/tinue/calc-u)) | Calc-U-1600, the PC-1500/1500A/1600 emulator (GUI + harness) |
 
 **This skill is a router, not a reading list.** Identify the machine and the topic of
 the task, then open **only** the file(s) named in the matching row. Working on the
@@ -64,8 +64,8 @@ computers (PC-1211, PC-1350, PC-1403, PC-G850, …) are not covered.
 | OLD vs NEW BASIC ROM identification | `PC-1600-ROM-Versions.md` |
 | File system: header, FCB, file IOCS, RAM-disk / floppy layout | `PC-1600-Filesystem.md` |
 | CE-1600P printer/plotter + CE-1600F floppy | `PC-1600-Peripherals-Hardware.md` |
-| 60-pin system bus + 40-pin memory slots *(stub)* | `PC-1600-Expansion-Bus.md` |
-| Memory-module catalogue *(stub)* | `PC-1600-Memory-Modules.md` |
+| 60-pin system bus + 40-pin module slots *(stub)* | `PC-1600-Expansion-Bus.md` |
+| Memory-module list *(stub)* | `PC-1600-Memory-Modules.md` |
 | Writing Z-80 machine-language programs: float/int encodings, BASIC math calls, bank-aware code | `PC-1600-Assembly-Guide.md` |
 | PC-1600 BASIC: where it's documented + PC-1500 → PC-1600 porting gotchas | `PC-1600-BASIC.md` |
 | Sub-index with document status | `README.md` |
@@ -110,7 +110,7 @@ TASM dialect — read and grep it, don't assemble it); per-revision addresses in
 
 | Task / topic | Read (under `$REF/Shared/`) |
 |---|---|
-| Every connector pinout (40/60-pin PC-1500, 1500A reassignment, PC-1600 bus + slots) | `Expansion-Connectors.md` |
+| Every connector pinout (40/60-pin PC-1500, 1500A reassignment, PC-1600 bus + module slots) | `Expansion-Connectors.md` |
 | What a universal microcontroller memory module must do, per real module | `Software-Defined-Memory-Extension.md` |
 | Serial binary transfer format (CE-158 + PC-1600 headers, payloads) | `Data-Formats/Binary-Exchange-Formats.md` |
 | FSK cassette-tape format (PC-1500) | `Data-Formats/PC-1500-Tape-Format.md` |
@@ -124,9 +124,9 @@ TASM dialect — read and grep it, don't assemble it); per-revision addresses in
   [sdcc-pc1500](https://github.com/pchambre/sdcc-pc1500). The recipe is in `LH5801_Guide.md`.
 - **Z-80 assembler (PC-1600)**: [zasm](https://github.com/Megatokio/zasm)
   (`zasm -uwy src.asm src.lst src.bin`), or `sdasz80` from sdcc-pc1500.
-- **Running programs**: `$EMU` (Calc-U-1600). It has a Qt GUI and headless CLIs
-  (`headless/pc1500_cli`, `headless/pc1600_cli`) that take `.pc1500`/`.pc1500a`/`.pc1600`
-  presets; see its README.
+- **Running programs**: `$EMU` (Calc-U-1600). It has a Qt GUI and a harness
+  (`headless/pc1500_cli`, `headless/pc1600_cli`) that takes `.pc1500`/`.pc1500a`/`.pc1600`
+  presets; run it from `$EMU`, and see its README.
 
 If the machine + topic isn't covered by a row above, read `$REF/README.md` (whole-corpus
 index) or `$REF/PC-1600/README.md`.
