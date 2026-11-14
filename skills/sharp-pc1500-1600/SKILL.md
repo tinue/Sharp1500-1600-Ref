@@ -94,6 +94,7 @@ ROM), never to a hex dump. Default to `new/`. `$P16ROM/disasm/README.md` maps im
 | Structure of the PC-1500 ROM disassembly | `Basic-Programming/reference/ROM-Reference.md` |
 | CE-150/CE-158 peripheral token table | `Basic-Programming/reference/Peripheral-Commands.md` |
 | CE-150 hardware (schematic level) | `Peripherals/CE-150-Hardware.md` |
+| Keyboard: key scan loop, release gate, auto-repeat, key readiness for an emulator | `Keyboard/PC-1500-Keyboard-Scan.md` |
 
 BASIC language references in `$BAS`: `PC-1500-BASIC-Reference.md`, `CE-150-Reference.md`,
 `CE-158-Reference.md`, `Command-Index.md`, `Error-Codes.md`,
