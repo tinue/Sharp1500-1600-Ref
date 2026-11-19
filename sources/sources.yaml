@@ -1,0 +1,59 @@
+# Catalogue of the primary sources behind this repository.
+# `id` is what documents cite, as [S:<id> p.<n>] (see CONVENTIONS.md). `local` is where the maintainer's scan lives;
+# the scans are not in git (copyright). A source without `local` is one the maintainer does not hold as a file.
+sources:
+  - id: TRM-1600
+    title: "PC-1600 Technical Reference Manual (English), (c) 1986, back cover 6L 3.0-I (TMANE1005ECZZ)"
+    rank: 2
+    note: "Same content as the Systemhandbuch (German); the German scan is cleaner and most transcription was read from it. Chapter 9 circuit diagrams are too coarse in the scan; photos of the printed pages were used (9.1(1) p.264, 9.1(4) p.267, 9.2(1) p.268)."
+  - id: SYSHB-1600
+    title: "Das Systemhandbuch fuer den PC-1600 (German edition of the Technical Reference Manual)"
+    rank: 2
+    note: "Author named inconsistently in this repo (see Open-Questions.md): Holtkoetter in the old PC-1600 README, David von Oheimb in the peripherals document. Check the title page."
+  - id: BAUM-1600
+    title: "Winfried Baum, PC-1600 Systemhandbuch, ISBN 3-924327-31-9 (German)"
+    rank: 3
+    note: "A separate, third-party book despite the shared title. Anhang A (I/O port list, pp.93-97) is the source for the ON-key live level, the 17H cassette sync tone and the 18H b7/b6 meaning."
+  - id: SM-1600
+    title: "PC-1600 Service Manual"
+    rank: 2
+    note: "Hardware architecture, schematics, the LR38041 gate array, slot pinouts, CE-1600P chapter pp.63-72, CE-1600F chapter pp.98-104."
+  - id: BEDIEN-1600
+    title: "PC-1600 Bedienungsanleitung (German user manual)"
+    rank: 2
+    note: "Memory map (App. D), machine-language commands and PC-1500 compatibility (App. E/H)."
+  - id: SM-CE1601M
+    title: "CE-1601M Service Manual"
+    rank: 2
+  - id: SUPERRAM
+    title: "superRAM manual (third-party module)"
+    rank: 4
+    note: "Source for the vertical-bank mechanism of the modern module."
+  - id: TOSHIBA-TC8576
+    title: "Toshiba TC8576AF/TC8577AP/TC8578AP Technical Data, 1987 data book, pp.159-196"
+    rank: 2
+    local: "~/SynologyDrive/Dokumente/PDF/Vintage/Sharp/PC-1600/Toshiba_TC8576AF_CPC_1987.pdf"
+    note: "38 pages in the scan: PDF page = data-book page - 158."
+  - id: HITACHI-HD61102
+    title: "Hitachi HD61102 Dot Matrix LCD Graphic Display Column Driver (1989 data book pp.261-290)"
+    rank: 2
+    local: "~/SynologyDrive/Dokumente/PDF/Vintage/Sharp/PC-1600/Hitachi_HD61102_1989.pdf"
+  - id: HITACHI-HD61203
+    title: "Hitachi HD61203 Dot Matrix LCD Graphic Display Common Driver (1989 data book pp.361-387)"
+    rank: 2
+    local: "~/SynologyDrive/Dokumente/PDF/Vintage/Sharp/PC-1600/Hitachi_HD61203_1989.pdf"
+  - id: SOFT-INFO
+    title: "SHARP SOFTWARE-INFO bulletins 1600-010E, -011, -012, -014G, -015G (Sharp Electronics Europe, Software Center Hamburg, 1987-88)"
+    rank: 2
+    local: "~/SynologyDrive/Dokumente/PDF/Vintage/Sharp/PC-1600/Sharp-Soft-Info.pdf"
+    note: "Primary Sharp material but advisory: dealer errata and tips (firmware bugs, workarounds, the BASIC ROM revision split)."
+  - id: ROM-PC1600
+    title: "PC-1600 ROM dumps and annotated disassemblies, repository PC-1600-ROM (dumped from real hardware, September 2026)"
+    rank: 1
+  - id: ROM-PC1500
+    title: "PC-1500 ROM disassemblies A01/A03/A04, repository PC-1500-ROM, and Jeff Birt's Sharp_PC-1500_ROM_Disassembly"
+    rank: 1
+  - id: EMU-POCKEMUL
+    title: "PockEmul, a multi-pocket-computer emulator (includes a PC-1600 implementation)"
+    rank: 5
+    note: "Not a primary source: one reverse-engineer's reading of the hardware. It was used to cross-check the memory/bank model and to resolve ambiguities (e.g. keyboard strobe/sense binding, LCD port decode). One answer was wrong: it models the SC-7852 without wait states, while real-hardware BEEP pitch shows one wait per M1 cycle (CPU/PC-1600-SC7852-Z80.md 2.3). Where a fact rests on this implementation alone, the document says so."
