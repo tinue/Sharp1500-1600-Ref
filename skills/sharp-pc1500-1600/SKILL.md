@@ -125,8 +125,8 @@ TASM dialect — read and grep it, don't assemble it); per-revision addresses in
 - **Z-80 assembler (PC-1600)**: [zasm](https://github.com/Megatokio/zasm)
   (`zasm -uwy src.asm src.lst src.bin`), or `sdasz80` from sdcc-pc1500.
 - **Running programs**: `$EMU` (Calc-U-1600). It has a Qt GUI and a harness
-  (`headless/pc1500_cli`, `headless/pc1600_cli`) that takes `.pc1500`/`.pc1500a`/`.pc1600`
-  presets; run it from `$EMU`, and see its README.
+  (`calcu --product c1600`, built from the Calc-U repository root) that takes
+  `.pc1500`/`.pc1500a`/`.pc1600` presets; see `$EMU/CLAUDE.md`, section Harness.
 
 If the machine + topic isn't covered by a row above, read `$REF/README.md` (whole-corpus
 index) or `$REF/PC-1600/README.md`.
