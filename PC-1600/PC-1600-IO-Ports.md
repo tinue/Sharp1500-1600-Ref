@@ -103,7 +103,9 @@ this doc, from the TRM alone, had the less-specific pin names `CL1`/`SD1`):
 ```
 
 So **bit 5 of a 1AH read is the ON key's live level** (PB7, 1 = pressed), readable any
-time without the IF latch. Baum, *PC-1600 Systemhandbuch* (ISBN 3-924327-31-9) p.92: *"Sowohl Bit 5 der E/A Adresse &1A als auch
+time without the IF latch. **b7 behaves as CL1, the serial clock**, whatever Appendix 6
+calls it: the CE-150's tape code times its bits on it, and a real MODE 1 CSAVE through the
+CE-150 works — a deduction from coding the CE-150 cassette into Calc-U-1600, see §2.7. Baum, *PC-1600 Systemhandbuch* (ISBN 3-924327-31-9) p.92: *"Sowohl Bit 5 der E/A Adresse &1A als auch
 Bit 7 in &1F (PB7) werden bei gedrückter ON-Taste gesetzt"* — `INP &1A AND &20` or
 `INP &1F AND &80`.
 
@@ -153,8 +155,11 @@ Buffer for data sent to the PC port. The data bus can also be latched into OPC o
 | b6 | `PC6` terminal (pin 75), **inverted** | buzzer / BEEP drive |
 | b0–b5 | X | — |
 
-(Pin-level gate logic: `PC6 = NAND(PB2, PC6', PC7', SD0)`, `SD0 = OR(SD0', PC7')` —
-`PC-1600-CPU-SC7852-Z80.md` §6, pins 75/76.)
+(Pin-level gate logic: `PC6 = NAND(PB2, PC6', PC7', SD0)` (TRM p.220), `SD0 = AND(SD0', PC7')`
+(TRM p.221: an AND gate, SD0' = the CE-150's recording signal = SDO, PC7' = this bit) —
+`PC-1600-CPU-SC7852-Z80.md` §6, pins 75/76. SD0 goes straight to the 60-pin bus's CMTOUT.
+So a CE-150 tape is written only while OPC b7 is high, and the CE-1600P's only while SDO
+idles high (F6 = 0, or nothing being sent).)
 
 **Resolved: both readings are right.** Appendix 6 glosses 18H as "b7: buzzer line
 (active = 0), b6: buzzer on". That looked like it contradicted the pin-level table above
@@ -209,6 +214,31 @@ well, consistent with `PC6 = NAND(…, SD0)` (§2.5).
 
 The PC-1600's own ROM writes 17H only with 01H (normal mode), in the CE-1600P cassette
 read code (P1-B5 `62BDH`).
+
+**φ while the LH-5803 runs: 1.3 MHz, measured (2026-11-21).** A MODE 1 `CSAVE` through the
+CE-150 on a real PC-1600 records an 8.0 s leader at **2535 Hz** and then the header with
+**1267 Hz** zeros (2539 / 1270 Hz less the recorder's −0.2 %). The CE-150's tape code,
+which the LH-5803 runs unchanged, writes F = 63H (FX ÷512, FY ÷1024), so the dividers see
+φ = 1.3 MHz (φOS) there, as on a PC-1500, and as TRM §3.11.2 ("PC-1500/PC-1500A Mode",
+PDF p.132) gives the MODE 1 tones: 2.54 / 1.27 kHz. With the 325 kHz above they would be
+635 / 317 Hz; nothing of that is on the recording.
+- *Deduction, from coding the CE-150 cassette into Calc-U-1600 (not stated by any
+  source):* the two measurements together mean φ depends on the CPU that runs — φOS ÷ 4
+  under the SC-7852, φOS under the LH-5803. No document shows the switch; the TRM only says
+  the block is "not synchronized with φOS" (p.222) while pin 4 φOS is "used for the sync
+  signal of the internal LH-5810 corresponding port" (p.218). Calc-U-1600 models it this
+  way and its MODE 1 CLOAD/CSAVE work: a PC-1500 tape loads, and its own CSAVE records the
+  2539 Hz leader and loads back.
+
+**The serial transmitter and CL1 — deduction from coding this feature.** The CE-150's
+tape code needs more of the LH5810/5811 than the tone generator: it sends its bytes through
+L (16H), waits for TD (IF b3), and times the bits on MSK read b7, the serial clock it
+restarts with a 14H write (on the PC-1500, CL0 is wired to CL1, PC-1500 TRM p.71). Its
+reader (`LOAD_NIBBLE`, CE-150 ROM BE02H) polls MSK b7 for each bit. In Calc-U-1600, MSK b7
+held at 0 stops the CSAVE before the leader and the CLOAD before the header; with b7 =
+the serial clock both work. Since a real MODE 1 CSAVE writes a tape (above), MSK b7 must
+follow the serial clock on a real PC-1600 too. That disagrees with Appendix 6, which names
+the bit RD (§2.1): either the name is wrong or RD and CL1 share the bit. Unresolved.
 
 ## 3. TC8576F UART register select, 20H–27H (TRM §7.6)
 
