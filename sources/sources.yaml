@@ -5,30 +5,52 @@ sources:
   - id: TRM-1600
     title: "PC-1600 Technical Reference Manual (English), (c) 1986, back cover 6L 3.0-I (TMANE1005ECZZ)"
     rank: 2
-    note: "Same content as the Systemhandbuch (German); the German scan is cleaner and most transcription was read from it. Chapter 9 circuit diagrams are too coarse in the scan; photos of the printed pages were used (9.1(1) p.264, 9.1(4) p.267, 9.2(1) p.268)."
+    local: "~/SynologyDrive/Dokumente/PDF/Vintage/Sharp/PC-1600/PC-1600_Technical_Reference_Manual.pdf"
+    note: "313 PDF pages. Same content as SYSHB-1600 (German); the German scan is cleaner and most transcription was read from it. Chapter 9 circuit diagrams are too coarse in the scan; photos of the printed pages were used (9.1(1) p.264, 9.1(4) p.267, 9.2(1) p.268)."
   - id: SYSHB-1600
-    title: "Das Systemhandbuch fuer den PC-1600 (German edition of the Technical Reference Manual)"
+    title: "SHARP Pocket Computer PC-1600 System-Handbuch (German edition of the Technical Reference Manual), 1st ed. 1987, Guenter Holtkoetter GmbH, Hamburg"
     rank: 2
-    note: "Author named inconsistently in this repo (see Open-Questions.md): Holtkoetter in the old PC-1600 README, David von Oheimb in the peripherals document. Check the title page."
+    local: "~/SynologyDrive/Dokumente/PDF/Vintage/Sharp/PC-1600/PC-1600_System_Handbuch_Holtkoetter.pdf"
+    note: "316 PDF pages, the TRM's chapter and section numbering (3.1 Display ... 7.1 CPU). Holtkoetter is the publisher, not an author. This is 'the German Systemhandbuch scan' the documents read TRM sections from. Not to be confused with OHEIMB-1600 or BAUM-1600."
+  - id: OHEIMB-1600
+    title: "David von Oheimb, Das Systemhandbuch fuer den PC-1600, ISBN 3-925641-08-4, Klaus Ditze Verlag, Weilerswist, 1987 (German)"
+    rank: 3
+    local: "~/SynologyDrive/Dokumente/PDF/Vintage/Sharp/PC-1600/Sharp PC-1600 Systemhandbuch Ditze-vonOheimb.pdf"
+    note: "A separate third-party book with its own structure: chapters 1-15 (13 Diskettenlaufwerk, 14 Dateien) and Anhang 1-9 (6 I/O-Adressen, 7 System-RAM, 8 Sprungtabelle). Printed page = PDF page - 1: Anhang 6 is PDF pp.95-97, Anhang 7 PDF pp.98-115, Anhang 8 PDF pp.116-123. Older documents cite it as 'SHARP-PC1600-Systemhandbuch.pdf'."
+  - id: DITZE-TIPS-1600
+    title: "Klaus Ditze, Programme, Tips & Tricks fuer den PC-1600, ISBN 3-925641-04-1, Klaus Ditze Verlag, 1987 (German)"
+    rank: 3
+    local: "~/SynologyDrive/Dokumente/PDF/Vintage/Sharp/PC-1600/Tips_Tricks_Ditze_Optimize.pdf"
+    note: "BASIC and machine-code listings; source of the disk-MERGE (pp.9-12) and DISKCOPY (pp.35-36) routines."
   - id: BAUM-1600
     title: "Winfried Baum, PC-1600 Systemhandbuch, ISBN 3-924327-31-9 (German)"
     rank: 3
-    note: "A separate, third-party book despite the shared title. Anhang A (I/O port list, pp.93-97) is the source for the ON-key live level, the 17H cassette sync tone and the 18H b7/b6 meaning."
+    local: "~/SynologyDrive/Dokumente/PDF/Vintage/Sharp/PC-1600/Systemhandbuch_fischel.pdf"
+    note: "Fischel GmbH. Printed page = PDF page - 1; the documents cite printed pages. A separate, third-party book despite the shared title. Anhang A (I/O port list, printed pp.93-97) is the source for the ON-key live level, the 17H cassette sync tone and the 18H b7/b6 meaning."
   - id: SM-1600
     title: "PC-1600 Service Manual"
     rank: 2
-    note: "Hardware architecture, schematics, the LR38041 gate array, slot pinouts, CE-1600P chapter pp.63-72, CE-1600F chapter pp.98-104."
+    local: "~/SynologyDrive/Dokumente/PDF/Vintage/Sharp/PC-1600/PC-1600_Service_Manual.pdf"
+    note: "Also covers CE-1600P/F/M/L, CE-1601L-1609L. Hardware architecture, schematics, the LR38041 gate array, slot pinouts, CE-1600P chapter pp.63-72, CE-1600F chapter pp.98-104."
   - id: BEDIEN-1600
     title: "PC-1600 Bedienungsanleitung (German user manual)"
     rank: 2
-    note: "Memory map (App. D), machine-language commands and PC-1500 compatibility (App. E/H)."
+    local: "~/SynologyDrive/Dokumente/PDF/Vintage/Sharp/PC-1600/PC-1600_Bedienungsanleitung.pdf"
+    note: "A longer scan of the same manual: PC-1600 user manual-de.pdf. Memory map (App. D), machine-language commands and PC-1500 compatibility (App. E/H)."
+  - id: OPMAN-1600
+    title: "PC-1600 Operation Manual (English user manual)"
+    rank: 2
+    local: "~/SynologyDrive/Dokumente/PDF/Vintage/Sharp/PC-1600/PC-1600_Operation_Manual.pdf"
+    note: "PDF page = printed page + 10."
   - id: SM-CE1601M
     title: "CE-1601M Service Manual"
     rank: 2
+    local: "~/SynologyDrive/Dokumente/PDF/Vintage/Sharp/PC-1600/CE-1601M.pdf"
   - id: SUPERRAM
     title: "superRAM manual (third-party module)"
     rank: 4
-    note: "Source for the vertical-bank mechanism of the modern module."
+    local: "~/SynologyDrive/Dokumente/PDF/Vintage/Sharp/PC-1600/SuperRAM.pdf"
+    note: "Revision 2, 256KB / 2x256KB / 512KB. Source for the vertical-bank mechanism of the modern module."
   - id: TOSHIBA-TC8576
     title: "Toshiba TC8576AF/TC8577AP/TC8578AP Technical Data, 1987 data book, pp.159-196"
     rank: 2
@@ -47,6 +69,37 @@ sources:
     rank: 2
     local: "~/SynologyDrive/Dokumente/PDF/Vintage/Sharp/PC-1600/Sharp-Soft-Info.pdf"
     note: "Primary Sharp material but advisory: dealer errata and tips (firmware bugs, workarounds, the BASIC ROM revision split)."
+  - id: TRM-1500
+    title: "PC-1500 Technical Reference Manual (English)"
+    rank: 2
+    local: "~/SynologyDrive/Dokumente/PDF/Vintage/Sharp/PC-1500/PC-1500_Technical_Reference_Manual.pdf"
+  - id: SM-1500
+    title: "PC-1500 Service Manual"
+    rank: 2
+    local: "~/SynologyDrive/Dokumente/PDF/Vintage/Sharp/PC-1500/PC-1500_Service_Manual.pdf"
+  - id: SM-CE150
+    title: "CE-150 Color Graphic Printer Service Manual (English)"
+    rank: 2
+    local: "~/SynologyDrive/Dokumente/PDF/Vintage/Sharp/PC-1500/CE-150 Service_Manual_engl.pdf"
+    note: "Electrical pages are 61-62 of the PDF."
+  - id: SM-CE161
+    title: "CE-161 Service Manual (16 KB RAM module, flat LSI type)"
+    rank: 2
+    local: "~/SynologyDrive/Dokumente/PDF/Vintage/Sharp/PC-1500/Sharp_CE-161_Service_Manual.pdf"
+  - id: SCHLIEKER-INTERN
+    title: "H.-G. Schlieker, PC-1500 Intern: kommentiertes Betriebssystem (German)"
+    rank: 3
+    local: "~/SynologyDrive/Dokumente/PDF/Vintage/Sharp/PC-1500/PC-1500_Intern.pdf"
+  - id: SCHLIEKER-ROM
+    title: "H.-G. Schlieker, SHARP PC-1500 ROM-Unterprogramme, 1983 (German)"
+    rank: 3
+    local: "~/SynologyDrive/Dokumente/PDF/Vintage/Sharp/PC-1500/ROM-Unterprogramme.pdf"
+    note: "Source of the VMJ/VEJ table; contains known address errors (see Firmware/PC-1500-ROM-Routines.md)."
+  - id: ELLIOTT-PC2
+    title: "Bruce Elliott, PC-2 Assembly Language, article series, TRS-80 Microcomputer News, 1983-84"
+    rank: 4
+    local: "~/SynologyDrive/Dokumente/PDF/Vintage/Sharp/PC-1500/Sharp PC 1500 Assembly .pdf"
+    note: "p.5 memory map, pp.25-29 ROM call entry/exit conditions."
   - id: ROM-PC1600
     title: "PC-1600 ROM dumps and annotated disassemblies, repository PC-1600-ROM (dumped from real hardware, September 2026)"
     rank: 1

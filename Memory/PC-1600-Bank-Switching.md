@@ -2,15 +2,15 @@
 
 Summary: Port 31H bank register, truth tables, memory map by bank, auxiliary ports, the ~77 KB maximum.
 Scope: PC-1600
-Sources: - Service_Manual.pdf -- hardware architecture, schematics, gate array, slot pinouts - SHARP-PC1600-Systemhandbuch.pdf -- firmware, OS calls, module headers, software
+Sources: SM-1600 (PC-1600 Service Manual) -- hardware architecture, schematics, gate array, slot pinouts; OHEIMB-1600 (David von Oheimb, *Das Systemhandbuch für den PC-1600*) -- firmware, OS calls, module headers, software
 Status: cited
 
 > Split from `PC-1600-Memory-Bank-Switching.md` in the 2026-11 reorganisation. Section numbers are unchanged, so existing `§` references stay valid.
 > Other parts: §8 → [PC-1600-LH5803-Memory-View.md](../CPU/PC-1600-LH5803-Memory-View.md); §1, §3, §4, §5, §11, §12 → [PC-1600-Gate-Array-and-Chip-Selects.md](PC-1600-Gate-Array-and-Chip-Selects.md); §9 → [PC-1600-IO-Ports.md](../IO-Ports/PC-1600-IO-Ports.md); §7, §7a, §7b, §10 → [PC-1600-Memory-Modules.md](../Expansion/PC-1600-Memory-Modules.md); §6 → [PC-1600-Transparent-Banking.md](../Firmware/PC-1600-Transparent-Banking.md).
 
 **Sources:**
-- `Service_Manual.pdf` -- hardware architecture, schematics, gate array, slot pinouts
-- `SHARP-PC1600-Systemhandbuch.pdf` -- firmware, OS calls, module headers, software
+- `SM-1600`, the PC-1600 Service Manual -- hardware architecture, schematics, gate array, slot pinouts
+- `OHEIMB-1600`, David von Oheimb, *Das Systemhandbuch für den PC-1600* (Ditze 1987) -- firmware, OS calls, module headers, software
 
 ---
 
@@ -37,7 +37,7 @@ Writing to Z-80 I/O port 31H selects which bank appears in each page:
 
 **Correction (2026):** an earlier revision described b0/PVOUT as governing *both* 0000-3FFF and C000-FFFF together, and had PVOUT as a fourth input to the 4000-7FFF and 8000-BFFF bank number — both self-contradictory with the separate "b7 selects C000-FFFF" line. The **PC-1600 Technical Reference Manual's own §7.2.1 table** ("SC-7852 memory-access spaces and contents of I/O port 31H") settles it: each page uses one exact, non-overlapping bit field — **b0** alone for 0000-3FFF (bank 0/1), **b3:b2:b1** for 4000-7FFF (bank 0-7), **b6:b5:b4** for 8000-BFFF (bank 0-7), **b7** alone for C000-FFFF (bank 0/1); no bit is shared between pages. (The TRM table carries the same "C"-for-"4" typo in the bank-4 row that the truth tables below note.) The corrected model above and the two truth tables reflect this; an independent emulator implementation agrees (`README.md` — *Sources & validation*). Treat the four-independent-fields model as settled.
 
-**Example** (from Systemhandbuch):
+**Example** (von Oheimb, *Das Systemhandbuch für den PC-1600*, ch. 1 "Bankswitching"):
 
 ```asm
 3E 2E    LD A,2EH       ; = 0010 1110 binary

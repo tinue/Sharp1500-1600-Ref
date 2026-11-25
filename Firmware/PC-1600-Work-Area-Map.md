@@ -22,7 +22,7 @@ pp.207–213). The English figures confirm §2 and §3 verbatim; they **correct*
 sub-addresses in §1 (the German scan was shifted by one slot — see §1).
 
 §3.9 onward is from a second, independent Systemhandbuch source: David von Oheimb, *Das
-Systemhandbuch für den PC-1600*, Appendix 7 "System-RAM (Memory-Map)" (PDF pp. 97–114) —
+Systemhandbuch für den PC-1600*, Appendix 7 "System-RAM (Memory-Map)" (PDF pp. 98–115) —
 its own address-by-address dump of F000H–FFFFH. It fills gaps the English-TRM-sourced §3
 table above leaves blank, and in a few places disagrees with it outright (flagged in
 place, not silently merged/resolved).
@@ -371,7 +371,7 @@ range under the heading "Plotter 2" — see §3.13 below.
 
 ## 3.9 Timer / interrupt work area (F127H–F12EH)
 
-From the Systemhandbuch's Appendix 7 ("System-RAM", PDF pp. 97–114) — the manual's own
+From the Systemhandbuch's Appendix 7 ("System-RAM", PDF pp. 98–115) — the manual's own
 address-by-address dump of F000H–FFFFH, complementing the named-variable table above
 (sourced from the English TRM's Chapter 6 figures). Ties into the sub-CPU timer IOCS in
 `PC-1600-IO-Ports.md` §7.

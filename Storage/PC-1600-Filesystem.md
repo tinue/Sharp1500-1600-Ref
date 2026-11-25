@@ -2,7 +2,7 @@
 
 Summary: File header, FCB, file IOCS, RAM-disk and floppy FAT layout, disk buffer work area.
 Scope: PC-1600
-Sources: PC-1600 Technical Reference Manual §3.3 ("Files") — §3.3.1 file types & management, §3.3.2 file IOCS routines, §3.3.3 memory-file structure — read from the German Systemhandbuch scan. TRM §3.8.3 (floppy geometry, directory-entry …
+Sources: PC-1600 Technical Reference Manual §3.3 ("Files") — §3.3.1 file types & management, §3.3.2 file IOCS routines, §3.3.3 memory-file structure — read from the German edition (SYSHB-1600). TRM §3.8.3 (floppy geometry, directory-entry …
 Status: cited
 
 ## Scope
@@ -14,8 +14,8 @@ memory files and CE-1600F floppies.
 **Sources:** PC-1600 Technical Reference Manual §3.3 ("Files") — §3.3.1 file types &
 management, §3.3.2 file IOCS routines, §3.3.3 memory-file structure — read from the
 German Systemhandbuch scan. TRM §3.8.3 (floppy geometry, directory-entry format) and the
-RAM-disk-specific IOCS/work-area material in §6–§7 below are from the same Systemhandbuch
-(David von Oheimb, *Das Systemhandbuch für den PC-1600*), ch. **13 "Diskettenlaufwerk"**
+RAM-disk-specific IOCS/work-area material in §6–§7 below are from a different book
+(OHEIMB-1600: David von Oheimb, *Das Systemhandbuch für den PC-1600*), ch. **13 "Diskettenlaufwerk"**
 and ch. **14 "Dateien"** (PDF pp. 46–53, printed pp. 45–52).
 
 ---

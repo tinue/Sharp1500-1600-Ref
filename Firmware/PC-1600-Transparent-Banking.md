@@ -2,7 +2,7 @@
 
 Summary: Firmware view of banking: system calls, RST shortcuts, ROM module headers, slot management, boot sequence.
 Scope: PC-1600
-Sources: - Service_Manual.pdf -- hardware architecture, schematics, gate array, slot pinouts - SHARP-PC1600-Systemhandbuch.pdf -- firmware, OS calls, module headers, software
+Sources: SM-1600 (PC-1600 Service Manual) -- hardware architecture, schematics, gate array, slot pinouts; OHEIMB-1600 (David von Oheimb, *Das Systemhandbuch für den PC-1600*) -- firmware, OS calls, module headers, software
 Status: cited
 
 > Split from `PC-1600-Memory-Bank-Switching.md` in the 2026-11 reorganisation. Section numbers are unchanged, so existing `§` references stay valid.

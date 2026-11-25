@@ -2,7 +2,7 @@
 
 Summary: Floppy IOCS, disk geometry, logical sectors, FAT, port-level registers 78-7FH, drive-unit hardware.
 Scope: PC-1600
-Sources: PC-1600 Technical Reference Manual §3.7 (printer IOCS), §3.8 (disk IOCS) — read from the German Systemhandbuch scan (David von Oheimb, *Das Systemhandbuch für den PC-1600*, ch. 13 "Diskettenlaufwerk", PDF pp. 46–53); plus …
+Sources: PC-1600 Technical Reference Manual §3.7 (printer IOCS), §3.8 (disk IOCS) — read from the German edition (SYSHB-1600, Holtkötter 1987); plus David von Oheimb, *Das Systemhandbuch für den PC-1600* (OHEIMB-1600, a separate book), ch. 13 "Diskettenlaufwerk", PDF pp. 46–53; plus …
 Status: draft
 
 > Split from `PC-1600-Peripherals-Hardware.md` in the 2026-11 reorganisation. Section numbers are unchanged, so existing `§` references stay valid.

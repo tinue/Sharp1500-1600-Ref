@@ -20,7 +20,7 @@ material and are cross-referenced rather than duplicated.
 **Sources so far:** TRM §7.1.1(3) (range map), §7.9 (the LH-5810-compatible port,
 10–1FH), §7.6 (TC8576F register select, 20–27H), §7.5 (buzzer), §7.3 (LCD, 50–5BH); plus
 the Systemhandbuch's own port-by-port appendix (David von Oheimb, *Das Systemhandbuch für
-den PC-1600*, Appendix 6 "I/O-Adressen (Ports)", PDF pp. 94–96), which independently
+den PC-1600*, Appendix 6 "I/O-Adressen (Ports)", PDF pp. 95–97), which independently
 confirms and fills in detail for most of the ranges below — cited inline as "Appendix 6"
 below.
 Still pending: §3.4 (interrupt cause/mask bit detail for 32H/35H — partially filled by

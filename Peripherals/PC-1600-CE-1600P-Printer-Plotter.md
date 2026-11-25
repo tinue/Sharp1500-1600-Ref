@@ -2,7 +2,7 @@
 
 Summary: CE-1600P printer/plotter: IOCS, plot geometry, hardware, Centronics parallel mode on the same ports.
 Scope: PC-1600
-Sources: PC-1600 Technical Reference Manual §3.7 (printer IOCS), §3.8 (disk IOCS) — read from the German Systemhandbuch scan (David von Oheimb, *Das Systemhandbuch für den PC-1600*, ch. 13 "Diskettenlaufwerk", PDF pp. 46–53); plus …
+Sources: PC-1600 Technical Reference Manual §3.7 (printer IOCS), §3.8 (disk IOCS) — read from the German edition (SYSHB-1600, Holtkötter 1987); plus David von Oheimb, *Das Systemhandbuch für den PC-1600* (OHEIMB-1600, a separate book), ch. 13 "Diskettenlaufwerk", PDF pp. 46–53; plus …
 Status: draft
 
 > Split from `PC-1600-Peripherals-Hardware.md` in the 2026-11 reorganisation. Section numbers are unchanged, so existing `§` references stay valid.
@@ -16,8 +16,8 @@ their own document (`PC-1600-Memory-Modules.md`); the serial interface has
 `PC-1600-Serial-Commands.md` / `PC-1600-Serial-Hardware.md`.
 
 **Sources:** PC-1600 Technical Reference Manual §3.7 (printer IOCS), §3.8 (disk IOCS) —
-read from the German Systemhandbuch scan (David von Oheimb, *Das Systemhandbuch für den
-PC-1600*, ch. 13 "Diskettenlaufwerk", PDF pp. 46–53); plus `PC-1600_Service_Manual.pdf`'s
+read from the German edition (SYSHB-1600, Holtkötter 1987); plus David von Oheimb, *Das
+Systemhandbuch für den PC-1600* (OHEIMB-1600, a separate book), ch. 13 "Diskettenlaufwerk", PDF pp. 46–53; plus `PC-1600_Service_Manual.pdf`'s
 CE-1600P chapter (pp. 63–72, electrical hardware; §1.2 below) and CE-1600F chapter
 (pp. 98–104, electrical/mechanical hardware; §3.1 below).
 Processed so far: TRM **§3.7**, TRM **§3.8**, Service Manual **CE-1600P ch.** (§1.2),

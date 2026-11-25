@@ -23,7 +23,7 @@ Physical and logical memory: address decoding, chip selects, bank switching, mem
 | [PC-1500-Chip-Select-Tables.md](PC-1500-Chip-Select-Tables.md) | 1500 | cited | 16 | Decoder notation and the PC-1500 and PC-1500A chip-select tables, reproduced from the TRM. |
 | [PC-1500-RAM-Sizing-and-NEW.md](PC-1500-RAM-Sizing-and-NEW.md) | 1500 | cited | 9 | RAM size and NEW offset calculations for the empty machine, CE-155, 16K module, program modules; screen reverse. |
 | [PC-1600-BASIC-Program-Placement.md](PC-1600-BASIC-Program-Placement.md) | 1600 | cited | 22 | Emulator spec: how LOAD scatters a tokenised BASIC program across S0's bank list via ADTBL; injection algorithm. |
-| [PC-1600-Bank-Switching.md](PC-1600-Bank-Switching.md) | 1600 | cited | 24 | Port 31H bank register, truth tables, memory map by bank, auxiliary ports, the ~77 KB maximum. |
+| [PC-1600-Bank-Switching.md](PC-1600-Bank-Switching.md) | 1600 | cited | 25 | Port 31H bank register, truth tables, memory map by bank, auxiliary ports, the ~77 KB maximum. |
 | [PC-1600-Gate-Array-and-Chip-Selects.md](PC-1600-Gate-Array-and-Chip-Selects.md) | 1600 | cited | 16 | Chip complement, LR38041 gate array, chip-select signals, slot connectors, signal summary, memory PWB wiring. |
 | [PC-1600-Memory-Map.md](PC-1600-Memory-Map.md) | 1600 | cited | 28 | Z-80 view in four bank-switched pages, internal RAM layout, comparison with PC-1500(A), summary table. |
 | [PC-1600-Module-Window-Layout.md](PC-1600-Module-Window-Layout.md) | 1600 | cited | 19 | Where a module sits in the 8000-BFFF window and how the BASIC/ML area slides; worked max-RAM example. |

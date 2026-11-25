@@ -15,15 +15,14 @@ a question is settled, strike it in the owning document and remove it here.
 | Keyboard | PC-1600 key-code value table (TRM 10.2); not needed for emulation | |
 | Expansion | PC-1600 expansion bus electrical and timing detail (stub) | `Expansion/PC-1600-Connectors.md` |
 | Programming | Z-80 toolchain and worked examples; PC-1600 BASIC authoring prompt | `Programming/PC-1600-Z80-Assembly-Guide.md` ("Still to write") |
-| Sources | The PC-1500 documents cite their sources in prose only; they need IDs in `sources/sources.yaml` | |
+| Sources | The PC-1500 sources have IDs in `sources/sources.yaml` now; the PC-1500 documents still cite them in prose and could move to `[S:<ID> p.<n>]` | |
 
-The scans needed for most of these are on the maintainer's NAS and not reachable at the moment (2026-11).
+The scans are catalogued with their local paths in `sources/sources.yaml` (checked 2026-11-25).
 
 ## Conflicts between sources
 
 | Question | Detail | Test |
 |---|---|---|
-| Author of the Systemhandbuch | The old PC-1600 README named Holtkoetter; `Storage/PC-1600-Floppy-CE-1600F.md` names David von Oheimb. | Read the title page of the scan; fix `sources/sources.yaml`. |
 | Work-area readings | `F05EH`, `F05FH`/`F060H`, `F079H` bits 4/7 and the plotter ranges `F180H`-`F195H`, `F9E0H`-`F9F9H` have two or three readings across the TRM and Systemhandbuch Appendix 7. `Firmware/PC-1600-Work-Area-Map.md` ("Open items"). | Check against the ROM disassembly. |
 | 128 KB floppy geometry | First data sector `0008H` (Systemhandbuch) or `000BH` (ROM dump). `Storage/PC-1600-Filesystem.md` ("Open items"). | Read the geometry table in the ROM. |
 | Media-ID table pointer | `4242H` vs the ROM table's own `5006H` base. Same document. | ROM. |

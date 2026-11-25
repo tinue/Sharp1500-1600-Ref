@@ -2,7 +2,7 @@
 
 Summary: Fixed ROM jump table 0000H-0312H.
 Scope: PC-1600
-Sources: Systemhandbuch (David von Oheimb, *Das Systemhandbuch für den PC-1600*), Appendix 8 "Sprungtabelle" (PDF pp. 115–122, printed pp. 115–122 / "Anhang 8" 1–8). The manual gives only a one-line German gloss per routine — translated …
+Sources: Systemhandbuch (David von Oheimb, *Das Systemhandbuch für den PC-1600*), Appendix 8 "Sprungtabelle" (PDF pp. 116–123, printed pp. 115–122 / "Anhang 8" 1–8). The manual gives only a one-line German gloss per routine — translated …
 Status: cited
 
 ## Scope
@@ -18,7 +18,7 @@ the current bank mapping. Several routines already named elsewhere in this corpu
 `PC-1600-IOCS.md`) turn out to be entries in this same table — cross-referenced below.
 
 **Source:** Systemhandbuch (David von Oheimb, *Das Systemhandbuch für den PC-1600*),
-Appendix 8 "Sprungtabelle" (PDF pp. 115–122, printed pp. 115–122 / "Anhang 8" 1–8). The
+Appendix 8 "Sprungtabelle" (PDF pp. 116–123, printed pp. 115–122 / "Anhang 8" 1–8). The
 manual gives only a one-line German gloss per routine — translated here, kept terse by
 design (this is an index, not a functional spec; follow the cross-references for detail
 where this corpus already has it).
