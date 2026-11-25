@@ -31,7 +31,7 @@ sources:
     title: "PC-1600 Service Manual"
     rank: 2
     local: "~/SynologyDrive/Dokumente/PDF/Vintage/Sharp/PC-1600/PC-1600_Service_Manual.pdf"
-    note: "Also covers CE-1600P/F/M/L, CE-1601L-1609L. Hardware architecture, schematics, the LR38041 gate array, slot pinouts, CE-1600P chapter pp.63-72, CE-1600F chapter pp.98-104."
+    note: "118 PDF pages, printed page = PDF page - 3. The key circuit diagram (HD61203/HD61102/TC8576F wiring, LCD glass pinout with the status legend) is printed pp.43-44 = PDF pp.46-47: render it (pdftoppm -r 400-800), the OCR of schematics is useless. Also covers CE-1600P/F/M/L, CE-1601L-1609L. Hardware architecture, schematics, the LR38041 gate array, slot pinouts, CE-1600P chapter pp.63-72, CE-1600F chapter pp.98-104."
   - id: BEDIEN-1600
     title: "PC-1600 Bedienungsanleitung (German user manual)"
     rank: 2
@@ -55,11 +55,12 @@ sources:
     title: "Toshiba TC8576AF/TC8577AP/TC8578AP Technical Data, 1987 data book, pp.159-196"
     rank: 2
     local: "~/SynologyDrive/Dokumente/PDF/Vintage/Sharp/PC-1600/Toshiba_TC8576AF_CPC_1987.pdf"
-    note: "38 pages in the scan: PDF page = data-book page - 158."
+    note: "Extract from Toshiba Microprocessors Vol. 2: Peripherals (1987). 38 pages in the scan: PDF page = data-book page - 158 (register table: printed p.165 = PDF p.7). Re-OCRed: prose reads well with pdftotext -layout (without -layout the order scrambles); the register and pin tables are still noisy, read the page images."
   - id: HITACHI-HD61102
     title: "Hitachi HD61102 Dot Matrix LCD Graphic Display Column Driver (1989 data book pp.261-290)"
     rank: 2
     local: "~/SynologyDrive/Dokumente/PDF/Vintage/Sharp/PC-1600/Hitachi_HD61102_1989.pdf"
+    note: "Extract from the Hitachi LCD Controller/Driver LSI Data Book U74 (1989); printed page = data-book PDF page - 13; text layer present."
   - id: HITACHI-HD61203
     title: "Hitachi HD61203 Dot Matrix LCD Graphic Display Common Driver (1989 data book pp.361-387)"
     rank: 2
@@ -73,6 +74,7 @@ sources:
     title: "PC-1500 Technical Reference Manual (English)"
     rank: 2
     local: "~/SynologyDrive/Dokumente/PDF/Vintage/Sharp/PC-1500/PC-1500_Technical_Reference_Manual.pdf"
+    note: "LH5811 register pages: printed pp.69-72 = PDF pp.74-77; the OCR there is poor, read the page images."
   - id: SM-1500
     title: "PC-1500 Service Manual"
     rank: 2
