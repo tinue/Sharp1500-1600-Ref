@@ -11,5 +11,5 @@ Port maps and what the bits do. Today this is PC-1600 only: range map, the LH581
 <!-- files:begin -->
 | File | Model | Status | KB | What it answers |
 |---|---|---|---|---|
-| [PC-1600-IO-Ports.md](PC-1600-IO-Ports.md) | 1600 | cited | 27 | I/O range map, LH5810-compatible port 10-1FH, TC8576 select, 30-3FH, LCD ports, buzzer, timer/RTC/analog, memory-management ports. |
+| [PC-1600-IO-Ports.md](PC-1600-IO-Ports.md) | 1600 | cited | 30 | I/O range map, LH5810-compatible port 10-1FH, TC8576 select, 30-3FH, LCD ports, buzzer, timer/RTC/analog, memory-management ports. |
 <!-- files:end -->

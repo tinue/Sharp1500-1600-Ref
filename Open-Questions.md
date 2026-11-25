@@ -29,6 +29,7 @@ The scans needed for most of these are on the maintainer's NAS and not reachable
 | Media-ID table pointer | `4242H` vs the ROM table's own `5006H` base. Same document. | ROM. |
 | Keyboard translation tables | Pointer-byte roles differ between 3.2.2 and 3.2.6. `Keyboard/PC-1600-Keyboard.md` ("TODO"). | ROM. |
 | DSTB timing | TRM figure (13 / 26 us) matches the ROM's PR2/PR3 only at K=1; the ROM uses K=2 (27.7 / 52.1 us). `Serial-Parallel/PC-1600-CPC-TC8576.md` section 12. | Logic-analyser capture of DSTB. |
+| MSK (1AH) b7: RD or CL1 | TRM Appendix 6 names it RD; the CE-150 tape code needs it to follow the serial clock (CL1), and a real MODE 1 CSAVE through the CE-150 works. `IO-Ports/PC-1600-IO-Ports.md` §2.1, §2.7. | Read 1AH in a loop on hardware while the serial clock runs (after a 14H write). |
 | TC8576 data-sheet slips | Five slips in the Toshiba sheet; the reading used is given in the document, same section. | |
 
 ## Unknowns by topic

@@ -57,7 +57,7 @@ specified / not a simple logic strobe. Overbar shown as a trailing `#`.
 | 73 | PB6 | In/Out | — | Keyboard strobe (same usage as PA7–PA0). Pulled up. |
 | 74 | PB7 | In | High | Receives the **BREAK/ON** key status from the sub-controller. Pulled down internally. |
 | 75 | PC6 | Out | — | **Buzzer drive.** Internal gate: `PC6 = NAND(PB2, PC6', PC7', SD0)` — pulsing any one of those drives the buzzer. |
-| 76 | SD0 | Out | — | Cassette **write** output. `SD0 = OR(SD0', PC7')`; SD0' is the CE-150 cassette output, PC7' the CE-1600P cassette output. |
+| 76 | SD0 | Out | — | Cassette **write** output. `SD0 = AND(SD0', PC7')`: TRM p.221 (PDF page) draws a two-input AND gate into a buffer; SD0' is the CE-150 cassette output (the serial block's SDO), PC7' the CE-1600P cassette output (OPC 18H b7, TRM p.244: "This content is sent to the SD0 terminal"). Both idle high (Service Manual §7-6: "The above three signal lines are normally high"), so either writes while the other rests. Wired straight to CMTOUT (CN2-46 → 60-pin pin 29; Service Manual p.50, F.P.C. circuit diagram). |
 | 77 | ELH# | Out | — | **Which CPU is running:** low = LH-5803 active, high = Z-80 active. |
 | 78 | PCSTB | In/Out | — | Reset → input mode, current state latched in the PB3 flip-flop (externally pulled up on the PC-1600). Normal mode → output: goes high when the Z-80 writes/does-I/O to 18H or the LH-5803 is at F008H in ME1. Not used on the production PC-1600. |
 | 79 | RSTIN# | In | Low | Reset input to the SC-7852. Forced low for **30 ms** by the sub-CPU on ACL, RESET, or power-on. |

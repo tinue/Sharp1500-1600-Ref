@@ -152,6 +152,17 @@ The 64KB is split at the file-system level, not the hardware level -- hardware a
 | C | 32KB expansion memory + 32KB RAM file | `INIT "S2:","M" ENTER` -> 29.5KB (30,208B) RAM file; expansion memory area grows by exactly 32,768 bytes |
 | D | Program memory (n KB) + expansion memory ((32-n) KB) + 32KB RAM file | `INIT "S2:","P",n ENTER` -- n is an odd number of KB, 2 to 32 |
 
+> **Note on the manual's table (not in the original):** Modes B–D silently assume a module that is *already formatted as a RAM disk*, i.e. Mode A's `INIT "S2:","F"` first. On a blank module `"P"`/`"M"` create no RAM file: the ROM's `INIT ...,"P"/"M"` (bank 3b, `INITPM` at 6464H) sets the RAM disk's size and initialises it (`SETMDSKSIZ`, `INITMDSK`) only when the slot's status already says RAM disk (bit 4); otherwise `"M"` just clears the 8 header bytes to FFH, a no-op on a module whose vertical bank 0 merged at boot. The working sequence is `"F"` (format: all 64KB RAM file, `MEM` loses bank 0), then `"M"` (bank 0 back to expansion memory, bank 1 the RAM file). Emulator, PC-1600 (new ROM) with a blank CE-1601M in Slot 2 alone:
+>
+> | `INIT "S2:",…` | `MEM` | `DSKF("S2:")` |
+> |---|---|---|
+> | none | 44602 | ERROR 160 |
+> | `"M"` | 44602 | ERROR 160 |
+> | `"F"` | 11834 | 62464 |
+> | `"F"`, then `"M"` | 44602 | 30208 |
+>
+> `"P"` on a blank module was not measured.
+
 Since only vertical bank 0 can hold program/expansion memory (Part 2), Modes B-D always consume vertical bank 0 for that purpose and leave vertical bank 1 (or whatever's left of the split within it) as the RAM-file area -- the OS never needs to drive Port 28H to reach program/expansion memory, only to walk the file system across both banks.
 
 **"Program memory" vs. "expansion memory" -- distinct terms, distinct `MEM` behaviour** (confirmed against the CE-1601M manual's §5 map, see `PC-1600-Program-Areas-and-NEW.md` §4a):
@@ -196,7 +207,7 @@ This confirms directly, from a working implementation, that the 3-bit vs. 4-bit 
 
 Because the PC-1600's `INIT` command has no notion of a >256KB S2: disk, initializing 512KB mode natively fails outright. The manual's documented procedure:
 
-1. Set the jumper to Option 1 (256KB) and `INIT "S2:"` normally (`"F"`, `"M"`, or `"P"` -- same as Part 7a's CE-1601M modes) -- `DSKF"S2:"` reads 251904 (pure RAM disk) or 220160 (with a 32KB S0: expansion carved out), identical figures to a real CE-1601M/256KB-mode module.
+1. Set the jumper to Option 1 (256KB) and `INIT "S2:"` normally (`"F"`, `"M"`, or `"P"` -- same as Part 7a's CE-1601M modes; on a blank module `"F"` first, see the note under Part 7a's table) -- `DSKF"S2:"` reads 251904 (pure RAM disk) or 220160 (with a 32KB S0: expansion carved out), identical figures to a real CE-1601M/256KB-mode module.
 2. Load and `CALL &C0C5` a small patch binary (`SUPERRAM.BIN`) that detects the 256KB/224KB disk just initialized and rewrites its file-system header and capacity fields in place to 512KB/480KB -- described as "not a full replacement of the `INIT` command, but a patch routine only."
 3. Switch the jumper to Option 3 (512KB) and power-cycle -- `DSKF"S2:"` now reads 514048 or 481280.
 
