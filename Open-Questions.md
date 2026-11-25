@@ -10,8 +10,8 @@ a question is settled, strike it in the owning document and remove it here.
 |---|---|---|
 | Machines | PC-1500 machine overview; a model matrix (PC-1500, PC-1500A, PC-1600, ROM variants) | `CPU/LH5801-Architecture.md`, `Memory/PC-1500-Address-Decoding.md` |
 | Display | PC-1500 display; PC-1600 character-code table (TRM 10.1) | `Programming/prompts/PC-1500-BASIC-Prompt.md`, `Firmware/PC-1500-System-Variables.md` |
-| IO-Ports | PC-1500 I/O ports (LH5810 as used on the CE-150) | `Peripherals/PC-1500-CE-150-Hardware.md` |
-| Serial-Parallel | CE-158 interface (RS-232C, Centronics, cassette) | SharpBasicReference `CE-158-Reference.md`, `Firmware/PC-1500-Peripheral-Commands.md` |
+| IO-Ports | PC-1500 LH5811 register description (TRM); `IO-Ports/PC-1500-LH5811-and-ME1.md` has only the measured facts | `Peripherals/PC-1500-CE-150-Hardware.md` |
+| Serial-Parallel | CE-158 cassette and the CE-158X addendum; `Serial-Parallel/PC-1500-CE-158-Interface.md` has the hardware | SharpBasicReference `CE-158-Reference.md`, the CE-158 disassembly |
 | Keyboard | PC-1600 key-code value table (TRM 10.2); not needed for emulation | |
 | Expansion | PC-1600 expansion bus electrical and timing detail (stub) | `Expansion/PC-1600-Connectors.md` |
 | Programming | Z-80 toolchain and worked examples; PC-1600 BASIC authoring prompt | `Programming/PC-1600-Z80-Assembly-Guide.md` ("Still to write") |
@@ -34,6 +34,8 @@ The scans are catalogued with their local paths in `sources/sources.yaml` (check
 ## Unknowns by topic
 
 - **CPU:** whether I/O cycles get an additional wait on top of the one per M1 cycle (test: a port-heavy BEEP-style loop timed on hardware); undocumented Z-80 opcodes and flag bits 3 and 5 (NMOS, CMOS Z84C00 or neither); `IN r,(C)` and block-I/O address-bus contents; interrupt causes bit 3 ("from LH-5801") and bit 5 ("key input"); `DD`/`FD` edge cases. `CPU/PC-1600-SC7852-Z80.md` section 12.
+- **I/O ports (PC-1500):** where the measured BEEP tone period gets its 3 extra cycles (164 + 22·A instead of the loop's 161 + 22·A). `IO-Ports/PC-1500-LH5811-and-ME1.md` §3.
+- **Serial (PC-1600, MODE 1):** whether `SETDEV KI` + `INPUT` reaches a CE-158 on real hardware. `Serial-Parallel/PC-1500-CE-158-Interface.md` §4.
 - **I/O ports:** edge versus level behaviour of 32H/35H (bits 0-3, 5-7); ADC range and scaling for the analog inputs; the F register (17H) tone path while serial data is sent; the per-port decode of 50-5FH on real hardware. `IO-Ports/PC-1600-IO-Ports.md` ("TODO").
 - **Display:** which segments of the Japanese romaji/kana indicators X35 and X59 light; how the status-line Y6f / X49-X64 wiring is driven in software; IC2/IC3 ADC pin levels; `LINE`/`BOX` entry address versus the `CALL &0124` example. `Display/PC-1600-Display-Hardware.md` ("TODO").
 - **Storage:** `DIRSFT`/`CLSSFT` meaning; whether `SET DMA` is a real DMA address; attribute-byte b1 (`"I"`). `Storage/PC-1600-Filesystem.md` ("Open items").

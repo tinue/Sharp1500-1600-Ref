@@ -84,6 +84,34 @@ The manual says `NEW` "clears all BASIC and machine programs", but **real-hardwa
 - `PASS` (p.252) protects *all* programs in memory and, while set, blocks `NEW`, `TITLE`, `LIST`, `(C)SAVE`, `(C)LOAD`, `MERGE` and `CHAIN` — so the current program area is frozen as well.
 - Installing an *expansion* (non-backed-up) module brings up `NEW 0?: CHECK`; a program module doesn't (Appendix B).
 
+### 4.2 How the ROM tells a program module from expansion memory; `ERROR 24`
+
+At boot `SSLOTMP` (bank 3 670AH, via 003BH) probes both slots and fills `S1MTB` (F016H) and
+`S2MTB` (F020H). It classifies each block with `SLOTST` (bank 3 6914H, via 00E8H), which reads
+the module header at the slot base (8000H of the first bank: bank 0 for Slot 1, bank 2 for
+Slot 2) [ROM:PC-1600-ROM/disasm/new/PC1600-P1-B3.asm@670A]:
+
+| Block | `SLOTST` result | Slot entry |
+|---|---|---|
+| header +0 = 55H, +7 = 8xH (program module) or 0xH (RAM module) | F0H + low nibble of +7 (80H → F0H, 82H → F2H) | that value |
+| header +0 = 55H, +7 = FFH | F0H | F0H |
+| ROM without header | 0FH | — |
+| RAM without header | — | FEH: expansion memory, merged into S0 |
+| nothing | 00H | FFH: empty slot |
+
+`INIT "S2:","P"` writes the program-module header (`55 00 hh ll 80 hh ll 80`, read back after
+`NEW "S2:",&1000` as `55 00 10 00 80 10 00 80`); `INIT "S2:","M"` writes none.
+
+`SLOTSTAT` (1EC7H) turns the entry into a status byte: b6 = program module (entry below FEH),
+b5 = RAM disk, b4 = writable [ROM:PC-1600-ROM/disasm/new/PC1600-P0-B0.asm@1EC7]. `NEW "S1:"`
+and `NEW "S2:"` test b6 (1DBCH `and 40H`); without it, bank 3b 439CH jumps to the error exit
+at 7D3DH that loads 18H [ROM:PC-1600-ROM/disasm/new/PC1600-P1-B3B.asm@439C]. So **`ERROR 24`
+on `NEW "Sx:"` means "this slot holds no program module"**: expansion memory or an empty slot.
+A CE-1600M without a header gives `MEM` 44602 and `ERROR 24` on `NEW "S2:"`; after
+`INIT "S2:","P"`, `MEM` is 11834 and `NEW "S2:",&1000` succeeds [EMU:Calc-U-1600, CE-1600M in
+Slot 2]. With expansion memory, `NEW "S0:",&1000` reserves at the module base (80C5H–8FFFH):
+the one header and reserve area move to the lowest merged base (TRM §3.13.2).
+
 **Open:** whether `MEM` reports the free space of the S1/S2 area when `TITLE` selects it. The manuals only describe `MEM` as "free user memory" (Appendix B).
 
 ---

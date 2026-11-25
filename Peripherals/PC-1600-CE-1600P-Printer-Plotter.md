@@ -45,6 +45,13 @@ The CE-1600P is an A4 4-colour pen plotter-printer with a built-in cassette inte
 - **Y:** no fixed page length in roll mode (`MODE` b1 = 1, `PC-1600-Work-Area-Map.md`
   §3.4); `PSCRL` (IOCS 0AH) sets the Y-direction print area on the paper. Cut-sheet
   mode (`MODE` b1 = 0) is bounded by the sheet.
+- **Vertical clip window (`PAPER`).** The ROM clips Y to the range set by `PAPER`
+  (IOCS 09H `PPAPER`): **Y = 0 to 999** (≈ 199.8 mm) by default in roll mode, **0 to 30**
+  (≈ 6 mm) for cut sheet. The window is anchored to the absolute origin of `PINIT` / power-on
+  (the scissoring counter); `SORGN` moves only the user origin, so it does not open a fresh
+  window. `PAPER n` enlarges it. X has no such setting: 0–960 is the carriage stop, and the
+  pen keeps counting past it without ink. Observed with the real CE-1600P ROM
+  [EMU:Calc-U-1600, CE-1600P plots]; no Sharp document gives the defaults.
 
 ### 1.1 Two call mechanisms
 

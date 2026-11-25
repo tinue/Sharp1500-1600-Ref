@@ -187,6 +187,8 @@ Two sources disagree on which PC-1600 slot's pin 18 carries which signal, and th
 
 **The forum's account** (paraphrased): for an unmodified CE-163, the bank switch is operated by S3 and A0. In PC-1600 slot 1, S3 maps to &A800–&AFFF — which sits *inside* the module's own 16K RAM range (&8000–&BFFF), so any code touching &A800–&AFFF triggers a spurious bank switch. Slot 2 uses a completely different mechanism for the equivalent signal (K2#, part of "vertical bank switch" for modules >32K), operated via `OUT` port access only, not mapped to any RAM address — so there's no conflict there. Compatibility rules: modules <16K → slot 1 only; 16K/32K → either slot; CE-163 → slot 2 only; >32K → slot 2 only.
 
+**Measured on a real PC-1600 (maintainer, 2026), CE-163F and CE-1638:** in Slot 1 the ROM cannot detect the module's RAM, because its bank switches all the time, and ignores it: `MEM` stays as without a module and `MODE 1` is accepted. In Slot 2 the module works as one flat 16 KB region with its banks ignored. Calc-U-1600 running the ROM gives the same: `MEM` 11834 with the module in Slot 1 (as with none), 28218 in Slot 2 (as with a CE-161 in Slot 1) [EMU:Calc-U-1600]. This fits the forum account above. `../Firmware/PC-1600-MODE0-MODE1.md` §8.2 has the `MODE 1` consequences.
+
 This matches independent confirmation from the PC-1600 TRM (I/O map dedicates port 28H–2FH to "S2 (slot 2)") and the CE-1601M module manual ("the vertical bank of S2 is selected when data of 0 to 9 are written in 28H of the I/O space").
 
 | Module type | Slot 1 | Slot 2 |

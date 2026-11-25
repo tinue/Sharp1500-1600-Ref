@@ -100,4 +100,11 @@ Execute: `CALL 01C6H` (CALLH)
 
 **PV signal** (pin 60): Internal flip-flop output, sent directly to PVOUT of SC7852. When Z-80 operates, PV floats and is pulled down internally.
 
+**Unclaimed ME1 is a floating bus, not an ME0 mirror.** Measured on a real PC-1600 in MODE 1
+(maintainer, 2026): after `XPOKE &4100,85`, `XPEEK &4100` = 85 (ME0), but `XPEEK#` at &4100,
+&4101, &4180, &1000, &6000 and &C000 returns **37** every time. 37 = 25H is the second byte of
+the `LDA #(U)` (FD 25H) that `XPEEK#` itself executes: with nothing decoding the ME1 address,
+the data bus keeps the last byte fetched. The PC-1500 behaves differently: there unclaimed ME1
+reads FFH (`../IO-Ports/PC-1500-LH5811-and-ME1.md`).
+
 ---

@@ -86,6 +86,14 @@ sources:
     title: "CE-161 Service Manual (16 KB RAM module, flat LSI type)"
     rank: 2
     local: "~/SynologyDrive/Dokumente/PDF/Vintage/Sharp/PC-1500/Sharp_CE-161_Service_Manual.pdf"
+  - id: MAN-CE158
+    title: "CE-158 Instruction Manual (US edition)"
+    rank: 2
+    local: "~/SynologyDrive/Dokumente/PDF/Vintage/Sharp/CE-158X_Users_Manual/CE-158_US_Instruction_manual.pdf"
+  - id: SM-CE158
+    title: "CE-158 Service Manual"
+    rank: 2
+    note: "Read online (ManualsLib); no local copy."
   - id: SCHLIEKER-INTERN
     title: "H.-G. Schlieker, PC-1500 Intern: kommentiertes Betriebssystem (German)"
     rank: 3

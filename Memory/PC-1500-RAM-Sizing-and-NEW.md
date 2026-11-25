@@ -60,6 +60,17 @@ The screen reverse program is 18 bytes long. The start addresses are therefore a
 * PC-1500A / a memory module: `NEW` offset depends on the module's own firmware reserve (see the module's own documentation)
 * PC-1600: `NEW "S0:",&D7`: Add 197
 
+### 5.5a RAM contents after power loss
+
+Measured on a real PC-1500 (maintainer, 2026): after the batteries were out, every byte of
+&7600–&7BFF (display RAM and the first 1 KB of system RAM, 1.5 KB) reads &FF, the lock byte
+&79FF included; the rest of RAM, the reserve area among it, reads mostly &00. The A04 ROM's
+RESET, COLD_START and CL paths never write &79FF (only `NEW0`'s UNLOCK does)
+[ROM:PC-1500-ROM/disasm/a04/PC-1500-A04.asm], so this is the RAM chips' power-up state, not
+code. A cold start therefore needs `NEW0`: a plain `NEW` leaves the BASIC pointers at
+&7865–&786A as &FF. The PC-1500A's upper 1 KB of system RAM (&7C00–&7FFF) has not been
+measured.
+
 ### 5.6 Machine plus a program module (ROM module, or a write-protected CE-161)
 
 A **program module** holds a BASIC program and its reserve-key contents in memory the CPU can't write: a mask-ROM module such as the CE-502B, or a CE-161 whose write-protect switch (in the RAMs' R/W line, CE-161 Service Manual) is set. The system ROM recognizes it at power-on and then lays out memory differently from §5.1–§5.4.

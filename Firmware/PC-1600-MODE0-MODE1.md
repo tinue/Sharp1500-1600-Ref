@@ -206,6 +206,7 @@ Field results reported against real units:
 | — | CE-155/161-class (≤16 KB, flat) | OK *(more lenient than the TRM's "nothing in slot 2")* |
 | CE-1600M / CE-1601M (PC-1600, bank-switched) | — | `ERROR 110` |
 | — | CE-1600M / CE-1601M (PC-1600, bank-switched) | `ERROR 110` |
+| CE-163F / CE-1638 (CE-163 class) | — | OK: the ROM does not detect the module, `MEM` unchanged |
 | CE-155 (8 KB, flat) | CE-163-class (2 × 16 KB, latch-banked) | `ERROR 110` |
 | CE-1600M *as RAM disk, formatted in MODE 0* | CE-1600M/CE-161 *as RAM disk, formatted in MODE 0* | OK (the TRM exception) |
 
@@ -218,7 +219,7 @@ Everything in the table follows from that one rule:
 - **No module at all** → S0 is internal RAM only → accepted (`PC15MAP` keeps S0 internal). Nothing backs 0000–3FFF then, so a PC-1500 program that expects module RAM there won't find it, but `MODE 1` itself doesn't refuse.
 - **CE-1600M (32 KB)** → needs the connector's PVOUT/A14-equivalent to pick between its two 16 KB halves; the MODE 1 setup fixes Port 31H once and cannot half-select mid-execution on behalf of PC-1500 code that doesn't know the window is banked → refuse.
 - **CE-1601M (64 KB+)** → adds Port 28H vertical banking on top → refuse.
-- **CE-163-class** → a 2 × 16 KB PC-1500 module that latches its bank from an address-line pulse (`PC-1500-Bank-Switching.md` §9); > 16 KB and self-banking → refuse. Whether it sits in Slot 1 or Slot 2 is irrelevant; the CE-155 next to it in the other slot is fine on its own but cannot rescue the configuration.
+- **CE-163-class** (CE-163, CE-163F, CE-1638) → a PC-1500 module that latches its bank from the **address** bus (`../Memory/PC-1500-Bank-Switching.md` §9), not from Port 28H. The PC-1600 ROM never sees that banking, so the rule above does not apply to it; "banked" in this document means the PC-1600 protocol, the bank number on the **data** bus (Port 28H: CE-1601M, superRAM). Measured on a real PC-1600 (maintainer, 2026): in **Slot 1** the module's bank switches all the time, the ROM cannot detect its RAM and ignores it (`MEM` as without a module, `MODE 1` accepted); in **Slot 2** it works as a flat module with its banks ignored. Together with a CE-155 in Slot 1 it gives `ERROR 110`.
 - **Plain ≤16 KB module (CE-151/155/159/161, or a flat modern 16 KB card), either slot** → exactly one flat bank at 8000–BFFF (Z-80) / 0000–3FFF (LH5803), no banking → the LH5803 map in §4b.6 holds → OK.
 
 The user-facing shorthand "it's the total amount of memory" is a good first approximation — the effective ceiling is one PC-1500-style 16 KB `Y0` module — but the precise trigger is *bankedness*, not a byte count: a single 32 KB flat region would fail for the same reason two flat 16 KB regions do.
