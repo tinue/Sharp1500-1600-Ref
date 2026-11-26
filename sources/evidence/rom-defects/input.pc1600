@@ -1,0 +1,14 @@
+format-version: 2
+preset-name: INPUT# defect
+model: PC-1600
+slot-2: { name: CE-1601M }
+keys:
+  - key: mode
+  - type: NEW0
+  - type: INIT"S2:","F"
+  - type: INIT"S2:","M"
+program:
+  file: rom-defects.bas
+keys:
+  - key: mode
+  - type: RUN

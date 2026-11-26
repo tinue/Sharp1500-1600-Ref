@@ -18,6 +18,7 @@ The ROM and what it does: IOCS routines, jump tables, system variables and point
 | [PC-1500-Tokenizer.md](PC-1500-Tokenizer.md) | 1500 | draft | 6 | How the ROM tokenizes BASIC input at $F957. |
 | [PC-1600-IOCS.md](PC-1600-IOCS.md) | 1600 | draft | 7 | IOCS calling conventions and the master routine index (section 3.1-3.13). |
 | [PC-1600-MODE0-MODE1.md](PC-1600-MODE0-MODE1.md) | 1600 | ROM-verified | 18 | Everything the MODE 1 flag switches, located in the ROM; XCALL/XPEEK/XPOKE; ERROR 110 analysis. |
+| [PC-1600-ROM-Defects.md](PC-1600-ROM-Defects.md) | 1600 | emulator-verified | 3 | Defects in the PC-1600 ROM that a BASIC user can run into, each found in the disassembly and confirmed in Calc-U. |
 | [PC-1600-ROM-Disassembly.md](PC-1600-ROM-Disassembly.md) | 1600 | cited | 3 | Pointer to the real-hardware ROM dumps and their annotated disassemblies (PC-1600-ROM). |
 | [PC-1600-ROM-Jump-Table.md](PC-1600-ROM-Jump-Table.md) | 1600 | cited | 14 | Fixed ROM jump table 0000H-0312H. |
 | [PC-1600-Transparent-Banking.md](PC-1600-Transparent-Banking.md) | 1600 | cited | 6 | Firmware view of banking: system calls, RST shortcuts, ROM module headers, slot management, boot sequence. |
