@@ -37,7 +37,7 @@ Each folder has a `README.md` with the questions it answers and a table of its d
 | CPU | LH5801 | SC7852 (Z-80) + LH5803 (PC-1500 mode) |
 | Write BASIC | [`PC-1500-BASIC-Prompt.md`](Programming/prompts/PC-1500-BASIC-Prompt.md) | [`PC-1600-BASIC-Porting.md`](Programming/PC-1600-BASIC-Porting.md) |
 | Write machine code | [`LH5801-Assembly-Prompt.md`](Programming/prompts/LH5801-Assembly-Prompt.md) | [`PC-1600-Z80-Assembly-Guide.md`](Programming/PC-1600-Z80-Assembly-Guide.md) (first pass) |
-| BASIC language reference | [SharpBasicReference](https://github.com/tinue/SharpBasicReference) | [SharpBasicReference](https://github.com/tinue/SharpBasicReference) |
+| BASIC language reference | [Sharp-BASIC-Ref](https://github.com/tinue/Sharp-BASIC-Ref) | [Sharp-BASIC-Ref](https://github.com/tinue/Sharp-BASIC-Ref) |
 | Annotated ROM disassembly | [PC-1500-ROM](https://github.com/tinue/PC-1500-ROM), [Sharp_PC-1500_ROM_Disassembly](https://github.com/Jeff-Birt/Sharp_PC-1500_ROM_Disassembly) | [PC-1600-ROM](https://github.com/tinue/PC-1600-ROM) |
 | Emulator | Calc-U-1600 in [Calc-U](https://github.com/tinue/Calc-U) | Calc-U-1600 in [Calc-U](https://github.com/tinue/Calc-U) |
 
@@ -93,7 +93,7 @@ Because the skill is a symlink, `git pull` keeps documents and skill up to date.
 The skill also uses these public repositories if they are cloned **next to** this one (BASIC references, ROM source code, the emulator). Without them it tells you which to clone:
 
 ```sh
-git clone https://github.com/tinue/SharpBasicReference.git
+git clone https://github.com/tinue/Sharp-BASIC-Ref.git
 git clone https://github.com/tinue/PC-1600-ROM.git
 git clone https://github.com/tinue/PC-1500-ROM.git
 git clone https://github.com/Jeff-Birt/Sharp_PC-1500_ROM_Disassembly.git
@@ -106,7 +106,7 @@ You can use this repo as a model for your own skill: one repo of reference docum
 
 ## External references
 
-**[SharpBasicReference](https://github.com/tinue/SharpBasicReference)** is a separate public repository and the home of all BASIC language documentation for both machines. Nothing is duplicated here.
+**[Sharp-BASIC-Ref](https://github.com/tinue/Sharp-BASIC-Ref)** is a separate public repository and the home of all BASIC language documentation for both machines. Nothing is duplicated here.
 
 | Document | Summary |
 |---|---|
@@ -128,8 +128,8 @@ Some documents name sibling projects by repository name. None of their contents 
 | `PC-1600-ROM` | PC-1600 and CE-1600P ROM dumps and annotated, reassemblable disassemblies | [github.com/tinue/PC-1600-ROM](https://github.com/tinue/PC-1600-ROM) |
 | `PC-1500-ROM` | PC-1500 A01/A03/A04 and CE-150/CE-158 ROM dumps and disassemblies | [github.com/tinue/PC-1500-ROM](https://github.com/tinue/PC-1500-ROM) |
 | `Sharp_PC-1500_ROM_Disassembly` | External: Jeff Birt's PC-1500 ROM disassembly (TASM dialect) | [github.com/Jeff-Birt/Sharp_PC-1500_ROM_Disassembly](https://github.com/Jeff-Birt/Sharp_PC-1500_ROM_Disassembly) |
-| `SharpBasicReference` | BASIC references (above) | [github.com/tinue/SharpBasicReference](https://github.com/tinue/SharpBasicReference) |
-| `SharpDataExchange` | Serial transfer, BASIC tokenizer and floppy-image tool | [github.com/tinue/SharpDataExchange](https://github.com/tinue/SharpDataExchange) |
+| `Sharp-BASIC-Ref` | BASIC references (above) | [github.com/tinue/Sharp-BASIC-Ref](https://github.com/tinue/Sharp-BASIC-Ref) |
+| `Sharp-Data-Exchange` | Serial transfer, BASIC tokenizer and floppy-image tool | [github.com/tinue/Sharp-Data-Exchange](https://github.com/tinue/Sharp-Data-Exchange) |
 | `SharpBasicPlugin` | IDE plugin for Sharp BASIC | [github.com/tinue/SharpBasicPlugin](https://github.com/tinue/SharpBasicPlugin) |
 | `sdcc-pc1500` | External: LH5801 assembler/linker | [github.com/pchambre/sdcc-pc1500](https://github.com/pchambre/sdcc-pc1500) |
 
@@ -143,7 +143,7 @@ Material behind this repository (collected manuals, downloads, ROM work in progr
 
 ## Limitations
 
-- The BASIC prompt targets the PC-1500. PC-1600 BASIC is documented in SharpBasicReference, and [`PC-1600-BASIC-Porting.md`](Programming/PC-1600-BASIC-Porting.md) lists the porting gotchas, but there is no PC-1600 authoring prompt yet.
+- The BASIC prompt targets the PC-1500. PC-1600 BASIC is documented in Sharp-BASIC-Ref, and [`PC-1600-BASIC-Porting.md`](Programming/PC-1600-BASIC-Porting.md) lists the porting gotchas, but there is no PC-1600 authoring prompt yet.
 - The PC-1600 machine-language guide is a first pass. The LH5801 guide is complete and assumes a PC-1500 or PC-1500A memory layout.
 - Some documents are still `draft`; see the status column in [`INDEX.md`](INDEX.md). The PC-1500 side has no documents yet for display, I/O ports and the CE-158 interface ([`Open-Questions.md`](Open-Questions.md)).
 

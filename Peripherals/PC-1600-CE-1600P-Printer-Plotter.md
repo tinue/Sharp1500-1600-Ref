@@ -39,7 +39,7 @@ The CE-1600P is an A4 4-colour pen plotter-printer with a built-in cassette inte
 
 - **Plottable width (X):** X = 0 to 960 plotter units ≈ **190mm**, the pen clips at this
   edge. Scale = **0.198mm per unit** (190 / 960). The CE-150 shares this same step
-  (`SharpBasicReference/CE-150-Reference.md`: 216 units ≈ 42.75mm) — same mechanism, just
+  (`Sharp-BASIC-Ref/CE-150-Reference.md`: 216 units ≈ 42.75mm) — same mechanism, just
   a wider carriage on A4 stock. The CE-1600P's wider travel makes it the better source
   for the mm/unit figure.
 - **Y:** no fixed page length in roll mode (`MODE` b1 = 1, `PC-1600-Work-Area-Map.md`

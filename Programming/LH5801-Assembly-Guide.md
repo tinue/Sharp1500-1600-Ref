@@ -118,7 +118,7 @@ The preset format, the app and the headless runner are described in Calc-U-1600'
 
 ### Loading a program onto real hardware
 
-Once a program works correctly in the emulator, transfer it to a real PC-1500/PC-1500A over its serial port using `SharpDataExchange` (public repo, not part of this repository: [github.com/tinue/SharpDataExchange](https://github.com/tinue/SharpDataExchange)) and a CE-158X USB serial adapter (Jeff Birt's modern replacement for the original Sharp CE-158, connected via its USB port labeled **U1**; no driver setup needed on modern OSes).
+Once a program works correctly in the emulator, transfer it to a real PC-1500/PC-1500A over its serial port using `Sharp-Data-Exchange` (public repo, not part of this repository: [github.com/tinue/Sharp-Data-Exchange](https://github.com/tinue/Sharp-Data-Exchange)) and a CE-158X USB serial adapter (Jeff Birt's modern replacement for the original Sharp CE-158, connected via its USB port labeled **U1**; no driver setup needed on modern OSes).
 
 For a raw assembled `.bin` with no CE-158 header, supply the load address explicitly (and a run address if it should auto-start on load):
 
@@ -133,7 +133,7 @@ SETDEV U1,CI,CO
 CLOADM
 ```
 
-(`SETDEV U1,CI,CO` redirects console I/O to the CE-158X's USB port; it must be re-entered after every power cycle or `NEW`. `CLOADM` — not plain `CLOAD`, which only loads BASIC programs — receives machine language.) The PC-1500 needs paced transmission — `SharpDataExchange` applies this automatically; if transfer is unreliable, check the USB cable and CE-158X connection before suspecting the program itself. See `SharpDataExchange/MANUAL.md` for BASIC-program transfer (`get`/`put`), Reserve Area backup, and PC-1600 wiring — this appendix only covers the machine-code-load path relevant to assembly programs.
+(`SETDEV U1,CI,CO` redirects console I/O to the CE-158X's USB port; it must be re-entered after every power cycle or `NEW`. `CLOADM` — not plain `CLOAD`, which only loads BASIC programs — receives machine language.) The PC-1500 needs paced transmission — `Sharp-Data-Exchange` applies this automatically; if transfer is unreliable, check the USB cable and CE-158X connection before suspecting the program itself. See `Sharp-Data-Exchange/MANUAL.md` for BASIC-program transfer (`get`/`put`), Reserve Area backup, and PC-1600 wiring — this appendix only covers the machine-code-load path relevant to assembly programs.
 
 ---
 

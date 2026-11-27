@@ -653,10 +653,10 @@ the following sections:
 
 1. **Program overview** — what the program does, intended user, any prerequisites
 2. **How to enter / load** — cover all three methods below:
-   - **Transfer via SharpDataExchange:** connect the PC-1500 and use the SharpDataExchange
-     tool (public, not part of this repository: [github.com/tinue/SharpDataExchange](https://github.com/tinue/SharpDataExchange))
+   - **Transfer via Sharp-Data-Exchange:** connect the PC-1500 and use the Sharp-Data-Exchange
+     tool (public, not part of this repository: [github.com/tinue/Sharp-Data-Exchange](https://github.com/tinue/Sharp-Data-Exchange))
      to send the `.bas` file. The tool automatically strips `//` comment lines before
-     transmission, so the device never sees them. *(Note: SharpDataExchange is not yet
+     transmission, so the device never sees them. *(Note: Sharp-Data-Exchange is not yet
      available on this Mac; transfer is pending.)*
    - **Manual entry:** type each numbered line exactly as shown. **Do not type `//` lines** —
      they are not valid PC-1500 BASIC syntax and will cause an error if entered on the device.
@@ -720,10 +720,10 @@ Intended for any PC-1500 user; no CE-150 required.
 
 #### How to Enter / Load
 
-**Transfer via SharpDataExchange (recommended):**
-Connect the PC-1500 and send `squares.bas` using the SharpDataExchange tool.
+**Transfer via Sharp-Data-Exchange (recommended):**
+Connect the PC-1500 and send `squares.bas` using the Sharp-Data-Exchange tool.
 The tool strips all `//` comment lines automatically before transmission.
-*(Note: SharpDataExchange is not yet available on this Mac; transfer is pending.)*
+*(Note: Sharp-Data-Exchange is not yet available on this Mac; transfer is pending.)*
 
 **Manual entry:**
 Type each numbered line exactly as shown. **Do not type the `//` lines** — they are

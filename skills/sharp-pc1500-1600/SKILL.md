@@ -22,7 +22,7 @@ when a task needs it, tell the user which repo to clone instead of guessing.
 
 | Name | Repository | What |
 |---|---|---|
-| `$BAS` | `SharpBasicReference` ([GitHub](https://github.com/tinue/SharpBasicReference)) | BASIC language references, PC-1500 **and** PC-1600 |
+| `$BAS` | `Sharp-BASIC-Ref` ([GitHub](https://github.com/tinue/Sharp-BASIC-Ref)) | BASIC language references, PC-1500 **and** PC-1600 |
 | `$P16ROM` | `PC-1600-ROM` ([GitHub](https://github.com/tinue/PC-1600-ROM)) | PC-1600 + CE-1600P ROM dumps, annotated reassemblable disassemblies |
 | `$P15ROM` | `PC-1500-ROM` ([GitHub](https://github.com/tinue/PC-1500-ROM)) | PC-1500 A01/A03/A04, CE-150, CE-158 dumps and disassemblies |
 | `$P15DIS` | `Sharp_PC-1500_ROM_Disassembly` ([GitHub](https://github.com/Jeff-Birt/Sharp_PC-1500_ROM_Disassembly)) | PC-1500 system ROM, TASM dialect |

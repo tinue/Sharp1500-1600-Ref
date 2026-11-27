@@ -7,7 +7,7 @@ Status: draft
 
 ## 1. Scope
 
-The hardware side of the CE-158. Its BASIC commands are in SharpBasicReference
+The hardware side of the CE-158. Its BASIC commands are in Sharp-BASIC-Ref
 (`CE-158-Reference.md`), its keyword tokens in `../Firmware/PC-1500-Peripheral-Commands.md`.
 Cassette and the CE-158X addendum are not covered yet.
 

@@ -5,7 +5,7 @@ Plots a red Lissajous figure on the CE-150 plotter with a black title. This vers
 
 #### How to Enter / Load
 
-**Transfer via SharpDataExchange (recommended):**
+**Transfer via Sharp-Data-Exchange (recommended):**
 Connect the PC-1500 and send `lissajou.bas`.
 
 **Manual entry:**

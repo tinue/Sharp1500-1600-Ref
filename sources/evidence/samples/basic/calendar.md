@@ -5,9 +5,9 @@ The CALENDAR program generates a monthly calendar on the Sharp CE-150 plotter us
 
 #### How to Enter / Load
 
-**Transfer via SharpDataExchange (recommended):**
-Connect the PC-1500 and send `calendar.bas` using the SharpDataExchange tool.
-*(Note: SharpDataExchange is not yet available on this Mac; transfer is pending.)*
+**Transfer via Sharp-Data-Exchange (recommended):**
+Connect the PC-1500 and send `calendar.bas` using the Sharp-Data-Exchange tool.
+*(Note: Sharp-Data-Exchange is not yet available on this Mac; transfer is pending.)*
 
 **Manual entry:**
 Type each numbered line exactly as shown in `calendar_clean.bas`. **Do not type the `//` lines** — they are not valid BASIC syntax on the device.

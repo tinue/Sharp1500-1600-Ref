@@ -11,7 +11,7 @@ a question is settled, strike it in the owning document and remove it here.
 | Machines | PC-1500 machine overview; a model matrix (PC-1500, PC-1500A, PC-1600, ROM variants) | `CPU/LH5801-Architecture.md`, `Memory/PC-1500-Address-Decoding.md` |
 | Display | PC-1500 display; PC-1600 character-code table (TRM 10.1) | `Programming/prompts/PC-1500-BASIC-Prompt.md`, `Firmware/PC-1500-System-Variables.md` |
 | IO-Ports | PC-1500 LH5811 register description (TRM); `IO-Ports/PC-1500-LH5811-and-ME1.md` has only the measured facts | `Peripherals/PC-1500-CE-150-Hardware.md` |
-| Serial-Parallel | CE-158 cassette and the CE-158X addendum; `Serial-Parallel/PC-1500-CE-158-Interface.md` has the hardware | SharpBasicReference `CE-158-Reference.md`, the CE-158 disassembly |
+| Serial-Parallel | CE-158 cassette and the CE-158X addendum; `Serial-Parallel/PC-1500-CE-158-Interface.md` has the hardware | Sharp-BASIC-Ref `CE-158-Reference.md`, the CE-158 disassembly |
 | Keyboard | PC-1600 key-code value table (TRM 10.2); not needed for emulation | |
 | Expansion | PC-1600 expansion bus electrical and timing detail (stub) | `Expansion/PC-1600-Connectors.md` |
 | Programming | Z-80 toolchain and worked examples; PC-1600 BASIC authoring prompt | `Programming/PC-1600-Z80-Assembly-Guide.md` ("Still to write") |
@@ -47,7 +47,7 @@ The scans are catalogued with their local paths in `sources/sources.yaml` (check
 
 - Statuses of the PC-1500 documents were assigned from what each document says about its own sources; review them when the
   PC-1500 sources are catalogued.
-- `Firmware/PC-1500-Peripheral-Commands.md` overlaps SharpBasicReference's `Token-Mapping-Analysis.md`: keep only what it
+- `Firmware/PC-1500-Peripheral-Commands.md` overlaps Sharp-BASIC-Ref's `Token-Mapping-Analysis.md`: keep only what it
   has beyond that, or drop it.
 - `Programming/prompts/PC-1500-BASIC-Prompt.md` has two sections numbered 20 and no section 1; renumber when the prompt is next
   edited (the numbers are referenced inside the prompt).

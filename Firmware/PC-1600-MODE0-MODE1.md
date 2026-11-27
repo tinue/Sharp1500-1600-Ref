@@ -15,7 +15,7 @@ Everything the `MODE 1` flag changes, located in the ROM, plus the partial MODE 
 B4/B5 = the CE-1600P ROM's banks, LH5803 = the LH-5803's own ROM (LH-5803-view addresses,
 `$xxxx`). Points marked ✔ were also run on the real ROMs in Calc-U-1600's headless
 emulator. The user-level version of this material is the "MODE 0 and MODE 1 in detail"
-section of `SharpBasicReference/PC-1600-BASIC-Reference.md`.
+section of `Sharp-BASIC-Ref/PC-1600-BASIC-Reference.md`.
 
 ---
 

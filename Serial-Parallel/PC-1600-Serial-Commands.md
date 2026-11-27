@@ -15,7 +15,7 @@ set (TRM §3.6.3). The line-signal hardware (TC8576F, PRIM, level shifter) is in
 ## Part 1 — BASIC commands relevant to serial communication
 
 The full user-level description is chapter 12 and the part "Serial communication in practice"
-of `$BAS/PC-1600-BASIC-Reference.md` (`SharpBasicReference`), built from the manuals, the TRM, the
+of `$BAS/PC-1600-BASIC-Reference.md` (`Sharp-BASIC-Ref`), built from the manuals, the TRM, the
 Systemhandbücher and the ROM. This part is a compact summary with the ROM evidence. Addresses
 are NEW ROM (`B3B` = P1-B3B, `B3` = P1-B3, `B6` = P2-B6). Bits are numbered from 0. The
 Operation Manual numbers them from 1 on the SNDSTAT/RCVSTAT/INSTAT pages.

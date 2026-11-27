@@ -5,7 +5,7 @@ Scope: PC-1500, PC-1500A, PC-1600
 Sources: cited inline in the text
 Status: cited
 
-> Extracted from `SharpWavAnalysis/spec.md` (in the separate `SharpWavAnalysis`
+> Extracted from `Sharp-WAV-Analysis/spec.md` (in the separate `Sharp-WAV-Analysis`
 > repository, left unchanged there). That document also covers the PC-1261, PC-1401,
 > and PC-1403 cassette formats, which are out of scope here and were not copied.
 > Derived from analysis of the `bin2wav` C reference encoder (version 2.1.1 c1d) and
@@ -390,7 +390,7 @@ checksum_lo = count & 0xFF
 Checked 2026-10-04 by decoding the Calc-U-1600 tape matrix (`headless/tape-matrix/`:
 the emulated CE-150 and CE-1600P ROMs `CSAVE` / `CSAVE M`, timed to match real units),
 the 5 kHz PC-1500 game recordings in `pc1500/Downloaded/` (with their reference `.bin`
-files), and `bin2wav` output. SharpDataExchange's `sharpdx::wav` implements exactly this
+files), and `bin2wav` output. Sharp-Data-Exchange's `sharpdx::wav` implements exactly this
 and loads its own WAVs through the emulated ROMs' `CLOAD`.
 
 **PC-1500 / CE-150**

@@ -2,7 +2,7 @@
 
 RS-232C, the SIO connector and the Centronics port of the PC-1600, and the BASIC commands that drive them.
 
-**Gaps:** the CE-158 document (`PC-1500-CE-158-Interface.md`) covers the hardware addresses and port bits, not yet the cassette or the CE-158X; its BASIC commands are in SharpBasicReference (`CE-158-Reference.md`) and its tokens in `../Firmware/PC-1500-Peripheral-Commands.md`.
+**Gaps:** the CE-158 document (`PC-1500-CE-158-Interface.md`) covers the hardware addresses and port bits, not yet the cassette or the CE-158X; its BASIC commands are in Sharp-BASIC-Ref (`CE-158-Reference.md`) and its tokens in `../Firmware/PC-1500-Peripheral-Commands.md`.
 
 ## Documents
 

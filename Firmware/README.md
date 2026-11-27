@@ -3,7 +3,7 @@
 The ROM and what it does: IOCS routines, jump tables, system variables and pointers, the BASIC tokenizer, MODE 0/1 behaviour.
 
 - Routine and table *contents* are in the annotated disassemblies (`PC-1600-ROM`, `PC-1500-ROM`, Jeff Birt's PC-1500 disassembly), not here; `PC-1600-ROM-Disassembly.md` and `PC-1500-ROM-Overview.md` explain how to read them.
-- BASIC language references are in SharpBasicReference.
+- BASIC language references are in Sharp-BASIC-Ref.
 
 ## Documents
 
@@ -11,7 +11,7 @@ The ROM and what it does: IOCS routines, jump tables, system variables and point
 | File | Model | Status | KB | What it answers |
 |---|---|---|---|---|
 | [PC-1500-BASIC-Pointers.md](PC-1500-BASIC-Pointers.md) | 1500 | draft | 9 | ROM pointers and system variables of the BASIC interpreter. |
-| [PC-1500-Peripheral-Commands.md](PC-1500-Peripheral-Commands.md) | 1500 | draft | 6 | CE-150/CE-158 peripheral token table (overlaps SharpBasicReference Token-Mapping-Analysis). |
+| [PC-1500-Peripheral-Commands.md](PC-1500-Peripheral-Commands.md) | 1500 | draft | 6 | CE-150/CE-158 peripheral token table (overlaps Sharp-BASIC-Ref Token-Mapping-Analysis). |
 | [PC-1500-ROM-Overview.md](PC-1500-ROM-Overview.md) | 1500 | draft | 7 | Guide to the structure of the PC-1500 ROM disassembly. |
 | [PC-1500-ROM-Routines.md](PC-1500-ROM-Routines.md) | 1500 | draft | 26 | PC-1500 ROM subroutine reference: addresses, calling conventions, register use. |
 | [PC-1500-System-Variables.md](PC-1500-System-Variables.md) | 1500 | draft | 20 | PC-1500 system reference: memory layout, system variables, number formats (from the former LH5801 guide). |

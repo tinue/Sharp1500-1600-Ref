@@ -22,8 +22,8 @@ Cross‑references in this repo:
 - Window/bank context: `../Memory/PC-1500-Address-Decoding.md` §2.1 (Y2 = &8000–&BFFF),
   `../CPU/LH5801-PU-PV-Signals.md` (PV selects CE‑150 vs CE‑158 ROM in that window).
 - Bus pinout: `../Expansion/PC-1500-Connectors.md` §2.2 (60‑pin connector).
-- Software side of the same registers/ROM: `SharpBasicReference/CE-150-Reference.md`
-  ("Internal Technical Reference") and `SharpBasicReference/reference/CE-150.lib`.
+- Software side of the same registers/ROM: `Sharp-BASIC-Ref/CE-150-Reference.md`
+  ("Internal Technical Reference") and `Sharp-BASIC-Ref/reference/CE-150.lib`.
 
 Confidence is called out per item: **[schematic]** = read directly off sheet ‑33‑/‑34‑,
 **[confirmed]** = schematic finding independently matches the ROM‑disassembly symbol files,
@@ -119,7 +119,7 @@ i.e. gate B's output AND‑ed with A13 (= the same line as LH5810 CS0).
 
 ## 4. LH5810 memory‑mapped registers  **[confirmed]**
 
-From `SharpBasicReference/CE-150-Reference.md` "I/O Ports (0xB00A‑0xB00F)" and `CE-150.lib`:
+From `Sharp-BASIC-Ref/CE-150-Reference.md` "I/O Ports (0xB00A‑0xB00F)" and `CE-150.lib`:
 
 | Addr | Symbol | R/W | Meaning |
 |---|---|---|---|

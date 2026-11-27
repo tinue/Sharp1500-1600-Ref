@@ -1,6 +1,6 @@
 # PC-1500 Peripheral Commands
 
-Summary: CE-150/CE-158 peripheral token table (overlaps SharpBasicReference Token-Mapping-Analysis).
+Summary: CE-150/CE-158 peripheral token table (overlaps Sharp-BASIC-Ref Token-Mapping-Analysis).
 Scope: PC-1500, PC-1500A
 Sources: cited inline in the text
 Status: draft
@@ -182,8 +182,8 @@ These core commands were also added to complete the command set:
 
 The paths below are relative to the author's local workspace, not to this repository. All three sibling projects are public but are **not part of this repository**:
 
-- CE-150 Reference: `../SharpBasicReference/docs/CE-150-Reference.md` ([github.com/tinue/SharpBasicReference](https://github.com/tinue/SharpBasicReference))
-- CE-158 Reference: `../SharpBasicReference/docs/CE-158-Reference.md` ([github.com/tinue/SharpBasicReference](https://github.com/tinue/SharpBasicReference))
+- CE-150 Reference: `../../common/Sharp-BASIC-Ref/PC-1500-BASIC-Reference.md` (CE-150 part) ([github.com/tinue/Sharp-BASIC-Ref](https://github.com/tinue/Sharp-BASIC-Ref))
+- CE-158 Reference: `../../common/Sharp-BASIC-Ref/PC-1500-BASIC-Reference.md` (CE-158 part) ([github.com/tinue/Sharp-BASIC-Ref](https://github.com/tinue/Sharp-BASIC-Ref))
 - Plugin Keywords: `../SharpBasicPlugin/src/main/java/ch/erzberger/sharpbasic/keywords/` ([github.com/tinue/SharpBasicPlugin](https://github.com/tinue/SharpBasicPlugin))
 
 ---

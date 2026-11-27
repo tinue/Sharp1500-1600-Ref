@@ -6,20 +6,20 @@ Sources: cited inline in the text
 Status: cited
 
 > **STATUS: POINTER DOC.** PC-1600 BASIC reference material is not kept in this repo; it
-> lives in the sibling `SharpBasicReference/` project. Created 2026-09-06 when that
+> lives in the sibling `Sharp-BASIC-Ref/` project. Created 2026-09-06 when that
 > project was enhanced with a full PC-1600 BASIC reference.
 
 ## Why it isn't here
 
 The PC-1600's BASIC is a near-superset of the PC-1500's (≈99 % shared token codes), so it
-is documented for both machines together in `SharpBasicReference/` rather than split
+is documented for both machines together in `Sharp-BASIC-Ref/` rather than split
 between two corpora. See this repo's `README.md` — *External
-references* — for the standing policy that nothing is moved out of `SharpBasicReference/`.
+references* — for the standing policy that nothing is moved out of `Sharp-BASIC-Ref/`.
 
 ## Where it lives
 
-`SharpBasicReference/`
-([github.com/tinue/SharpBasicReference](https://github.com/tinue/SharpBasicReference)):
+`Sharp-BASIC-Ref/`
+([github.com/tinue/Sharp-BASIC-Ref](https://github.com/tinue/Sharp-BASIC-Ref)):
 
 | File | What |
 |---|---|
